@@ -15,6 +15,8 @@ import { ensureSkillIcons } from "../gfx/themeProps";
 
 const CLASSES = ["blade_master", "grand_sorcerer", "night_ranger"];
 const SAVE_KEY = "df_hero";
+const LAST_KEY = "df_last_hero";
+const MAX_HEROES = 4;
 const BOARD_W = 1280;
 const BOARD_H = 720;
 const HERO_H = 300;  // the hero's height on the board, in px
@@ -58,6 +60,8 @@ export class LoginScene extends Phaser.Scene {
   private classList?: Phaser.GameObjects.Container;
   private hero?: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image;
   private createBtn?: Phaser.GameObjects.Container;
+  private sideHeroes?: Phaser.GameObjects.Container;
+  private pick = -1;
 
 
   constructor() {
@@ -70,6 +74,7 @@ export class LoginScene extends Phaser.Scene {
     this.inputSig = "";
     this.accountPanel = undefined;
     this.mode = "account";
+    this.pick = -1;
     ensureTextures(this);
     this.cameras.main.setBackgroundColor("#050407");
     this.bg = this.add.image(0, 0, "login_bg");
@@ -104,6 +109,11 @@ export class LoginScene extends Phaser.Scene {
     this.board.setVisible(false);
     this.nameInput.style.display = "none";
     this.events.once("shutdown", () => this.clearAccountInputs());
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && this.mode === "heroes" && this.characters[this.pick]) this.play(this.characters[this.pick]);
+    };
+    window.addEventListener("keydown", onKey);
+    this.events.once("shutdown", () => window.removeEventListener("keydown", onKey));
     this.layout();
     this.scale.on("resize", this.layout, this);
     this.events.once("shutdown", () => this.scale.off("resize", this.layout, this));
@@ -136,6 +146,8 @@ export class LoginScene extends Phaser.Scene {
         if (!ok || !this.scene.isActive()) return;
         if (id === this.selectedClass) this.drawStage(true);
         this.drawClassList();
+        if (this.mode === "account") this.drawSideHeroes();
+        else if (this.mode === "heroes") this.showHeroes();
       });
     }
     if (getToken()) {
@@ -184,49 +196,153 @@ export class LoginScene extends Phaser.Scene {
     this.accountInputs = [];
   }
 
-  private panel(title: string): Phaser.GameObjects.Container {
+  private panel(): Phaser.GameObjects.Container {
     this.clearAccountInputs();
     this.accountPanel?.destroy();
+    this.sideHeroes = undefined;
     this.board.setVisible(false);
     if (this.nameInput) this.nameInput.style.display = "none";
-    const g = this.add.graphics();
-    g.fillStyle(0x0c0910, 0.97).fillRoundedRect(-460, -260, 920, 540, 14);
-    g.lineStyle(2, 0xd6aa5a, 0.9).strokeRoundedRect(-460, -260, 920, 540, 14);
-    this.accountPanel = this.add.container(0, 0, [g, this.add.text(0, -218, title, txt(30, "#ffd77a")).setOrigin(0.5)]);
+    const title = this.add.text(0, -300, "DARK FANTASY", txt(56, "#c8202e", { fontStyle: "bold", strokeThickness: 7 })).setOrigin(0.5);
+    title.setShadow(0, 0, "#ff2a3a", 22, true, true).setPadding(40, 26, 40, 26);
+    this.tweens.add({ targets: title, alpha: { from: 0.85, to: 1 }, duration: 1800, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    const sub = this.add.text(0, -254, "As Crônicas de Ravencrest", txt(18, "#c8b48a")).setOrigin(0.5);
+    const line = this.add.graphics();
+    line.lineStyle(1, 0xd6aa5a, 0.5).lineBetween(-180, -236, 180, -236);
+    line.fillStyle(0xd6aa5a, 0.9).fillCircle(0, -236, 3);
+    this.accountPanel = this.add.container(0, 0, [title, sub, line]);
     this.layout();
     return this.accountPanel;
   }
 
-  private accountButton(panel: Phaser.GameObjects.Container, label: string, x: number, y: number, action: () => void): void {
-    const bg = this.add.rectangle(x, y, 260, 48, 0x513918).setStrokeStyle(2, 0xd6aa5a);
-    const text = this.add.text(x, y, label, txt(18, "#ffd77a")).setOrigin(0.5);
-    bg.setInteractive({ useHandCursor: true }).on("pointerdown", () => { if (!this.busy) action(); });
-    panel.add([bg, text]);
+  /** A dark panel with a gold double border and small diamonds on the corners. */
+  private frame(x: number, y: number, w: number, h: number, edge = 0xd6aa5a, alpha = 0.94): Phaser.GameObjects.Graphics {
+    const g = this.add.graphics();
+    g.fillStyle(0x000000, 0.45).fillRoundedRect(x + 6, y + 8, w, h, 12);
+    g.fillStyle(0x0c0910, alpha).fillRoundedRect(x, y, w, h, 12);
+    g.fillGradientStyle(0x22182a, 0x22182a, 0x0c0910, 0x0c0910, 0.9, 0.9, 0, 0).fillRect(x + 3, y + 3, w - 6, Math.min(120, h / 3));
+    g.lineStyle(2, edge, 0.9).strokeRoundedRect(x, y, w, h, 12);
+    g.lineStyle(1, 0xd6aa5a, 0.25).strokeRoundedRect(x + 6, y + 6, w - 12, h - 12, 8);
+    g.fillStyle(edge, 1);
+    for (const [cx, cy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h], [x + w / 2, y]]) {
+      g.fillTriangle(cx, cy - 7, cx + 7, cy, cx, cy + 7).fillTriangle(cx, cy - 7, cx - 7, cy, cx, cy + 7);
+    }
+    return g;
   }
+
+  /** The big gold button of the game (the same as "Criar herói"), gently glowing. */
+  private goldButton(x: number, y: number, label: string, w: number, h: number, size: number, action: () => void): Phaser.GameObjects.Container {
+    const glow = this.add.image(0, 0, "glow_gold").setBlendMode(Phaser.BlendModes.ADD).setDisplaySize(w * 1.4, h * 1.9).setAlpha(0.25);
+    const bg = this.add.image(0, 0, "hud_button").setDisplaySize(w, h);
+    const text = this.add.text(0, 0, label, txt(size, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5);
+    const c = this.add.container(x, y, [glow, bg, text]).setSize(w, h).setInteractive({ useHandCursor: true });
+    c.on("pointerover", () => { bg.setAlpha(0.85); text.setColor("#fff1c4"); glow.setAlpha(0.5); });
+    c.on("pointerout", () => { bg.setAlpha(1); text.setColor("#ffd77a"); glow.setAlpha(0.25); });
+    c.on("pointerdown", () => { if (!this.busy) action(); });
+    this.tweens.add({ targets: glow, alpha: { from: 0.18, to: 0.42 }, duration: 1300, yoyo: true, repeat: -1 });
+    return c;
+  }
+
+  /** A hero's 3D figure standing at (x, foot), `height` px tall, looking towards `dir` (0 right, 2 front, 4 left). */
+  private heroFigure(cls: string, x: number, foot: number, height: number, dir: number): Phaser.GameObjects.Sprite | Phaser.GameObjects.Image {
+    const key = `unit_${cls}`;
+    if (hasSheet(key)) {
+      const info = SHEETS[key];
+      const spr = this.add.sprite(x, foot, `${key}:idle`, dir * info.anims.idle.frames).setOrigin(0.5, info.originY)
+        .setScale((height * info.scale) / (info.height * 44));
+      const idle = animKey(key, "idle", dir);
+      if (this.anims.exists(idle)) spr.play({ key: idle, startFrame: Phaser.Math.Between(0, info.anims.idle.frames - 1) });
+      return spr;
+    }
+    const [ox, oy] = UNIT_ORIGIN[key] ?? [0.5, 0.95];
+    return this.add.image(x, foot, key).setOrigin(ox, oy).setScale(((2.4 / UNIT_RES) * height) / HERO_H);
+  }
+
+  /** A small glowing pedestal under a hero. */
+  private pedestal(x: number, foot: number, w: number, cls: string): Phaser.GameObjects.GameObject[] {
+    const cs = CLASS_SHEET[cls] ?? CLASS_SHEET.blade_master;
+    const aura = this.add.image(x, foot - w * 0.45, `glow_${cs.glow}`).setBlendMode(Phaser.BlendModes.ADD).setScale(w / 46, w / 40).setAlpha(0.16);
+    const g = this.add.graphics();
+    g.fillStyle(0x000000, 0.55).fillEllipse(x, foot + 4, w * 1.08, w * 0.27);
+    g.fillStyle(0x1a1420, 1).fillEllipse(x, foot, w, w * 0.23);
+    g.lineStyle(2, cs.hex, 0.85).strokeEllipse(x, foot, w, w * 0.23);
+    g.lineStyle(1, 0xd6aa5a, 0.55).strokeEllipse(x, foot, w * 0.8, w * 0.18);
+    const ring = this.add.image(x, foot, `ring_${cs.glow}`).setBlendMode(Phaser.BlendModes.ADD).setScale(w / 140, w / 570).setAlpha(0.6);
+    this.tweens.add({ targets: ring, alpha: { from: 0.3, to: 0.75 }, duration: 1400, yoyo: true, repeat: -1 });
+    return [aura, g, ring];
+  }
+
+  // ── account: sign in / create an account ────────────────────────────
 
   private showAccount(): void {
     this.mode = "account";
-    const panel = this.panel("SUA CONTA");
-    this.accountButton(panel, "Entrar", -145, -146, () => { this.accountTab = "login"; this.showAccount(); });
-    this.accountButton(panel, "Criar conta", 145, -146, () => { this.accountTab = "register"; this.showAccount(); });
-    panel.add(this.add.rectangle(this.accountTab === "login" ? -145 : 145, -118, 260, 3, 0xffd77a));
-    panel.add(this.add.text(0, -94, this.accountTab === "login" ? "Entre para jogar" : "Usuário: 3–20 letras, números ou _ • Senha: 8 ou mais caracteres", txt(14, "#c8b48a")).setOrigin(0.5));
-    for (const [type, placeholder] of [["text", "Usuário"], ["password", "Senha"]]) {
+    const panel = this.panel();
+    const login = this.accountTab === "login";
+    panel.add(this.frame(-250, -200, 500, 450));
+    const tab = (label: string, x: number, on: boolean, to: "login" | "register") => {
+      const t = this.add.text(x, -156, label, txt(20, on ? "#ffd77a" : "#7a6c52", { fontStyle: "bold" })).setOrigin(0.5);
+      if (!on) {
+        t.setInteractive({ useHandCursor: true }).on("pointerdown", () => { if (!this.busy) { this.accountTab = to; this.showAccount(); } });
+        t.on("pointerover", () => t.setColor("#c8b48a")).on("pointerout", () => t.setColor("#7a6c52"));
+      }
+      panel.add(t);
+    };
+    tab("ENTRAR", -112, login, "login");
+    tab("CRIAR CONTA", 112, !login, "register");
+    const bar = this.add.graphics();
+    bar.lineStyle(1, 0x4a3c24, 1).lineBetween(-220, -128, 220, -128);
+    bar.fillStyle(0xffd77a, 1).fillRect(login ? -212 : 12, -130, 200, 3);
+    const barGlow = this.add.image(login ? -112 : 112, -129, "glow_gold").setBlendMode(Phaser.BlendModes.ADD).setDisplaySize(240, 26).setAlpha(0.5);
+    panel.add([bar, barGlow]);
+    panel.add(this.add.text(0, -104, login ? "Bem-vindo de volta, aventureiro." : "Crie sua conta e comece a jornada.",
+      txt(14, "#c8b48a", { fontStyle: "italic" })).setOrigin(0.5));
+    panel.add(this.add.text(-200, -82, "USUÁRIO", txt(12, "#d6b878", { fontStyle: "bold" })));
+    panel.add(this.add.text(-200, 4, "SENHA", txt(12, "#d6b878", { fontStyle: "bold" })));
+    if (!login) {
+      panel.add(this.add.text(200, -80, "3 a 20 letras, números ou _", txt(10, "#7a6c52")).setOrigin(1, 0));
+      panel.add(this.add.text(200, 6, "8 ou mais caracteres", txt(10, "#7a6c52")).setOrigin(1, 0));
+    }
+    for (const [type, placeholder] of [["text", "Seu usuário"], ["password", "Sua senha"]]) {
       const input = document.createElement("input");
       input.type = type;
       input.placeholder = placeholder;
       input.setAttribute("aria-label", placeholder);
-      input.autocomplete = type === "text" ? "username" : this.accountTab === "register" ? "new-password" : "current-password";
+      input.autocomplete = type === "text" ? "username" : login ? "current-password" : "new-password";
       input.spellcheck = false;
       if (type === "text") input.maxLength = 20;
-      Object.assign(input.style, { position: "fixed", boxSizing: "border-box", padding: "0 14px", color: "#f3e3b8", background: "#0c0910", border: "2px solid #8a6a30", borderRadius: "8px", zIndex: "10" });
+      const rest = "inset 0 2px 8px rgba(0,0,0,0.8)";
+      Object.assign(input.style, {
+        position: "fixed", boxSizing: "border-box", padding: "0 16px", color: "#f3e3b8", fontFamily: FONT, letterSpacing: "1px",
+        background: "rgba(8,6,12,0.96)", border: "1px solid #6b5226", borderRadius: "8px", outline: "none", zIndex: "10",
+        boxShadow: rest, transition: "border-color .15s, box-shadow .15s",
+      });
+      input.addEventListener("focus", () => Object.assign(input.style, { borderColor: "#d6aa5a", boxShadow: `${rest}, 0 0 14px rgba(214,170,90,0.35)` }));
+      input.addEventListener("blur", () => Object.assign(input.style, { borderColor: "#6b5226", boxShadow: rest }));
       input.addEventListener("keydown", (event) => { if (event.key === "Enter") void this.submitAccount(); });
       document.body.appendChild(input);
       this.accountInputs.push(input);
     }
-    this.accountButton(panel, this.accountTab === "login" ? "ENTRAR" : "CRIAR CONTA", 0, 136, () => void this.submitAccount());
+    panel.add(this.goldButton(0, 132, login ? "ENTRAR" : "CRIAR CONTA", 320, 60, 22, () => void this.submitAccount()));
+    const swap = this.add.text(0, 204, login ? "Novo por aqui?  Criar conta" : "Já tem conta?  Entrar", txt(14, "#a8946a")).setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+    swap.on("pointerover", () => swap.setColor("#ffd77a")).on("pointerout", () => swap.setColor("#a8946a"));
+    swap.on("pointerdown", () => { if (!this.busy) { this.accountTab = login ? "register" : "login"; this.showAccount(); } });
+    panel.add(swap);
+    this.drawSideHeroes();
     this.placeAccountInputs();
     this.accountInputs[0].focus();
+  }
+
+  /** Two heroes guard the account panel, one on each side, looking at it. */
+  private drawSideHeroes(): void {
+    if (!this.accountPanel || this.mode !== "account") return;
+    this.sideHeroes?.destroy();
+    const items: Phaser.GameObjects.GameObject[] = [];
+    for (const [cls, x, dir] of [["blade_master", -470, 1], ["night_ranger", 470, 3]] as [string, number, number][]) {
+      items.push(...this.pedestal(x, 230, 220, cls));
+      items.push(this.heroFigure(cls, x, 230, 330, dir));
+    }
+    this.sideHeroes = this.add.container(0, 0, items);
+    this.accountPanel.addAt(this.sideHeroes, 0);
   }
 
   private placeAccountInputs(): void {
@@ -235,8 +351,8 @@ export class LoginScene extends Phaser.Scene {
     const rect = this.game.canvas.getBoundingClientRect();
     const kx = rect.width / w, ky = rect.height / h;
     this.accountInputs.forEach((input, i) => Object.assign(input.style, {
-      left: `${rect.left + (w / 2 - 180 * s) * kx}px`, top: `${rect.top + (h / 2 + (-48 + i * 66) * s) * ky}px`,
-      width: `${360 * s * kx}px`, height: `${48 * s * ky}px`, fontSize: `${Math.max(12, 18 * s * ky)}px`,
+      left: `${rect.left + (w / 2 - 200 * s) * kx}px`, top: `${rect.top + (h / 2 + (-60 + i * 86) * s) * ky}px`,
+      width: `${400 * s * kx}px`, height: `${48 * s * ky}px`, fontSize: `${Math.max(12, 18 * s * ky)}px`,
     }));
   }
 
@@ -254,30 +370,98 @@ export class LoginScene extends Phaser.Scene {
     } finally { this.busy = false; }
   }
 
+  // ── your heroes: four slots, each hero standing on its pedestal ─────
+
   private showHeroes(): void {
     this.mode = "heroes";
-    const panel = this.panel(`HERÓIS DE ${this.accountName}`);
-    if (!this.characters.length) panel.add(this.add.text(0, -30, "Sua aventura começa aqui. Crie seu primeiro herói!", txt(20, "#c8b48a")).setOrigin(0.5));
-    this.characters.forEach((hero, i) => {
-      const x = -225 + (i % 2) * 450, y = -100 + Math.floor(i / 2) * 170;
-      const bg = this.add.rectangle(x, y, 420, 150, 0x18121e).setStrokeStyle(1, 0x8a6a30);
-      const key = portraitFromSheet(this, `unit_${hero.class}`) ?? `portrait_${hero.class}`;
-      const portrait = this.add.image(x - 155, y - 20, key).setDisplaySize(64, 64);
-      const label = this.add.text(x - 105, y - 52, `${hero.name} · Nv ${hero.level}\n${META.maps?.[hero.map]?.name ?? hero.map}`, txt(16, "#f3e3b8", { lineSpacing: 10, wordWrap: { width: 300 } }));
-      panel.add([bg, portrait, label]);
-      this.accountButton(panel, "Jogar", x, y + 42, () => this.enter(hero.character_id, hero.class));
-    });
-    if (this.characters.length < 4) this.accountButton(panel, "Novo herói", 0, 214, () => {
-      this.mode = "create";
-      this.accountPanel?.destroy();
-      this.accountPanel = undefined;
-      this.board.setVisible(true);
-      if (this.nameInput) this.nameInput.style.display = "block";
-      this.statusText.setText("");
-    });
-    const logout = this.add.text(395, -220, "Sair", txt(14, "#c8b48a")).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    logout.on("pointerdown", () => { if (this.busy) return; setToken(""); this.characters = []; this.showAccount(); });
-    panel.add(logout);
+    const panel = this.panel();
+    if (this.pick < 0) {
+      let last: string | null = null;
+      try { last = localStorage.getItem(LAST_KEY); } catch { /* private mode */ }
+      this.pick = Math.max(0, this.characters.findIndex((c) => c.character_id === last));
+    }
+    this.pick = Math.min(this.pick, Math.max(0, this.characters.length - 1));
+    panel.add(this.add.text(0, -206, "ESCOLHA SEU HERÓI", txt(16, "#d6b878", { fontStyle: "bold" })).setOrigin(0.5));
+    const acct = this.add.text(-600, -330, `Conta: ${this.accountName}`, txt(13, "#a8946a")).setOrigin(0, 0.5);
+    const logout = this.add.text(-600, -306, "Sair da conta", txt(13, "#c8b48a")).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+    logout.on("pointerover", () => logout.setColor("#ff8a7a")).on("pointerout", () => logout.setColor("#c8b48a"));
+    logout.on("pointerdown", () => { if (this.busy) return; setToken(""); this.characters = []; this.pick = -1; this.showAccount(); });
+    panel.add([acct, logout]);
+    const W = 236, H = 380, GAP = 22, top = -180;
+    for (let i = 0; i < MAX_HEROES; i++) {
+      const x = (i - (MAX_HEROES - 1) / 2) * (W + GAP);
+      const hero = this.characters[i];
+      if (!hero) {
+        const can = i === this.characters.length;
+        panel.add(this.frame(x - W / 2, top, W, H, can ? 0x8a6a30 : 0x3a3024, 0.6));
+        if (can) {
+          const plus = this.add.text(x, top + H / 2 - 30, "+", txt(64, "#d6b878")).setOrigin(0.5);
+          const lbl = this.add.text(x, top + H / 2 + 30, "NOVO HERÓI", txt(17, "#d6b878", { fontStyle: "bold" })).setOrigin(0.5);
+          const hint = this.add.text(x, top + H / 2 + 56, "Comece uma nova lenda", txt(11, "#7a6c52")).setOrigin(0.5);
+          const zone = this.add.zone(x - W / 2, top, W, H).setOrigin(0).setInteractive({ useHandCursor: true });
+          zone.on("pointerover", () => { plus.setColor("#ffe9a8"); lbl.setColor("#ffe9a8"); });
+          zone.on("pointerout", () => { plus.setColor("#d6b878"); lbl.setColor("#d6b878"); });
+          zone.on("pointerdown", () => { if (!this.busy) this.openCreate(); });
+          this.tweens.add({ targets: plus, alpha: { from: 0.6, to: 1 }, duration: 1200, yoyo: true, repeat: -1 });
+          panel.add([plus, lbl, hint, zone]);
+        } else {
+          panel.add(this.add.text(x, top + H / 2, "Espaço livre", txt(13, "#4a4034")).setOrigin(0.5));
+        }
+        continue;
+      }
+      const on = i === this.pick;
+      const info = CLASS_INFO[hero.class] ?? { name: hero.class, color: "#f3e3b8" };
+      const cs = CLASS_SHEET[hero.class] ?? CLASS_SHEET.blade_master;
+      panel.add(this.frame(x - W / 2, top, W, H, on ? cs.hex : 0x6b5226, on ? 0.97 : 0.85));
+      const foot = top + 250;
+      panel.add(this.pedestal(x, foot, 170, hero.class));
+      const fig = this.heroFigure(hero.class, x, foot, on ? 245 : 225, 2).setAlpha(on ? 1 : 0.75);
+      panel.add(fig);
+      if (on) {
+        panel.add(this.add.particles(x, foot, `spark_${cs.glow}`, {
+          x: { min: -70, max: 70 }, y: { min: -6, max: 6 }, lifespan: 1500, speedY: { min: -50, max: -20 },
+          scale: { start: 0.4, end: 0 }, alpha: { start: 0.9, end: 0 }, frequency: 120, blendMode: "ADD",
+        }));
+      }
+      const plate = this.add.graphics();
+      plate.fillStyle(0x000000, 0.5).fillRoundedRect(x - W / 2 + 14, top + 282, W - 28, 84, 8);
+      plate.lineStyle(1, on ? cs.hex : 0x4a3c24, 0.8).strokeRoundedRect(x - W / 2 + 14, top + 282, W - 28, 84, 8);
+      panel.add(plate);
+      panel.add(this.add.text(x, top + 300, hero.name, txt(20, on ? "#ffe9a8" : "#e8dcc0", { fontStyle: "bold" })).setOrigin(0.5));
+      panel.add(this.add.text(x, top + 325, `Nível ${hero.level}  ·  ${info.name}`, txt(12, info.color)).setOrigin(0.5));
+      panel.add(this.add.text(x, top + 347, META.maps?.[hero.map]?.name ?? hero.map, txt(11, "#a8946a", { fontStyle: "italic" })).setOrigin(0.5));
+      const zone = this.add.zone(x - W / 2, top, W, H).setOrigin(0).setInteractive({ useHandCursor: true });
+      zone.on("pointerdown", () => {
+        if (this.busy) return;
+        if (on) this.play(hero);
+        else { this.pick = i; this.showHeroes(); }
+      });
+      if (!on) zone.on("pointerover", () => fig.setAlpha(0.95)).on("pointerout", () => fig.setAlpha(0.75));
+      panel.add(zone);
+    }
+    const chosen = this.characters[this.pick];
+    if (chosen) {
+      panel.add(this.goldButton(0, 262, "JOGAR", 340, 64, 26, () => this.play(chosen)));
+      panel.add(this.add.text(0, 306, "Clique num herói para escolher  ·  Enter para jogar", txt(11, "#7a6c52")).setOrigin(0.5));
+    } else {
+      panel.add(this.goldButton(0, 262, "CRIAR MEU HERÓI", 340, 64, 22, () => this.openCreate()));
+    }
+  }
+
+  private play(hero: AccountHero): void {
+    try { localStorage.setItem(LAST_KEY, hero.character_id); } catch { /* private mode */ }
+    this.enter(hero.character_id, hero.class);
+  }
+
+  private openCreate(): void {
+    if (this.characters.length >= MAX_HEROES) return;
+    this.mode = "create";
+    this.accountPanel?.destroy();
+    this.accountPanel = undefined;
+    this.sideHeroes = undefined;
+    this.board.setVisible(true);
+    if (this.nameInput) this.nameInput.style.display = "block";
+    this.statusText.setText("");
   }
 
   // ── drawing ──────────────────────────────────────────────────────────
@@ -304,7 +488,7 @@ export class LoginScene extends Phaser.Scene {
     this.tweens.add({ targets: glow, alpha: { from: 0.18, to: 0.42 }, duration: 1300, yoyo: true, repeat: -1 });
     this.board.add(this.createBtn);
     const back = this.add.text(-470, 312, "Voltar aos heróis", txt(16, "#d6b878")).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    back.on("pointerdown", () => { if (!this.busy) this.showHeroes(); });
+    back.on("pointerdown", () => { if (!this.busy) { this.pick = -1; this.showHeroes(); } });
     this.board.add(back);
   }
 
