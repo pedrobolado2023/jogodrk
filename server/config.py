@@ -18,6 +18,13 @@ if ENV == "production":
         if DATABASE_URL.startswith(prefix):
             DATABASE_URL = "postgresql+asyncpg://" + DATABASE_URL[len(prefix):]
             break
+    # Easypanel (and most hosts) give libpq-style options like ?sslmode=disable; asyncpg calls that option "ssl"
+    # and fails on "sslmode", so rename it (same values: disable, require, verify-full…)
+    if "?" in DATABASE_URL:
+        from urllib.parse import parse_qsl, urlencode
+        base, query = DATABASE_URL.split("?", 1)
+        params = [("ssl" if k == "sslmode" else k, v) for k, v in parse_qsl(query, keep_blank_values=True)]
+        DATABASE_URL = base + ("?" + urlencode(params) if params else "")
 else:
     DATABASE_URL = "sqlite+aiosqlite:///./mmorpg_dev.db"
 
