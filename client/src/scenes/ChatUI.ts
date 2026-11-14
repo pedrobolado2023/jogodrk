@@ -99,7 +99,7 @@ export class ChatUI {
 
   /** Phones: a smaller log that lets touches through to the joystick under it (the menu opens the input). */
   setTouch(maxHeight: number): void {
-    Object.assign(this.log.style, { maxHeight: `${Math.round(maxHeight)}px`, pointerEvents: "none", lineHeight: "15px", fontSize: "11px" });
+    Object.assign(this.log.style, { maxHeight: `${Math.round(maxHeight)}px`, pointerEvents: "none", lineHeight: "14px", fontSize: "10px" });
     this.input.style.fontSize = "16px"; // 16px or more: iPhone does not zoom the page when the field is focused
   }
 

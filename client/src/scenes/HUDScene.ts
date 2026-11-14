@@ -144,6 +144,9 @@ export class HUDScene extends Phaser.Scene {
   private joyPtr = -1;
   private joyHome = { x: 0, y: 0 };
   private covered = false;
+  /** Size of the HUD on phones (1 on computers): follows the screen, so small iPhones get a smaller HUD. */
+  private ui = 1;
+  private joyK = 1;
 
   constructor() {
     super({ key: "HUDScene" });
@@ -519,10 +522,11 @@ export class HUDScene extends Phaser.Scene {
 
   private layout(): void {
     const w = this.scale.width, h = this.scale.height;
+    this.ui = this.mobile ? Phaser.Math.Clamp(Math.min(h / 470, w / 900), 0.6, 1.1) : 1;
     this.vignette.setDisplaySize(w, h);
     this.hurt.setDisplaySize(w, h);
-    this.targetPanel.setPosition(w / 2, 10);
-    this.bossPanel.setPosition(w / 2, 70);
+    this.targetPanel.setPosition(w / 2, 10).setScale(this.ui);
+    this.bossPanel.setPosition(w / 2, 70 * this.ui).setScale(this.ui);
     const barW = this.barWidth;
     const barScale = Math.min(1, (w - 12) / barW);
     this.skillBar.setPosition(w / 2, h - 6).setScale(barScale);
@@ -536,6 +540,11 @@ export class HUDScene extends Phaser.Scene {
     this.wbBox?.setPosition(10, 128).setScale(tiny ? 0.75 : 1);
     const boxBelow = this.scoreBox.visible ? 150 * this.scoreBox.scaleY : this.wbBox?.visible ? 180 * this.wbBox.scaleY : 0;
     this.partyBox?.setPosition(10, boxBelow ? 128 + boxBelow + 8 : tiny ? 112 : 146).setScale(tiny ? 0.8 : 1);
+    if (this.mobile) {
+      this.scoreBox.setScale(this.ui * 0.85);
+      this.wbBox?.setScale(this.ui * 0.85);
+      this.partyBox?.setScale(this.ui * 0.85);
+    }
     this.wbStatus?.setPosition(w - 210, (compact ? 192 : 206) + (tiny ? -80 : 64 + dailyH)).setVisible(true);
     this.wbResultWin?.setPosition(w / 2, h / 2);
     this.buttons.setPosition(w - 92, h - 84 - (SLOT + 20) * (barScale < 1 ? 1 - barScale : 0)).setVisible(!tiny);
@@ -550,13 +559,13 @@ export class HUDScene extends Phaser.Scene {
     const d = this.death.getData(["shade", "red", "title"]) as [Phaser.GameObjects.Rectangle, Phaser.GameObjects.Image, Phaser.GameObjects.Text];
     d[0].setSize(w, h);
     d[1].setDisplaySize(w, h);
-    d[2].setPosition(w / 2, h * 0.4);
-    this.deathKiller.setPosition(w / 2, h * 0.4 + 46);
-    this.deathCount.setPosition(w / 2, h * 0.4 + 74);
+    d[2].setPosition(w / 2, h * 0.4).setScale(this.ui);
+    this.deathKiller.setPosition(w / 2, h * 0.4 + 46 * this.ui).setScale(this.ui);
+    this.deathCount.setPosition(w / 2, h * 0.4 + 74 * this.ui).setScale(this.ui);
     const fit = Math.min(1, (h - 20) / 480, (w - 20) / 670);
     this.book?.setPosition(w / 2, h / 2).setScale(fit);
     this.charPanel?.setPosition(w / 2, h / 2).setScale(Math.min(1, (h - 20) / 340));
-    this.dialog?.setPosition(w / 2, h - 96);
+    this.dialog?.setPosition(w / 2, this.dialogY());
     if (this.mobile) this.layoutTouch(w, h);
   }
 
@@ -612,7 +621,7 @@ export class HUDScene extends Phaser.Scene {
 
   /** While a window or the menu is open, the joystick, the round buttons and the chat step aside. */
   private coverTouch(): void {
-    const open = this.menuOpen || !!(this.book || this.charPanel || this.friendsWin || this.guildWin)
+    const open = this.menuOpen || !!(this.book || this.charPanel || this.friendsWin || this.guildWin || this.dialog)
       || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen;
     if (open === this.covered) return;
     this.covered = open;
@@ -626,9 +635,10 @@ export class HUDScene extends Phaser.Scene {
   private moveJoy(ptr: Phaser.Input.Pointer): void {
     const dx = ptr.x - this.joyRoot!.x, dy = ptr.y - this.joyRoot!.y;
     const len = Math.hypot(dx, dy);
-    const k = len > JOY_R ? JOY_R / len : 1;
-    this.joyKnob!.setPosition(dx * k, dy * k);
-    this.scene.get("GameScene").events.emit("joy", (dx * k) / JOY_R, (dy * k) / JOY_R);
+    const R = JOY_R * this.joyK;
+    const k = len > R ? R / len : 1;
+    this.joyKnob!.setPosition((dx * k) / this.joyK, (dy * k) / this.joyK);
+    this.scene.get("GameScene").events.emit("joy", (dx * k) / R, (dy * k) / R);
   }
 
   private releaseJoy(): void {
@@ -653,8 +663,8 @@ export class HUDScene extends Phaser.Scene {
    * story box under it. Sizes follow the screen height, so any phone (and tablets) fits.
    */
   private layoutTouch(w: number, h: number): void {
-    const k = h >= 560 ? 1.2 : h >= 450 ? 1.1 : 1;
-    const step = (SLOT + 8) * k;
+    const k = Phaser.Math.Clamp(h / 430, 0.7, 1.2);
+    const step = (SLOT + 7) * k;
     const right = w - 10, bottom = h - 8;
     this.barBg.setVisible(false);
     this.skillBar.setPosition(0, 0).setScale(1);
@@ -662,24 +672,27 @@ export class HUDScene extends Phaser.Scene {
     const gridLeft = right - 5 * step;
     this.potionRoots.forEach((r, i) => r.setPosition(gridLeft - step * 0.5 - 6, bottom - (i + 0.5) * step).setScale(k));
     const gridTop = bottom - Math.ceil(this.slots.length / 5) * step;
-    this.touchBtns.forEach((b, i) => b.setPosition(right - 26 * k - i * 60 * k, gridTop - 32 * k).setScale(k));
+    this.touchBtns.forEach((b, i) => b.setPosition(right - 26 * k - i * 58 * k, gridTop - 30 * k).setScale(k));
 
-    const mm = h < 450 ? 0.6 : h < 600 ? 0.75 : 0.9;
+    const mm = Phaser.Math.Clamp(h / 650, 0.48, 0.9);
     this.minimap.setPosition(w - 84 * mm, 84 * mm).setScale(mm);
     this.menuBtn?.setPosition(w - 168 * mm - 34 * k, 34 * k).setScale(k);
-    const qs = h < 450 ? 0.8 : 1;
-    const qy = 168 * mm + 8;
+    const qs = Phaser.Math.Clamp(h / 520, 0.64, 1);
+    const qy = 168 * mm + 6;
     this.questBox.setPosition(w - 206 * qs, qy).setScale(qs).setVisible(true);
     const showDaily = this.dailyShown && h >= 470;
     this.dailyBox?.setPosition(w - 206 * qs, qy + 64 * qs).setScale(qs).setVisible(showDaily);
     this.wbStatus?.setPosition(w - 210 * qs, qy + (64 + (showDaily ? 84 : 0)) * qs).setScale(qs);
-    this.playerPanel.setScale(h < 450 ? 0.78 : 0.92);
+    this.playerPanel.setScale(Phaser.Math.Clamp(h / 520, 0.62, 0.92));
 
-    this.joyHome = { x: 22 + JOY_R, y: h - 22 - JOY_R };
+    this.joyK = k;
+    this.joyRoot?.setScale(k);
+    this.joyHome = { x: 18 + JOY_R * k, y: h - 18 - JOY_R * k };
     if (this.joyPtr < 0) this.joyRoot?.setPosition(this.joyHome.x, this.joyHome.y);
     this.joyZone?.setPosition(0, h).setSize(Math.max(160, Math.min(w * 0.45, gridLeft - step - 40)), h * 0.62);
-    const chatBottom = 22 + JOY_R * 2 + 10;
-    this.chat?.place(chatBottom, Math.min(300, w * 0.36));
+    const chatBottom = 18 + JOY_R * 2 * k + 8;
+    this.chat?.setTouch(h < 400 ? 46 : 64);
+    this.chat?.place(chatBottom, Math.min(280, w * 0.32));
     const feedBase = h - chatBottom - (this.chat?.height() ?? 70) - 8;
     this.feed.forEach((t, i) => t.setPosition(12, feedBase - i * 18));
 
@@ -691,7 +704,10 @@ export class HUDScene extends Phaser.Scene {
       c.setPosition(((i % 2) - 0.5) * 200, (Math.floor(i / 2) - (rows - 1) / 2) * 46 - y0 * 1.2).setScale(1.2);
     });
     this.buttons.setPosition(w / 2, h / 2).setScale(Math.min(1, (h - 24) / (rows * 46), (w - 20) / 410)).setVisible(this.menuOpen);
-    this.dialog?.setPosition(w / 2, h - 96);
+  }
+
+  private dialogY(): number {
+    return this.mobile ? this.scale.height - 82 * Math.max(0.75, this.ui) : this.scale.height - 96;
   }
 
   // ── Updates ──────────────────────────────────────────────────────────
@@ -961,32 +977,33 @@ export class HUDScene extends Phaser.Scene {
   /** Center-screen notices; several at once stack downwards instead of overlapping. */
   private toast(text: string, color: string): void {
     this.toasts = this.toasts.filter((o) => o.active);
-    const y = 112 + this.toasts.reduce((acc, o) => acc + o.height + 6, 0);
-    const t = this.add.text(this.scale.width / 2, y + 8, text, txt(15, color, { fontStyle: "bold", align: "center", wordWrap: { width: 460 } }))
-      .setOrigin(0.5, 0).setAlpha(0).setDepth(97); // above the inventory/shop windows
+    const k = Math.max(0.72, this.ui);
+    const y = 112 * this.ui + this.toasts.reduce((acc, o) => acc + o.displayHeight + 6, 0);
+    const t = this.add.text(this.scale.width / 2, y + 8, text, txt(15, color, { fontStyle: "bold", align: "center", wordWrap: { width: Math.min(460, (this.scale.width - 40) / k) } }))
+      .setOrigin(0.5, 0).setAlpha(0).setDepth(97).setScale(k); // above the inventory/shop windows
     this.toasts.push(t);
     this.tweens.add({ targets: t, alpha: 1, y, duration: 250 });
     this.tweens.add({ targets: t, alpha: 0, delay: 3200, duration: 600, onComplete: () => { t.destroy(); this.toasts = this.toasts.filter((o) => o !== t); } });
   }
 
   private levelBanner(level: number, unlocked: string[]): void {
-    const w = this.scale.width, y = this.scale.height * 0.3;
+    const w = this.scale.width, y = this.scale.height * (this.mobile ? 0.45 : 0.3);
     const g = this.add.graphics();
     panel(g, -170, -36, 340, unlocked.length ? 92 : 64, 10);
     const t = this.add.text(0, -18, `NÍVEL ${level}`, txt(28, "#ffd77a", { fontStyle: "bold", strokeThickness: 5 })).setOrigin(0.5);
     t.setShadow(0, 0, "#ffb040", 12, true, true).setPadding(16, 10, 16, 10);
     const sub = this.add.text(0, 14, unlocked.length ? `Nova skill: ${unlocked.join(", ")}` : "Seus atributos aumentaram",
       txt(12, "#e8dcc0", { align: "center", wordWrap: { width: 310 } })).setOrigin(0.5, 0);
-    const c = this.add.container(w / 2, y, [g, t, sub]).setDepth(70).setAlpha(0).setScale(0.8);
-    this.tweens.add({ targets: c, alpha: 1, scale: 1, duration: 300, ease: "Back.easeOut" });
+    const c = this.add.container(w / 2, y, [g, t, sub]).setDepth(70).setAlpha(0).setScale(0.8 * this.ui);
+    this.tweens.add({ targets: c, alpha: 1, scale: this.ui, duration: 300, ease: "Back.easeOut" });
     this.tweens.add({ targets: c, alpha: 0, delay: 3800, duration: 600, onComplete: () => c.destroy() });
   }
 
   private showZoneTitle(name: string, sub: string): void {
-    const w = this.scale.width, y = this.scale.height * 0.22;
-    const title = this.add.text(w / 2, y, name, txt(34, "#e8d6a8", { fontStyle: "bold", strokeThickness: 5 })).setOrigin(0.5);
+    const w = this.scale.width, y = this.scale.height * (this.mobile ? 0.45 : 0.22);
+    const title = this.add.text(w / 2, y, name, txt(34, "#e8d6a8", { fontStyle: "bold", strokeThickness: 5 })).setOrigin(0.5).setScale(this.ui);
     title.setShadow(0, 0, "#ffb050", 14, true, true).setPadding(24, 16, 24, 16);
-    const subtitle = this.add.text(w / 2, y + 36, sub, txt(14, "#a8987a")).setOrigin(0.5);
+    const subtitle = this.add.text(w / 2, y + 36 * this.ui, sub, txt(14, "#a8987a")).setOrigin(0.5).setScale(this.ui);
     const all = [title, subtitle];
     for (const o of all) o.setAlpha(0);
     this.tweens.add({ targets: all, alpha: 1, duration: 800, delay: 300 });
@@ -1365,7 +1382,8 @@ export class HUDScene extends Phaser.Scene {
 
   private showDialog(d: DialogMsg): void {
     this.dialog?.destroy();
-    const W = Math.min(560, this.scale.width - 30), H = 150;
+    const dk = this.mobile ? Math.max(0.75, this.ui) : 1;
+    const W = Math.min(560, (this.scale.width - 30) / dk), H = 150;
     const g = this.add.graphics();
     panel(g, -W / 2, -H / 2, W, H, 10, 0.96);
     const items: Phaser.GameObjects.GameObject[] = [g];
@@ -1393,7 +1411,7 @@ export class HUDScene extends Phaser.Scene {
       items.push(b);
       x -= b.width + 10;
     }
-    this.dialog = this.add.container(this.scale.width / 2, this.scale.height - 96, items).setDepth(85).setAlpha(0);
+    this.dialog = this.add.container(this.scale.width / 2, this.dialogY(), items).setDepth(85).setAlpha(0).setScale(dk);
     this.tweens.add({ targets: this.dialog, alpha: 1, duration: 180 });
   }
 
