@@ -100,6 +100,10 @@ export class ChatUI {
   /** Phones: a smaller log that lets touches through to the joystick under it (the menu opens the input). */
   setTouch(maxHeight: number): void {
     Object.assign(this.log.style, { maxHeight: `${Math.round(maxHeight)}px`, pointerEvents: "none", lineHeight: "14px", fontSize: "10px" });
+    // the whole box lets touches through: on iPhone a finger sliding over selectable text cancels the touch, which
+    // let go of the joystick; only the typing field (when open) takes touches
+    Object.assign(this.box.style, { pointerEvents: "none", userSelect: "none", webkitUserSelect: "none", touchAction: "none" });
+    this.input.style.pointerEvents = "auto";
     this.input.style.fontSize = "16px"; // 16px or more: iPhone does not zoom the page when the field is focused
   }
 

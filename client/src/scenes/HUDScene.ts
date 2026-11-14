@@ -607,7 +607,13 @@ export class HUDScene extends Phaser.Scene {
     const up = (ptr: Phaser.Input.Pointer) => { if (ptr.id === this.joyPtr) this.releaseJoy(); };
     this.input.on("pointerup", up);
     this.input.on("pointerupoutside", up);
-    this.input.on("gameout", () => this.releaseJoy());
+    // a touch the phone itself interrupts (a notification, a system gesture) lets go too
+    window.addEventListener("touchend", this.onTouchEndAll);
+    window.addEventListener("touchcancel", this.onTouchEndAll);
+    this.events.once("shutdown", () => {
+      window.removeEventListener("touchend", this.onTouchEndAll);
+      window.removeEventListener("touchcancel", this.onTouchEndAll);
+    });
     this.events.once("shutdown", () => this.registry.set("joyPointer", -1));
 
     const game = () => this.scene.get("GameScene").events;
@@ -631,6 +637,11 @@ export class HUDScene extends Phaser.Scene {
     if (open) this.joyZone?.disableInteractive(); else this.joyZone?.setInteractive();
     this.touchBtns.forEach((b) => b.setVisible(!open));
   }
+
+  /** Safety net: when no finger is on the screen any more, the joystick is let go. */
+  private onTouchEndAll = (e: TouchEvent): void => {
+    if (e.touches.length === 0) this.releaseJoy();
+  };
 
   private moveJoy(ptr: Phaser.Input.Pointer): void {
     const dx = ptr.x - this.joyRoot!.x, dy = ptr.y - this.joyRoot!.y;
