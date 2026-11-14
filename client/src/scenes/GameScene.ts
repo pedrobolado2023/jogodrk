@@ -11,6 +11,7 @@ import { PixelFx, palette, type PfxHandle } from "../gfx/pixelfx";
 import { FONT } from "../gfx/draw";
 import { gfx } from "../gfx/quality";
 import { VEIN_INFO, VEIN_ORIGIN, ensureVeinTextures } from "../gfx/veins";
+import { isTouch } from "../ui/device";
 import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseSheet, requestSheet } from "../gfx/sprites3d";
 
 export interface DailyState {
@@ -194,6 +195,9 @@ export class GameScene extends Phaser.Scene {
   private lastReal = 0;
   private bossShown: string | null = null;
   private baseZoom = 1.5;
+  /** Touch joystick direction on screen (-1..1), from the HUD. */
+  private joy = { x: 0, y: 0, active: false };
+  private pinchDist = 0;
   private zoomPulse = 1;
   private look = { x: 0, y: 0 };
   private isDead = false;
@@ -278,7 +282,9 @@ export class GameScene extends Phaser.Scene {
     ensureVeinTextures(this);
     const cam = this.cameras.main;
     cam.setBackgroundColor("#06070b");
-    this.baseZoom = cam.height < 620 ? 1.3 : 1.5;
+    // phones see more of the world around the hero (their screens are short)
+    this.baseZoom = isTouch() ? (cam.height < 500 ? 1.0 : 1.2) : cam.height < 620 ? 1.3 : 1.5;
+    this.joy = { x: 0, y: 0, active: false };
     cam.setZoom(this.baseZoom);
 
     this.fx = new Fx(this);
@@ -873,7 +879,7 @@ export class GameScene extends Phaser.Scene {
       this.input.setDefaultCursor(t ? "crosshair" : npc ? "pointer" : "default");
     });
     this.input.on("wheel", (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      this.baseZoom = Phaser.Math.Clamp(this.baseZoom - dy * 0.0012, 1.0, 2.3);
+      this.baseZoom = Phaser.Math.Clamp(this.baseZoom - dy * 0.0012, isTouch() ? 0.8 : 1.0, 2.3);
     });
     this.input.mouse?.disableContextMenu();
     const keys = ["ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "ZERO"];
@@ -894,6 +900,14 @@ export class GameScene extends Phaser.Scene {
     // inventory and shop actions from the HUD: {type: "buy" | "sell" | "equip" | "unequip" | "discard" | ...}
     this.events.on("inv_action", (msg: Record<string, unknown>) => socket.send(msg));
     this.events.on("request_skill", (slot: number) => this.castSlot(slot));
+    // touch controls (HUD): joystick, next target, mount
+    this.events.on("joy", (x: number, y: number) => {
+      const was = this.joy.active;
+      this.joy = { x, y, active: Math.hypot(x, y) > 0.18 };
+      if (was && !this.joy.active && this.player) { this.moveTarget = null; this.sendPos(true); }
+    });
+    this.events.on("cycle_target", () => this.cycleTarget());
+    this.events.on("toggle_mount", () => socket.send({ type: "toggle_mount" }));
     this.events.on("dialog_option", (opt: string) => socket.dialogOption(opt));
     this.events.on("toggle_autofarm", () => {
       if (this.auto?.mode === "farm") { this.stopAuto(); return; }
@@ -950,6 +964,19 @@ export class GameScene extends Phaser.Scene {
       name: m ? m.name : r!.name, level: m ? m.level : r!.level, hp: u.hp, maxHp: u.maxHp, boss: !!m?.boss, hero: !!r,
       pk: r && this.canFightPlayers() && !this.mapInfo?.pvp ? r.pk : undefined, guild: r?.guild ?? "",
     });
+  }
+
+  /** Two fingers on the world (not on the joystick) pinch the camera closer or farther. */
+  private pinchZoom(): void {
+    const a = this.input.pointer1, b = this.input.pointer2;
+    const joyId = this.registry.get("joyPointer") as number | undefined;
+    if (a?.isDown && b?.isDown && a.id !== joyId && b.id !== joyId) {
+      const d = Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
+      if (this.pinchDist > 0) this.baseZoom = Phaser.Math.Clamp(this.baseZoom * (d / this.pinchDist), 0.8, 2.3);
+      this.pinchDist = d;
+    } else {
+      this.pinchDist = 0;
+    }
   }
 
   private cycleTarget(): void {
@@ -1887,6 +1914,18 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    if (this.joy.active && !this.isDead) {
+      // the joystick points on the screen; the world is drawn at an angle, so turn it into world directions
+      const wx = this.joy.x / 32 + this.joy.y / 16, wy = this.joy.y / 16 - this.joy.x / 32;
+      const len = Math.hypot(wx, wy) || 1;
+      if (this.auto) this.stopAuto("Modo automático desligado (você assumiu o controle).");
+      this.pendingCast = null;
+      this.pendingTalk = null;
+      this.pendingMine = null;
+      const n = (this.mapInfo?.size ?? 40) - 1.5;
+      this.moveTarget = { x: Phaser.Math.Clamp(p.worldX + (wx / len) * 0.7, 0.5, n), y: Phaser.Math.Clamp(p.worldY + (wy / len) * 0.7, 0.5, n) };
+    }
+    this.pinchZoom();
     if (this.auto) this.thinkAuto(time);
     if (this.moveTarget && !this.isDead && time > this.stunnedUntil) {
       const dx = this.moveTarget.x - p.worldX, dy = this.moveTarget.y - p.worldY;

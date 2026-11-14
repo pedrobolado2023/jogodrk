@@ -5,6 +5,7 @@ import { FONT } from "../gfx/draw";
 import { API, CLASS_INFO, META, classSkills, loadMeta } from "../data/meta";
 import { SHEETS, animKey, hasSheet, loadSheets, portraitFromSheet, requestSheet } from "../gfx/sprites3d";
 import { ensureSkillIcons } from "../gfx/themeProps";
+import { isTouch } from "../ui/device";
 
 /**
  * Hero selection and creation: the chosen class stands large on a glowing pedestal (its own 3D figure, which can
@@ -20,6 +21,9 @@ const MAX_HEROES = 4;
 const BOARD_W = 1280;
 const BOARD_H = 720;
 const HERO_H = 300;  // the hero's height on the board, in px
+// the account screen is shorter than the board (title to "Criar conta"), so short screens (phones) show it bigger
+const ACCOUNT_H = 650;
+const ACCOUNT_SHIFT = 26;
 
 /** Attribute bars (0-10), difficulty (1-3), range and glow colour of each class. */
 const CLASS_SHEET: Record<string, { bars: [string, number][]; difficulty: number; range: string; glow: string; hex: number }> = {
@@ -329,7 +333,7 @@ export class LoginScene extends Phaser.Scene {
     panel.add(swap);
     this.drawSideHeroes();
     this.placeAccountInputs();
-    this.accountInputs[0].focus();
+    if (!isTouch()) this.accountInputs[0].focus(); // on phones a tap opens the keyboard, not the screen itself
   }
 
   /** Two heroes guard the account panel, one on each side, looking at it. */
@@ -350,9 +354,10 @@ export class LoginScene extends Phaser.Scene {
     const s = Math.min(w / BOARD_W, h / BOARD_H);
     const rect = this.game.canvas.getBoundingClientRect();
     const kx = rect.width / w, ky = rect.height / h;
+    const sa = this.accountScale();
     this.accountInputs.forEach((input, i) => Object.assign(input.style, {
-      left: `${rect.left + (w / 2 - 200 * s) * kx}px`, top: `${rect.top + (h / 2 + (-60 + i * 86) * s) * ky}px`,
-      width: `${400 * s * kx}px`, height: `${48 * s * ky}px`, fontSize: `${Math.max(12, 18 * s * ky)}px`,
+      left: `${rect.left + (w / 2 - 200 * sa) * kx}px`, top: `${rect.top + (h / 2 + (ACCOUNT_SHIFT - 60 + i * 86) * sa) * ky}px`,
+      width: `${400 * sa * kx}px`, height: `${48 * sa * ky}px`, fontSize: `${Math.max(isTouch() ? 16 : 12, 18 * sa * ky)}px`,
     }));
   }
 
@@ -662,10 +667,16 @@ export class LoginScene extends Phaser.Scene {
     this.shade.fillStyle(0x000000, 0.35).fillRect(0, 0, w, h);
     const s = Math.min(w / BOARD_W, h / BOARD_H);
     this.board.setPosition(w / 2, h / 2).setScale(s);
-    this.accountPanel?.setPosition(w / 2, h / 2).setScale(s);
+    const acct = this.mode === "account";
+    const sa = acct ? this.accountScale() : s;
+    this.accountPanel?.setPosition(w / 2, h / 2 + (acct ? ACCOUNT_SHIFT * sa : 0)).setScale(sa);
     this.placeAccountInputs();
-    this.statusText.setPosition(w / 2, h / 2 + 344 * s);
+    this.statusText.setPosition(w / 2, acct ? h / 2 + (ACCOUNT_SHIFT + 272) * sa : h / 2 + 344 * s);
     this.placeNameInput();
+  }
+
+  private accountScale(): number {
+    return Math.min(this.scale.width / BOARD_W, this.scale.height / ACCOUNT_H);
   }
 
   private inputSig = "";
@@ -689,7 +700,7 @@ export class LoginScene extends Phaser.Scene {
     if (sig === this.inputSig) return;
     this.inputSig = sig;
     Object.assign(this.nameInput.style, {
-      width: `${bw}px`, height: `${bh}px`, fontSize: `${Math.max(12, 18 * s * ky)}px`,
+      width: `${bw}px`, height: `${bh}px`, fontSize: `${Math.max(isTouch() ? 16 : 12, 18 * s * ky)}px`,
       left: `${cx - bw / 2}px`, top: `${bottom - bh}px`,
     });
   }

@@ -14,11 +14,13 @@ import { PassUI } from "./PassUI";
 import { ShopUI } from "./ShopUI";
 import { ChatUI, type ChatMsg } from "./ChatUI";
 import { panel, txt } from "./uiStyle";
+import { isTouch } from "../ui/device";
 
 const BAR_TEX_W = 220;
 const SLOT = 46;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
+const JOY_R = 56;
 const POTIONS = [{ kind: "hp", key: "Q", icon: "item_potion_hp_s" }, { kind: "mp", key: "E", icon: "item_potion_mp_s" }] as const;
 
 interface PotionSlot {
@@ -127,6 +129,21 @@ export class HUDScene extends Phaser.Scene {
   private deathCount!: Phaser.GameObjects.Text;
   private deathKiller!: Phaser.GameObjects.Text;
   private deathTimer?: Phaser.Time.TimerEvent;
+  // touch controls
+  private mobile = false;
+  private barBg!: Phaser.GameObjects.Graphics;
+  private potionRoots: Phaser.GameObjects.Container[] = [];
+  private menuItems: Phaser.GameObjects.Container[] = [];
+  private menuOpen = false;
+  private menuShade?: Phaser.GameObjects.Rectangle;
+  private menuBtn?: Phaser.GameObjects.Container;
+  private touchBtns: Phaser.GameObjects.Container[] = [];
+  private joyRoot?: Phaser.GameObjects.Container;
+  private joyKnob?: Phaser.GameObjects.Graphics;
+  private joyZone?: Phaser.GameObjects.Zone;
+  private joyPtr = -1;
+  private joyHome = { x: 0, y: 0 };
+  private covered = false;
 
   constructor() {
     super({ key: "HUDScene" });
@@ -140,6 +157,13 @@ export class HUDScene extends Phaser.Scene {
     this.hero = null;
     this.map = null;
     this.book = this.charPanel = this.dialog = undefined;
+    this.potionRoots = [];
+    this.menuItems = [];
+    this.touchBtns = [];
+    this.menuOpen = false;
+    this.joyPtr = -1;
+    this.covered = false;
+    this.menuShade = this.menuBtn = this.joyRoot = this.joyKnob = this.joyZone = undefined;
   }
 
   create(): void {
@@ -149,6 +173,7 @@ export class HUDScene extends Phaser.Scene {
     this.inventoryUI = new InventoryUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), this.cls);
     this.passUI = new PassUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), () => this.toggleShop("destaques"));
     this.shopUI = new ShopUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
+    this.mobile = isTouch();
     this.chat = new ChatUI((m) => this.scene.get("GameScene").events.emit("inv_action", m));
     this.chat.onFriends = () => this.toggleFriends();
     this.chat.onGuild = () => this.toggleGuild();
@@ -165,6 +190,7 @@ export class HUDScene extends Phaser.Scene {
     this.partyBox = this.add.container(10, 150);
     this.buildWorldBoss();
     this.buildButtons();
+    if (this.mobile) { this.buildTouch(); this.chat.setTouch(64); }
     this.buildDeath();
     this.tooltip = this.add.text(0, 0, "", txt(11, "#f3e3b8", {
       align: "left", backgroundColor: "#120e18", padding: { x: 8, y: 6 }, wordWrap: { width: 230 },
@@ -252,6 +278,7 @@ export class HUDScene extends Phaser.Scene {
   }
 
   update(time: number): void {
+    if (this.mobile) this.coverTouch();
     if (!this.hero) return;
     if (this.hero.pk && this.hero.pk.status !== "white") this.updatePkText();
     const hpPct = Phaser.Math.Clamp(this.hero.hp / this.hero.max_hp, 0, 1);
@@ -341,6 +368,7 @@ export class HUDScene extends Phaser.Scene {
     this.barWidth = w;
     const g = this.add.graphics();
     panel(g, -w / 2, -SLOT - 18, w, SLOT + 16, 10);
+    this.barBg = g;
     g.lineStyle(1, 0x6b5226, 0.8).lineBetween(-w / 2 + potW + 3, -SLOT - 12, -w / 2 + potW + 3, -8);
     this.skillBar = this.add.container(0, 0, [g]);
     POTIONS.forEach((pt, i) => {
@@ -355,6 +383,7 @@ export class HUDScene extends Phaser.Scene {
         this.tweens.add({ targets: root, scale: 0.88, duration: 70, yoyo: true });
       });
       root.on("pointerover", () => {
+        if (this.mobile) return;
         const m = root.getWorldTransformMatrix();
         this.tooltip.setText(pt.kind === "hp" ? "POÇÕES DE VIDA (Q)\nBebe a poção de vida que melhor cobre o que falta."
           : "POÇÕES DE MANA (E)\nBebe a poção de mana que melhor cobre o que falta.")
@@ -363,6 +392,7 @@ export class HUDScene extends Phaser.Scene {
       root.on("pointerout", () => this.tooltip.setVisible(false));
       this.skillBar.add(root);
       this.potionSlots.push({ kind: pt.kind, icon, count });
+      this.potionRoots.push(root);
     });
     const x0 = -w / 2 + potW + 7 + SLOT / 2;
     skills.forEach((skill, i) => {
@@ -386,6 +416,7 @@ export class HUDScene extends Phaser.Scene {
   }
 
   private showTooltip(s: SkillDef, x: number, y: number): void {
+    if (this.mobile) return; // a tap casts the skill; the skill book explains them
     const lines = [s.name.toUpperCase(), s.desc];
     if (s.passive) lines.push(`Passiva · Nível ${s.lvl}`);
     else lines.push(`${s.mp} mana · recarga ${(s.cd / 1000).toFixed(1)}s${s.range > 2.5 ? ` · alcance ${s.range}` : ""}`, `Nível necessário: ${s.lvl}`);
@@ -445,9 +476,12 @@ export class HUDScene extends Phaser.Scene {
   private buildButtons(): void {
     const mk = (label: string, y: number, onClick: () => void): Phaser.GameObjects.Text => {
       const bg = this.add.image(0, y, "hud_button").setScale(0.78, 0.7);
-      const t = this.add.text(0, y, label, txt(11, "#bfa77a")).setOrigin(0.5);
+      // phones have no keyboard: no shortcut hints on the buttons
+      const t = this.add.text(0, y, this.mobile ? label.replace(/ \([^)]*\)$/, "") : label, txt(11, "#bfa77a")).setOrigin(0.5);
       const c = this.add.container(0, 0, [bg, t]);
-      bg.setInteractive({ useHandCursor: true }).on("pointerdown", onClick)
+      c.setData("y", y);
+      this.menuItems.push(c);
+      bg.setInteractive({ useHandCursor: true }).on("pointerdown", () => { onClick(); if (this.mobile) this.setMenu(false); })
         .on("pointerover", () => bg.setAlpha(0.8)).on("pointerout", () => bg.setAlpha(1));
       this.buttons.add(c);
       return t;
@@ -469,6 +503,7 @@ export class HUDScene extends Phaser.Scene {
     mk("Livro de Skills (K)", -68, () => this.toggleBook());
     mk("Personagem (C)", -36, () => this.toggleChar());
     this.autoFarmText = mk("Auto-Farm: DESLIGADO", -4, () => this.scene.get("GameScene").events.emit("toggle_autofarm"));
+    if (this.mobile) mk("Montaria", 28, () => this.scene.get("GameScene").events.emit("toggle_mount"));
   }
 
   private buildDeath(): void {
@@ -521,6 +556,141 @@ export class HUDScene extends Phaser.Scene {
     const fit = Math.min(1, (h - 20) / 480, (w - 20) / 670);
     this.book?.setPosition(w / 2, h / 2).setScale(fit);
     this.charPanel?.setPosition(w / 2, h / 2).setScale(Math.min(1, (h - 20) / 340));
+    this.dialog?.setPosition(w / 2, h - 96);
+    if (this.mobile) this.layoutTouch(w, h);
+  }
+
+  // ── Touch controls (phones and tablets) ─────────────────────────────
+
+  /** A round button with a short label (Menu, Alvo, Montar). */
+  private roundBtn(label: string, r: number, action: () => void): Phaser.GameObjects.Container {
+    const g = this.add.graphics();
+    g.fillStyle(0x120e18, 0.82).fillCircle(0, 0, r);
+    g.lineStyle(2, 0xd6aa5a, 0.85).strokeCircle(0, 0, r);
+    g.lineStyle(1, 0xd6aa5a, 0.3).strokeCircle(0, 0, r - 5);
+    const t = this.add.text(0, 0, label, txt(label.length > 5 ? 9 : 10, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5);
+    const c = this.add.container(0, 0, [g, t]).setSize(r * 2, r * 2).setInteractive({ useHandCursor: true }).setDepth(6);
+    c.on("pointerdown", () => {
+      action();
+      this.tweens.add({ targets: c, scale: 0.86, duration: 70, yoyo: true });
+    });
+    return c;
+  }
+
+  private buildTouch(): void {
+    // the joystick appears wherever the thumb lands in the lower left of the screen
+    const base = this.add.graphics();
+    base.fillStyle(0x000000, 0.35).fillCircle(0, 0, JOY_R);
+    base.lineStyle(2, 0xd6aa5a, 0.55).strokeCircle(0, 0, JOY_R);
+    base.lineStyle(1, 0xd6aa5a, 0.25).strokeCircle(0, 0, JOY_R * 0.55);
+    this.joyKnob = this.add.graphics();
+    this.joyKnob.fillStyle(0x2a2030, 0.95).fillCircle(0, 0, 26).lineStyle(2, 0xffd77a, 0.9).strokeCircle(0, 0, 26);
+    this.joyRoot = this.add.container(0, 0, [base, this.joyKnob]).setAlpha(0.5).setDepth(5);
+    this.joyZone = this.add.zone(0, 0, 10, 10).setOrigin(0, 1).setInteractive();
+    this.joyZone.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
+      if (this.joyPtr >= 0) return;
+      this.joyPtr = ptr.id;
+      this.registry.set("joyPointer", ptr.id);
+      this.joyRoot!.setPosition(ptr.x, ptr.y).setAlpha(1);
+      this.moveJoy(ptr);
+    });
+    this.input.on("pointermove", (ptr: Phaser.Input.Pointer) => { if (ptr.id === this.joyPtr) this.moveJoy(ptr); });
+    const up = (ptr: Phaser.Input.Pointer) => { if (ptr.id === this.joyPtr) this.releaseJoy(); };
+    this.input.on("pointerup", up);
+    this.input.on("pointerupoutside", up);
+    this.input.on("gameout", () => this.releaseJoy());
+    this.events.once("shutdown", () => this.registry.set("joyPointer", -1));
+
+    const game = () => this.scene.get("GameScene").events;
+    this.menuBtn = this.roundBtn("MENU", 24, () => this.setMenu(!this.menuOpen));
+    this.touchBtns.push(this.roundBtn("ALVO", 24, () => game().emit("cycle_target")));
+    this.touchBtns.push(this.roundBtn("MONTAR", 24, () => game().emit("toggle_mount")));
+    this.menuShade = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.6).setOrigin(0).setInteractive().setVisible(false).setDepth(59);
+    this.menuShade.on("pointerdown", () => this.setMenu(false));
+    this.buttons.setDepth(60).setVisible(false);
+  }
+
+  /** While a window or the menu is open, the joystick, the round buttons and the chat step aside. */
+  private coverTouch(): void {
+    const open = this.menuOpen || !!(this.book || this.charPanel || this.friendsWin || this.guildWin)
+      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen;
+    if (open === this.covered) return;
+    this.covered = open;
+    if (open) this.releaseJoy();
+    this.chat?.setHidden(open);
+    this.joyRoot?.setVisible(!open);
+    if (open) this.joyZone?.disableInteractive(); else this.joyZone?.setInteractive();
+    this.touchBtns.forEach((b) => b.setVisible(!open));
+  }
+
+  private moveJoy(ptr: Phaser.Input.Pointer): void {
+    const dx = ptr.x - this.joyRoot!.x, dy = ptr.y - this.joyRoot!.y;
+    const len = Math.hypot(dx, dy);
+    const k = len > JOY_R ? JOY_R / len : 1;
+    this.joyKnob!.setPosition(dx * k, dy * k);
+    this.scene.get("GameScene").events.emit("joy", (dx * k) / JOY_R, (dy * k) / JOY_R);
+  }
+
+  private releaseJoy(): void {
+    if (this.joyPtr < 0) return;
+    this.joyPtr = -1;
+    this.registry.set("joyPointer", -1);
+    this.joyKnob!.setPosition(0, 0);
+    this.joyRoot!.setPosition(this.joyHome.x, this.joyHome.y).setAlpha(0.5);
+    this.scene.get("GameScene").events.emit("joy", 0, 0);
+  }
+
+  private setMenu(open: boolean): void {
+    this.menuOpen = open;
+    if (open) this.closeWindows();
+    this.menuShade?.setVisible(open);
+    this.buttons.setVisible(open);
+  }
+
+  /**
+   * Phone layout: joystick bottom left with the chat above it, the skills as a big 5×2 grid bottom right with the
+   * potions beside them, round buttons (target, mount) above the grid, the menu button next to the minimap and the
+   * story box under it. Sizes follow the screen height, so any phone (and tablets) fits.
+   */
+  private layoutTouch(w: number, h: number): void {
+    const k = h >= 560 ? 1.2 : h >= 450 ? 1.1 : 1;
+    const step = (SLOT + 8) * k;
+    const right = w - 10, bottom = h - 8;
+    this.barBg.setVisible(false);
+    this.skillBar.setPosition(0, 0).setScale(1);
+    this.slots.forEach((s, i) => s.root.setPosition(right - (4.5 - (i % 5)) * step, bottom - (Math.floor(i / 5) + 0.5) * step).setScale(k));
+    const gridLeft = right - 5 * step;
+    this.potionRoots.forEach((r, i) => r.setPosition(gridLeft - step * 0.5 - 6, bottom - (i + 0.5) * step).setScale(k));
+    const gridTop = bottom - Math.ceil(this.slots.length / 5) * step;
+    this.touchBtns.forEach((b, i) => b.setPosition(right - 26 * k - i * 60 * k, gridTop - 32 * k).setScale(k));
+
+    const mm = h < 450 ? 0.6 : h < 600 ? 0.75 : 0.9;
+    this.minimap.setPosition(w - 84 * mm, 84 * mm).setScale(mm);
+    this.menuBtn?.setPosition(w - 168 * mm - 34 * k, 34 * k).setScale(k);
+    const qs = h < 450 ? 0.8 : 1;
+    const qy = 168 * mm + 8;
+    this.questBox.setPosition(w - 206 * qs, qy).setScale(qs).setVisible(true);
+    const showDaily = this.dailyShown && h >= 470;
+    this.dailyBox?.setPosition(w - 206 * qs, qy + 64 * qs).setScale(qs).setVisible(showDaily);
+    this.wbStatus?.setPosition(w - 210 * qs, qy + (64 + (showDaily ? 84 : 0)) * qs).setScale(qs);
+    this.playerPanel.setScale(h < 450 ? 0.78 : 0.92);
+
+    this.joyHome = { x: 22 + JOY_R, y: h - 22 - JOY_R };
+    if (this.joyPtr < 0) this.joyRoot?.setPosition(this.joyHome.x, this.joyHome.y);
+    this.joyZone?.setPosition(0, h).setSize(Math.max(160, Math.min(w * 0.45, gridLeft - step - 40)), h * 0.62);
+    const chatBottom = 22 + JOY_R * 2 + 10;
+    this.chat?.place(chatBottom, Math.min(300, w * 0.36));
+    const feedBase = h - chatBottom - (this.chat?.height() ?? 70) - 8;
+    this.feed.forEach((t, i) => t.setPosition(12, feedBase - i * 18));
+
+    // the menu: every window button in two columns, in the middle of the screen
+    this.menuShade?.setSize(w, h);
+    const rows = Math.ceil(this.menuItems.length / 2);
+    this.menuItems.forEach((c, i) => {
+      const y0 = c.getData("y") as number;
+      c.setPosition(((i % 2) - 0.5) * 200, (Math.floor(i / 2) - (rows - 1) / 2) * 46 - y0 * 1.2).setScale(1.2);
+    });
+    this.buttons.setPosition(w / 2, h / 2).setScale(Math.min(1, (h - 24) / (rows * 46), (w - 20) / 410)).setVisible(this.menuOpen);
     this.dialog?.setPosition(w / 2, h - 96);
   }
 

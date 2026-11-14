@@ -3,6 +3,7 @@
  * and how pass XP is earned. The server decides everything; this only shows the `season` message.
  */
 import Phaser from "phaser";
+import { isTouch } from "../ui/device";
 import { META, fmtBig, type PassReward, type SeasonState } from "../data/meta";
 import { GLOW_COLORS } from "../gfx/textures";
 import { panel, txt } from "./uiStyle";
@@ -165,7 +166,7 @@ export class PassUI {
   private mount(objs: Obj[]): void {
     const s = this.scene.scale;
     this.root = this.scene.add.container(s.width / 2, s.height / 2, objs).setDepth(82)
-      .setScale(Math.min(1, (s.width - 16) / W, (s.height - 100) / H));
+      .setScale(Math.min(1, (s.width - 16) / W, (s.height - (isTouch() ? 12 : 100)) / H));
   }
 
   private rewardCell(objs: Obj[], x: number, y: number, rewards: PassReward[], track: "free" | "prem", level: number, st: SeasonState): void {

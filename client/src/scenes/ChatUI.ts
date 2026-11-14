@@ -5,6 +5,7 @@
  */
 import { META, PK_INFO, type PkStatus } from "../data/meta";
 import { FONT } from "../gfx/draw";
+import { isTouch } from "../ui/device";
 
 export interface ChatMsg {
   channel: "map" | "global" | "whisper" | "party" | "guild" | "guild_info" | "event" | "system";
@@ -57,7 +58,7 @@ export class ChatUI {
   constructor(private send: (msg: Record<string, unknown>) => void) {
     this.box = document.createElement("div");
     Object.assign(this.box.style, {
-      position: "fixed", left: "10px", bottom: "10px", width: "340px", zIndex: "9",
+      position: "fixed", left: "calc(env(safe-area-inset-left) + 10px)", bottom: "10px", width: "340px", zIndex: "9",
       font: `13px ${FONT}`, color: "#efe6d2", textShadow: "0 1px 2px #000, 0 0 3px #000",
       transition: "opacity 0.6s", userSelect: "text",
     } as Partial<CSSStyleDeclaration>);
@@ -84,7 +85,7 @@ export class ChatUI {
     });
     this.input.addEventListener("blur", () => this.close());
     this.log.addEventListener("pointerdown", (e) => { e.stopPropagation(); if (!this.open) this.openInput(); });
-    this.add({ channel: "system", text: "Aperte Enter para conversar. Digite /ajuda para ver os comandos." });
+    this.add({ channel: "system", text: isTouch() ? "Toque em Menu → Chat para conversar. Digite /ajuda para ver os comandos." : "Aperte Enter para conversar. Digite /ajuda para ver os comandos." });
   }
 
   get typing(): boolean {
@@ -96,8 +97,20 @@ export class ChatUI {
     this.box.remove();
   }
 
+  /** Phones: a smaller log that lets touches through to the joystick under it (the menu opens the input). */
+  setTouch(maxHeight: number): void {
+    Object.assign(this.log.style, { maxHeight: `${Math.round(maxHeight)}px`, pointerEvents: "none", lineHeight: "15px", fontSize: "11px" });
+    this.input.style.fontSize = "16px"; // 16px or more: iPhone does not zoom the page when the field is focused
+  }
+
+  /** Phones: hidden while a window or the menu covers the screen (the chat is HTML, drawn above the game). */
+  setHidden(hidden: boolean): void {
+    if (hidden) this.close();
+    this.box.style.display = hidden ? "none" : "";
+  }
+
   place(bottom: number, width: number): void {
-    this.box.style.bottom = `${Math.round(bottom)}px`;
+    this.box.style.bottom = `calc(env(safe-area-inset-bottom) + ${Math.round(bottom)}px)`;
     this.box.style.width = `${Math.round(width)}px`;
   }
 

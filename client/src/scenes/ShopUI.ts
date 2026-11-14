@@ -3,6 +3,7 @@
  * sells power. Gem packs for real money are shown as "coming soon". The server checks every purchase.
  */
 import Phaser from "phaser";
+import { isTouch } from "../ui/device";
 import { META, fmtBig, type HeroState, type SeasonState, type ShopOffer } from "../data/meta";
 import { GLOW_COLORS } from "../gfx/textures";
 import { SHEETS, animKey, hasSheet, requestSheet } from "../gfx/sprites3d";
@@ -126,7 +127,7 @@ export class ShopUI {
     }
     const s = this.scene.scale;
     this.root = this.scene.add.container(s.width / 2, s.height / 2, objs).setDepth(82)
-      .setScale(Math.min(1, (s.width - 16) / W, (s.height - 100) / H));
+      .setScale(Math.min(1, (s.width - 16) / W, (s.height - (isTouch() ? 12 : 100)) / H));
   }
 
   private card(objs: Obj[], x: number, y: number, o: ShopOffer, gems: number): void {

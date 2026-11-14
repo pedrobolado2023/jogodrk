@@ -2,19 +2,53 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Dark Fantasy MMORPG</title>
+  <meta name="theme-color" content="#050407" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Dark Fantasy" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0f; overflow: hidden; }
-    #game-container { width: 100vw; height: 100vh; }
+    html, body { background: #050407; overflow: hidden; height: 100%; overscroll-behavior: none; }
+    body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+    /* the game stays clear of the notch and rounded corners (the black sides fill the rest) */
+    #game-container {
+      position: fixed; top: env(safe-area-inset-top); bottom: env(safe-area-inset-bottom);
+      left: env(safe-area-inset-left); right: env(safe-area-inset-right); touch-action: none;
+    }
+    input { -webkit-user-select: text; user-select: text; }
+    /* phones and tablets held upright: the game is played lying down */
+    #rotate {
+      display: none; position: fixed; inset: 0; z-index: 100; background: radial-gradient(circle at 50% 40%, #1c1220, #050407 70%);
+      color: #f3e3b8; font-family: Cinzel, Georgia, serif; text-align: center; flex-direction: column; align-items: center;
+      justify-content: center; gap: 22px; padding: 24px;
+    }
+    #rotate h1 { font-size: 22px; color: #ffd77a; letter-spacing: 1px; text-shadow: 0 0 12px rgba(214,170,90,0.5); }
+    #rotate p { font-size: 15px; color: #c8b48a; max-width: 280px; line-height: 1.5; }
+    #rotate .phone {
+      width: 64px; height: 108px; border: 4px solid #d6aa5a; border-radius: 12px; position: relative;
+      box-shadow: 0 0 22px rgba(214,170,90,0.35); animation: turn 2.4s ease-in-out infinite;
+    }
+    #rotate .phone::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 14px; height: 3px; margin-left: -7px; background: #d6aa5a; border-radius: 2px; }
+    @keyframes turn { 0%, 25% { transform: rotate(0deg); } 55%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+    @media (orientation: portrait) and (pointer: coarse) { #rotate { display: flex; } }
   </style>
 </head>
 <body>
   <div id="game-container"></div>
+  <div id="rotate" role="alert">
+    <div class="phone" aria-hidden="true"></div>
+    <h1>Gire o celular</h1>
+    <p>Dark Fantasy é jogado com o celular deitado. Vire a tela para continuar.</p>
+  </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

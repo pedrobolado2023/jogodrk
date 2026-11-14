@@ -4,6 +4,7 @@
  * window is redrawn from the `inventory` message it sends back — the client never edits the inventory.
  */
 import Phaser from "phaser";
+import { isTouch } from "../ui/device";
 import {
   CLASS_INFO, META, PERCENT_STATS, SLOT_NAMES, critText, fmtBig, pieceName, pieceStats, refLines, statLines,
   type BagEntry, type GearPiece, type GearSlot, type HeroState, type InventoryState, type ShopMsg,
@@ -168,7 +169,7 @@ export class InventoryUI {
     if (!this.root) return;
     const w = this.scene.scale.width, h = this.scene.scale.height;
     const total = INV_W + this.sideWidth();
-    this.root.setPosition(w / 2, h / 2 - 10).setScale(Math.min(1, (w - 16) / total, (h - 120) / H));
+    this.root.setPosition(w / 2, h / 2 - 10).setScale(Math.min(1, (w - 16) / total, (h - (isTouch() ? 12 : 120)) / H));
   }
 
   /** The piece the forge is working on, if it is still where it was selected. */
