@@ -18,6 +18,7 @@ Use um projeto no Easypanel com um Postgres e dois serviços App, ambos ligados 
    ```dotenv
    MMORPG_ENV=production
    DATABASE_URL=postgres://usuario:senha@host:5432/banco
+   SECRET_KEY=troque_por_uma_chave_aleatoria
    CORS_ORIGINS=https://jogo.seudominio
    ```
 
@@ -51,3 +52,11 @@ O WebSocket passa pelo proxy do Easypanel, usando o mesmo domínio e porta inter
 - O `.gitignore` exclui bancos, segredos, outros projetos e modelos 3D de origem. Os sprites renderizados de `client/public/sprites/` continuam incluídos. Arquivos que já estiverem rastreados não deixam de ser rastreados apenas por adicionar o `.gitignore`; revise isso antes de publicar.
 
 Referências: [builds e argumentos no Easypanel](https://easypanel.io/docs/builders) e [serviços App](https://easypanel.io/docs/services/app).
+
+## Chave das contas
+
+SECRET_KEY é obrigatória em produção, com pelo menos 32 caracteres. Gere uma chave com:
+```sh
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+Guarde a chave no ambiente do backend. Trocar a chave encerra as sessões existentes. O proxy deve substituir X-Forwarded-For pelo IP real; mantenha o backend acessível apenas pelo proxy.

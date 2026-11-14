@@ -8,17 +8,23 @@ from __future__ import annotations
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from hashlib import sha256
+from datetime import datetime, timezone
+import re
+from collections import defaultdict, deque
 
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlalchemy import inspect, select, text
+from sqlalchemy import inspect, select, text, func, delete
+from sqlalchemy.exc import IntegrityError
+from auth import current_user, hash_password, verify_password, make_token, verify_token
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import items as inv
 from auto_farm import auto_farm
-from config import CORS_ORIGINS, DATABASE_URL, DEV_TOOLS
+from config import ENV, CORS_ORIGINS, DATABASE_URL, DEV_TOOLS
 from game import Game, Hero
 from models import Base, Character, CharacterClass, GameState, User
 from websocket_manager import manager
@@ -146,6 +152,11 @@ app = FastAPI(title="Dark Fantasy MMORPG", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials=CORS_ORIGINS != ["*"], allow_methods=["*"], allow_headers=["*"])
 
 
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request: Request, exc: RequestValidationError):
+    return JSONResponse(status_code=422, content={"detail": "Dados inválidos. Confira os campos e tente novamente."})
+
+
 async def get_db() -> AsyncSession:
     async with async_session() as session:
         yield session
@@ -161,32 +172,139 @@ async def get_meta():
     return meta()
 
 
+# One process owns the live world; these limits use the same process lifetime.
+_auth_attempts: dict = defaultdict(deque)
+_account_lock = asyncio.Lock()
+
+
+def _rate_key(request: Request, kind: str, limit: int):
+    # the LAST X-Forwarded-For entry is the one our proxy (Easypanel) added; earlier entries come from the client
+    # and can be faked to dodge the limit
+    ip = request.headers.get("x-forwarded-for", "").split(",")[-1].strip() or (request.client.host if request.client else "unknown")
+    now = time.monotonic()
+    for key in list(_auth_attempts):
+        queue = _auth_attempts[key]
+        age = 300 if key[0] == "login" else 3600
+        while queue and queue[0] <= now - age:
+            queue.popleft()
+        if not queue:
+            del _auth_attempts[key]
+    queue = _auth_attempts[(kind, ip)]
+    if len(queue) >= limit:
+        raise HTTPException(429, "Muitas tentativas, espere alguns minutos")
+    return queue
+
+
+def _user_info(user):
+    return {"id": user.id, "username": user.username}
+
+
+def _char_info(char):
+    return {"character_id": char.id, "name": char.name, "class": char.char_class.value,
+            "level": char.level, "map": MAPS.get(char.map_id, {}).get("name", char.map_id)}
+
+
 class RegisterRequest(BaseModel):
     username: str
-    email: str
     password: str
+    email: str | None = None
 
 
 @app.post("/auth/register", status_code=201)
-async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    user = User(username=req.username, email=req.email, password_hash=sha256(req.password.encode()).hexdigest())
-    db.add(user)
-    try:
+async def register(req: RegisterRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    async with _account_lock:
+        attempts = _rate_key(request, "register", 5)
+        attempts.append(time.monotonic())
+        if not re.fullmatch(r"[a-zA-Z0-9_]{3,20}", req.username):
+            raise HTTPException(400, "Use de 3 a 20 letras, números ou sublinhado no usuário")
+        if len(req.password) < 8:
+            raise HTTPException(400, "A senha precisa ter pelo menos 8 caracteres")
+        if await db.scalar(select(User.id).where(func.lower(User.username) == req.username.lower())):
+            raise HTTPException(409, "Este usuário já existe")
+        user = User(username=req.username.lower(), email=(req.email or "").strip() or f"{req.username.lower()}@sem-email.local",
+                    password_hash=hash_password(req.password))
+        db.add(user)
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            raise HTTPException(409, "Usuário ou e-mail já existe")
+    return {"token": make_token(user.id), "user": _user_info(user)}
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/auth/login")
+async def login(req: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    async with _account_lock:
+        attempts = _rate_key(request, "login", 10)
+        user = await db.scalar(select(User).where(func.lower(User.username) == req.username.lower()))
+        if not user or not verify_password(req.password, user.password_hash):
+            attempts.append(time.monotonic())
+            raise HTTPException(401, "Usuário ou senha incorretos")
+        if user.is_banned:
+            raise HTTPException(403, "Esta conta está bloqueada")
+        user.last_login = datetime.now(timezone.utc)
         await db.commit()
-    except Exception:
-        await db.rollback()
-        raise HTTPException(status_code=409, detail="Usuário ou e-mail já existe")
-    return {"user_id": str(user.id)}
+    return {"token": make_token(user.id), "user": _user_info(user)}
+
+
+@app.get("/characters")
+async def list_characters(user: User = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    chars = (await db.scalars(select(Character).where(Character.user_id == user.id).order_by(Character.name))).all()
+    return [_char_info(char) for char in chars]
+
+
+@app.get("/auth/me")
+async def me(user: User = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    return {"user": _user_info(user), "characters": await list_characters(user, db)}
+
+
+class ClaimRequest(BaseModel):
+    character_id: str
+
+
+@app.post("/auth/claim")
+async def claim(req: ClaimRequest, user: User = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    # Old anonymous heroes exist only in local dev databases. Character ids are visible to other players in the game,
+    # so in production (a fresh database) claiming is switched off: nobody could take someone else's hero.
+    if ENV == "production":
+        raise HTTPException(404, "Não disponível")
+    async with _account_lock:
+        char = await db.get(Character, req.character_id)
+        if not char:
+            raise HTTPException(404, "Personagem não encontrado")
+        owner = await db.get(User, char.user_id)
+        # New real accounts may also start with u_; only legacy hashes can be claimed.
+        if not owner or not owner.username.startswith("u_") or not re.fullmatch(r"[0-9a-f]{64}", owner.password_hash):
+            raise HTTPException(403, "Este herói não pertence a uma conta antiga")
+        if await db.scalar(select(func.count()).select_from(Character).where(Character.user_id == user.id)) >= 4:
+            raise HTTPException(400, "Cada conta pode ter até 4 heróis")
+        char.user_id = user.id
+        await db.flush()
+        if not await db.scalar(select(Character.id).where(Character.user_id == owner.id)):
+            await db.execute(delete(User).where(User.id == owner.id))
+        await db.commit()
+    return _char_info(char)
 
 
 class CreateCharRequest(BaseModel):
-    user_id: str
     name: str
     char_class: str
 
 
 @app.post("/characters", status_code=201)
-async def create_character(req: CreateCharRequest, db: AsyncSession = Depends(get_db)):
+async def create_character(req: CreateCharRequest, user: User = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    async with _account_lock:
+        return await _create_character(req, user, db)
+
+
+async def _create_character(req, user, db):
+    if await db.scalar(select(func.count()).select_from(Character).where(Character.user_id == user.id)) >= 4:
+        raise HTTPException(400, "Cada conta pode ter até 4 heróis")
     if req.char_class not in CLASS_BASE:
         raise HTTPException(400, "Classe inválida")
     name = req.name.strip()[:16]
@@ -196,7 +314,7 @@ async def create_character(req: CreateCharRequest, db: AsyncSession = Depends(ge
     sx, sy = MAPS[START_MAP]["spawn"]
     bag, gear = inv.starter_kit(req.char_class)
     char = Character(
-        user_id=req.user_id, name=name, char_class=CharacterClass(req.char_class),
+        user_id=user.id, name=name, char_class=CharacterClass(req.char_class),
         str=b["str"], agi=b["agi"], int_=b["int"], vit=b["vit"],
         hp=0, max_hp=b["hp"], mp=0, max_mp=b["mp"],
         map_id=START_MAP, pos_x=sx, pos_y=sy, story={"q": 0, "st": "offer", "n": 0}, loot={}, bag=bag, gear=gear,
@@ -211,9 +329,9 @@ async def create_character(req: CreateCharRequest, db: AsyncSession = Depends(ge
 
 
 @app.get("/characters/{character_id}")
-async def get_character(character_id: str, db: AsyncSession = Depends(get_db)):
+async def get_character(character_id: str, user: User = Depends(current_user), db: AsyncSession = Depends(get_db)):
     char = await db.get(Character, character_id)
-    if not char:
+    if not char or char.user_id != user.id:
         raise HTTPException(404, "Personagem não encontrado")
     return {"character_id": char.id, "name": char.name, "class": char.char_class.value, "level": char.level,
             "map": MAPS.get(char.map_id, {}).get("name", "")}
@@ -344,6 +462,16 @@ async def _take_over(cid: str) -> None:
 
 @app.websocket("/ws/{character_id}")
 async def game_ws(ws: WebSocket, character_id: str):
+    uid = verify_token(ws.query_params.get("token", ""))
+    async with async_session() as db:
+        user = await db.get(User, uid) if uid else None
+        owner_id = await db.scalar(select(Character.user_id).where(Character.id == character_id)) if user and not user.is_banned else None
+    if not user or user.is_banned or owner_id != user.id:
+        # accept only to send a clean 1008 close (the browser reports 1006 for a refused handshake, and the client
+        # would keep reconnecting instead of asking the player to log in again); nothing is read or sent
+        await ws.accept()
+        await ws.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
     if character_id in game.heroes or character_id in manager.sessions:
         await _take_over(character_id)  # before loading, so we read what the old session saved
     async with async_session() as db:

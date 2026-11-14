@@ -1,6 +1,7 @@
 /**
  * WebSocket client — connects to the game server and dispatches events.
  */
+import { getToken } from "./session";
 import { API, WS_HOST } from "../data/meta";
 
 export type ServerMessage = {
@@ -36,7 +37,7 @@ export class GameSocket {
       this.ws = null;
     }
     this._characterId = characterId;
-    this._url = `${new URL(API).protocol === "https:" ? "wss" : "ws"}://${host}/ws/${characterId}`;
+    this._url = `${new URL(API).protocol === "https:" ? "wss" : "ws"}://${host}/ws/${characterId}?token=${encodeURIComponent(getToken())}`;
     this._doConnect();
   }
 
@@ -62,6 +63,10 @@ export class GameSocket {
     };
 
     this.ws.onclose = (ev) => {
+      if (ev.code === 1008) {
+        this.emit("notice", { type: "notice", text: "Sessão inválida. Recarregue a página e entre novamente.", kind: "warn" });
+        return;
+      }
       if (ev.code === REPLACED_CODE) {
         // the same hero connected from another window/tab: reconnecting would just kick that one back
         console.log("[WS] replaced by a newer connection");

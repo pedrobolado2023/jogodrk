@@ -6,6 +6,10 @@ import os
 
 ENV = os.getenv("MMORPG_ENV", "dev")
 
+SECRET_KEY = os.getenv("SECRET_KEY", "" if ENV == "production" else "dev-only-secret-do-not-use-in-production")
+if ENV == "production" and len(SECRET_KEY) < 32:
+    raise ValueError("SECRET_KEY é obrigatória em produção e precisa ter pelo menos 32 caracteres")
+
 if ENV == "production":
     DATABASE_URL = os.environ["DATABASE_URL"].strip()
     if not DATABASE_URL:

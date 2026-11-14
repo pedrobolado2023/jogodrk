@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { authHeaders, getToken, setToken } from "../network/session";
 import { ensureTextures, UNIT_ORIGIN, UNIT_RES } from "../gfx/textures";
 import { FONT } from "../gfx/draw";
 import { API, CLASS_INFO, META, classSkills, loadMeta } from "../data/meta";
@@ -8,7 +9,7 @@ import { ensureSkillIcons } from "../gfx/themeProps";
 /**
  * Hero selection and creation: the chosen class stands large on a glowing pedestal (its own 3D figure, which can
  * be turned around), with the class list on the left, its attributes, difficulty and signature skills on the right,
- * and the name field with the create button below. A saved hero shows a "continue" card.
+ * and the name field with the create button below. Accounts open their own hero cards first.
  * Everything is laid out on a 1280×720 board scaled to the window.
  */
 
@@ -29,7 +30,7 @@ const CLASS_SHEET: Record<string, { bars: [string, number][]; difficulty: number
 };
 const DIFFICULTY = ["", "Fácil", "Médio", "Difícil"];
 
-interface Saved { id: string; name: string; cls: string }
+interface AccountHero { character_id: string; name: string; class: string; level: number; map: string }
 
 const txt = (size: number, color: string, extra: Phaser.Types.GameObjects.Text.TextStyle = {}): Phaser.Types.GameObjects.Text.TextStyle => ({
   fontFamily: FONT, fontSize: `${size}px`, color, stroke: "#000000", strokeThickness: Math.max(2, Math.round(size / 6)), ...extra,
@@ -44,8 +45,12 @@ export class LoginScene extends Phaser.Scene {
   private selectedClass = "blade_master";
   private dir = 2;
   private busy = false;
-  private saved: Saved | null = null;
-  private savedInfo: { name: string; level: number; map: string } | null = null;
+  private mode: "account" | "heroes" | "create" = "account";
+  private accountPanel?: Phaser.GameObjects.Container;
+  private accountInputs: HTMLInputElement[] = [];
+  private accountTab: "login" | "register" = "login";
+  private characters: AccountHero[] = [];
+  private accountName = "";
   private ready = false;
   // parts redrawn when the class changes
   private stage?: Phaser.GameObjects.Container;
@@ -53,13 +58,18 @@ export class LoginScene extends Phaser.Scene {
   private classList?: Phaser.GameObjects.Container;
   private hero?: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image;
   private createBtn?: Phaser.GameObjects.Container;
-  private continueCard?: Phaser.GameObjects.Container;
+
 
   constructor() {
     super({ key: "LoginScene" });
   }
 
   create(): void {
+    this.busy = false;
+    this.ready = false;
+    this.inputSig = "";
+    this.accountPanel = undefined;
+    this.mode = "account";
     ensureTextures(this);
     this.cameras.main.setBackgroundColor("#050407");
     this.bg = this.add.image(0, 0, "login_bg");
@@ -91,6 +101,9 @@ export class LoginScene extends Phaser.Scene {
     this.events.once("shutdown", () => this.nameInput?.remove());
 
     this.buildStatic();
+    this.board.setVisible(false);
+    this.nameInput.style.display = "none";
+    this.events.once("shutdown", () => this.clearAccountInputs());
     this.layout();
     this.scale.on("resize", this.layout, this);
     this.events.once("shutdown", () => this.scale.off("resize", this.layout, this));
@@ -99,6 +112,7 @@ export class LoginScene extends Phaser.Scene {
 
   update(time: number): void {
     this.placeNameInput();
+    this.placeAccountInputs();
     if (this.hero && !(this.hero instanceof Phaser.GameObjects.Sprite)) this.hero.y = -6 + Math.sin(time * 0.002) * 2;
   }
 
@@ -119,27 +133,151 @@ export class LoginScene extends Phaser.Scene {
     // the three heroes' 3D figures: the chosen one first
     for (const id of [this.selectedClass, ...CLASSES.filter((c) => c !== this.selectedClass)]) {
       void requestSheet(this, `unit_${id}`).then((ok) => {
-        if (!ok) return;
+        if (!ok || !this.scene.isActive()) return;
         if (id === this.selectedClass) this.drawStage(true);
         this.drawClassList();
       });
     }
-    try {
-      const raw = localStorage.getItem(SAVE_KEY);
-      this.saved = raw ? JSON.parse(raw) : null;
-    } catch {
-      this.saved = null;
+    if (getToken()) {
+      try {
+        await this.loadAccount();
+        return;
+      } catch (err) {
+        this.statusText.setText(err instanceof Error ? err.message : "Não foi possível carregar sua conta.").setColor("#ff6666");
+      }
     }
-    if (!this.saved) return;
-    try {
-      const res = await fetch(`${API}/characters/${this.saved.id}`);
-      if (!res.ok) throw new Error();
-      const c = await res.json();
-      this.savedInfo = { name: c.name, level: c.level, map: c.map };
-      this.drawContinue();
-    } catch {
-      this.saved = null;
+    this.showAccount();
+  }
+
+  private async api(path: string, body?: unknown): Promise<any> {
+    const response = await fetch(`${API}${path}`, {
+      method: body === undefined ? "GET" : "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }).catch(() => { throw new Error("Não foi possível conectar ao servidor. Tente novamente."); });
+    const data = await response.json().catch(() => { throw new Error("O servidor não respondeu como esperado. Tente novamente."); });
+    if (!response.ok) {
+      if (response.status === 401 && path === "/auth/me") setToken("");
+      throw new Error(typeof data.detail === "string" ? data.detail : "Confira os dados e tente novamente.");
     }
+    return data;
+  }
+
+  private async loadAccount(): Promise<void> {
+    const data = await this.api("/auth/me");
+    this.accountName = data.user.username;
+    this.characters = data.characters;
+    const legacy = localStorage.getItem(SAVE_KEY);
+    if (legacy) {
+      try {
+        const old = JSON.parse(legacy);
+        if (old.id) await this.api("/auth/claim", { character_id: old.id });
+      } catch { /* old heroes may already belong to an account */ }
+      finally { localStorage.removeItem(SAVE_KEY); }
+      this.characters = await this.api("/characters");
+    }
+    if (this.scene.isActive()) this.showHeroes();
+  }
+
+  private clearAccountInputs(): void {
+    this.accountInputs.forEach((input) => input.remove());
+    this.accountInputs = [];
+  }
+
+  private panel(title: string): Phaser.GameObjects.Container {
+    this.clearAccountInputs();
+    this.accountPanel?.destroy();
+    this.board.setVisible(false);
+    if (this.nameInput) this.nameInput.style.display = "none";
+    const g = this.add.graphics();
+    g.fillStyle(0x0c0910, 0.97).fillRoundedRect(-460, -260, 920, 540, 14);
+    g.lineStyle(2, 0xd6aa5a, 0.9).strokeRoundedRect(-460, -260, 920, 540, 14);
+    this.accountPanel = this.add.container(0, 0, [g, this.add.text(0, -218, title, txt(30, "#ffd77a")).setOrigin(0.5)]);
+    this.layout();
+    return this.accountPanel;
+  }
+
+  private accountButton(panel: Phaser.GameObjects.Container, label: string, x: number, y: number, action: () => void): void {
+    const bg = this.add.rectangle(x, y, 260, 48, 0x513918).setStrokeStyle(2, 0xd6aa5a);
+    const text = this.add.text(x, y, label, txt(18, "#ffd77a")).setOrigin(0.5);
+    bg.setInteractive({ useHandCursor: true }).on("pointerdown", () => { if (!this.busy) action(); });
+    panel.add([bg, text]);
+  }
+
+  private showAccount(): void {
+    this.mode = "account";
+    const panel = this.panel("SUA CONTA");
+    this.accountButton(panel, "Entrar", -145, -146, () => { this.accountTab = "login"; this.showAccount(); });
+    this.accountButton(panel, "Criar conta", 145, -146, () => { this.accountTab = "register"; this.showAccount(); });
+    panel.add(this.add.rectangle(this.accountTab === "login" ? -145 : 145, -118, 260, 3, 0xffd77a));
+    panel.add(this.add.text(0, -94, this.accountTab === "login" ? "Entre para jogar" : "Usuário: 3–20 letras, números ou _ • Senha: 8 ou mais caracteres", txt(14, "#c8b48a")).setOrigin(0.5));
+    for (const [type, placeholder] of [["text", "Usuário"], ["password", "Senha"]]) {
+      const input = document.createElement("input");
+      input.type = type;
+      input.placeholder = placeholder;
+      input.setAttribute("aria-label", placeholder);
+      input.autocomplete = type === "text" ? "username" : this.accountTab === "register" ? "new-password" : "current-password";
+      input.spellcheck = false;
+      if (type === "text") input.maxLength = 20;
+      Object.assign(input.style, { position: "fixed", boxSizing: "border-box", padding: "0 14px", color: "#f3e3b8", background: "#0c0910", border: "2px solid #8a6a30", borderRadius: "8px", zIndex: "10" });
+      input.addEventListener("keydown", (event) => { if (event.key === "Enter") void this.submitAccount(); });
+      document.body.appendChild(input);
+      this.accountInputs.push(input);
+    }
+    this.accountButton(panel, this.accountTab === "login" ? "ENTRAR" : "CRIAR CONTA", 0, 136, () => void this.submitAccount());
+    this.placeAccountInputs();
+    this.accountInputs[0].focus();
+  }
+
+  private placeAccountInputs(): void {
+    const w = this.scale.width, h = this.scale.height;
+    const s = Math.min(w / BOARD_W, h / BOARD_H);
+    const rect = this.game.canvas.getBoundingClientRect();
+    const kx = rect.width / w, ky = rect.height / h;
+    this.accountInputs.forEach((input, i) => Object.assign(input.style, {
+      left: `${rect.left + (w / 2 - 180 * s) * kx}px`, top: `${rect.top + (h / 2 + (-48 + i * 66) * s) * ky}px`,
+      width: `${360 * s * kx}px`, height: `${48 * s * ky}px`, fontSize: `${Math.max(12, 18 * s * ky)}px`,
+    }));
+  }
+
+  private async submitAccount(): Promise<void> {
+    if (this.busy || this.mode !== "account") return;
+    this.busy = true;
+    this.statusText.setText("Conectando…").setColor("#c9b98a");
+    try {
+      const data = await this.api(`/auth/${this.accountTab}`, { username: this.accountInputs[0].value.trim(), password: this.accountInputs[1].value });
+      setToken(data.token);
+      await this.loadAccount();
+      this.statusText.setText("");
+    } catch (err) {
+      this.statusText.setText(err instanceof Error ? err.message : "Não foi possível conectar ao servidor.").setColor("#ff6666");
+    } finally { this.busy = false; }
+  }
+
+  private showHeroes(): void {
+    this.mode = "heroes";
+    const panel = this.panel(`HERÓIS DE ${this.accountName}`);
+    if (!this.characters.length) panel.add(this.add.text(0, -30, "Sua aventura começa aqui. Crie seu primeiro herói!", txt(20, "#c8b48a")).setOrigin(0.5));
+    this.characters.forEach((hero, i) => {
+      const x = -225 + (i % 2) * 450, y = -100 + Math.floor(i / 2) * 170;
+      const bg = this.add.rectangle(x, y, 420, 150, 0x18121e).setStrokeStyle(1, 0x8a6a30);
+      const key = portraitFromSheet(this, `unit_${hero.class}`) ?? `portrait_${hero.class}`;
+      const portrait = this.add.image(x - 155, y - 20, key).setDisplaySize(64, 64);
+      const label = this.add.text(x - 105, y - 52, `${hero.name} · Nv ${hero.level}\n${META.maps?.[hero.map]?.name ?? hero.map}`, txt(16, "#f3e3b8", { lineSpacing: 10, wordWrap: { width: 300 } }));
+      panel.add([bg, portrait, label]);
+      this.accountButton(panel, "Jogar", x, y + 42, () => this.enter(hero.character_id, hero.class));
+    });
+    if (this.characters.length < 4) this.accountButton(panel, "Novo herói", 0, 214, () => {
+      this.mode = "create";
+      this.accountPanel?.destroy();
+      this.accountPanel = undefined;
+      this.board.setVisible(true);
+      if (this.nameInput) this.nameInput.style.display = "block";
+      this.statusText.setText("");
+    });
+    const logout = this.add.text(395, -220, "Sair", txt(14, "#c8b48a")).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    logout.on("pointerdown", () => { if (this.busy) return; setToken(""); this.characters = []; this.showAccount(); });
+    panel.add(logout);
   }
 
   // ── drawing ──────────────────────────────────────────────────────────
@@ -165,6 +303,9 @@ export class LoginScene extends Phaser.Scene {
     this.createBtn.on("pointerdown", () => void this.createHero());
     this.tweens.add({ targets: glow, alpha: { from: 0.18, to: 0.42 }, duration: 1300, yoyo: true, repeat: -1 });
     this.board.add(this.createBtn);
+    const back = this.add.text(-470, 312, "Voltar aos heróis", txt(16, "#d6b878")).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    back.on("pointerdown", () => { if (!this.busy) this.showHeroes(); });
+    this.board.add(back);
   }
 
   private drawClass(): void {
@@ -319,27 +460,6 @@ export class LoginScene extends Phaser.Scene {
     this.board.add(this.infoPanel);
   }
 
-  /** A saved hero: a card to jump straight back in. */
-  private drawContinue(): void {
-    this.continueCard?.destroy();
-    const s = this.saved, c = this.savedInfo;
-    if (!s || !c) return;
-    const cs = CLASS_SHEET[s.cls] ?? CLASS_SHEET.blade_master;
-    const g = this.add.graphics();
-    g.fillStyle(0x0e1a0c, 0.92).fillRoundedRect(-150, -36, 300, 72, 10);
-    g.lineStyle(2, 0x6fbf5a, 0.9).strokeRoundedRect(-150, -36, 300, 72, 10);
-    const pk = portraitFromSheet(this, `unit_${s.cls}`) ?? `portrait_${s.cls}`;
-    const ring = this.add.image(-112, 0, `glow_${cs.glow}`).setBlendMode(Phaser.BlendModes.ADD).setScale(1.1).setAlpha(0.5);
-    const portrait = this.textures.exists(pk) ? this.add.image(-112, 0, pk).setScale(0.72) : this.add.rectangle(-112, 0, 50, 50, 0x222222);
-    const t1 = this.add.text(-70, -24, "CONTINUAR", txt(11, "#9dff8a", { fontStyle: "bold" }));
-    const t2 = this.add.text(-70, -8, `${c.name} · Nv ${c.level}`, txt(16, "#f3e3b8", { fontStyle: "bold" }));
-    const t3 = this.add.text(-70, 14, META.maps?.[c.map]?.name ?? c.map, txt(10, "#a8987a"));
-    this.continueCard = this.add.container(470, 312, [g, ring, portrait, t1, t2, t3]).setSize(300, 72).setInteractive({ useHandCursor: true });
-    this.continueCard.on("pointerover", () => g.setAlpha(0.8)).on("pointerout", () => g.setAlpha(1));
-    this.continueCard.on("pointerdown", () => this.saved && this.enter(this.saved.id, this.saved.cls));
-    this.board.add(this.continueCard);
-  }
-
   private select(id: string): void {
     if (id === this.selectedClass) return;
     this.selectedClass = id;
@@ -358,6 +478,8 @@ export class LoginScene extends Phaser.Scene {
     this.shade.fillStyle(0x000000, 0.35).fillRect(0, 0, w, h);
     const s = Math.min(w / BOARD_W, h / BOARD_H);
     this.board.setPosition(w / 2, h / 2).setScale(s);
+    this.accountPanel?.setPosition(w / 2, h / 2).setScale(s);
+    this.placeAccountInputs();
     this.statusText.setPosition(w / 2, h / 2 + 344 * s);
     this.placeNameInput();
   }
@@ -391,26 +513,14 @@ export class LoginScene extends Phaser.Scene {
   // ── actions ──────────────────────────────────────────────────────────
 
   private async createHero(): Promise<void> {
-    if (this.busy || !this.ready) return;
+    if (this.busy || !this.ready || this.mode !== "create") return;
     const name = (this.nameInput?.value ?? "").trim();
     if (name.length < 3) { this.statusText.setText("Digite um nome com pelo menos 3 letras").setColor("#ff6666"); this.nameInput?.focus(); return; }
     this.busy = true;
     this.statusText.setText("Forjando seu destino…").setColor("#c9b98a");
     try {
-      const username = `u_${Date.now()}_${Math.floor(Math.random() * 1e4)}`;
-      const reg = await fetch(`${API}/auth/register`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email: `${username}@dev.local`, password: crypto.randomUUID() }),
-      });
-      if (!reg.ok) throw new Error("Falha no registro");
-      const { user_id } = await reg.json();
-      const res = await fetch(`${API}/characters`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id, name, char_class: this.selectedClass }),
-      });
-      if (!res.ok) throw new Error((await res.json()).detail ?? "Falha ao criar herói");
-      const c = await res.json();
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ id: c.character_id, name: c.name, cls: this.selectedClass }));
+      const c = await this.api("/characters", { name, char_class: this.selectedClass });
+      this.busy = false;
       this.enter(c.character_id, this.selectedClass);
     } catch (err) {
       this.busy = false;
@@ -419,7 +529,9 @@ export class LoginScene extends Phaser.Scene {
   }
 
   enter(charId: string, cls: string): void {
+    if (this.busy) return;
     this.busy = true;
+    this.clearAccountInputs();
     this.nameInput?.remove();
     // the hero's own 3D sheets load during the fade, so it never appears as the flat drawing
     const hero = requestSheet(this, `unit_${cls}`);
