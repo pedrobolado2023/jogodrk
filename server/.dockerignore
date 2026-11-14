@@ -1,0 +1,11 @@
+**/*.db
+**/*.db-*
+**/*.sqlite*
+**/.venv
+**/__pycache__
+**/*.pyc
+**/test_*.py
+.env
+.env.*
+*.log
+*.err

@@ -1,0 +1,2383 @@
+{
+ "mob_wolf": {
+  "size": 176,
+  "originY": 0.6431,
+  "scale": 0.575,
+  "height": 0.95,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794583354
+ },
+ "unit_blade_master": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   },
+   "ride": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794673503
+ },
+ "unit_grand_sorcerer": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   },
+   "ride": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   }
+  },
+  "v": 1794673530
+ },
+ "unit_night_ranger": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   },
+   "ride": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794673577
+ },
+ "mob_skeleton": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794583523
+ },
+ "mob_goblin": {
+  "size": 208,
+  "originY": 0.7098,
+  "scale": 0.55,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794583567
+ },
+ "mob_death_knight": {
+  "size": 256,
+  "originY": 0.7303,
+  "scale": 0.7563,
+  "height": 2.6,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794583657
+ },
+ "mob_treant": {
+  "size": 224,
+  "originY": 0.7461,
+  "scale": 0.7464,
+  "height": 2.4,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794583611
+ },
+ "npc_elder": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 24,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794583725
+ },
+ "npc_healer": {
+  "size": 224,
+  "originY": 0.7234,
+  "scale": 0.5893,
+  "height": 1.72,
+  "anims": {
+   "idle": {
+    "frames": 24,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794583792
+ },
+ "npc_warrior": {
+  "size": 224,
+  "originY": 0.7468,
+  "scale": 0.5893,
+  "height": 1.9,
+  "anims": {
+   "idle": {
+    "frames": 24,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794583858
+ },
+ "npc_merchant": {
+  "size": 224,
+  "originY": 0.7234,
+  "scale": 0.5893,
+  "height": 1.72,
+  "anims": {
+   "idle": {
+    "frames": 24,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794585699
+ },
+ "mob_ghoul": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794592332
+ },
+ "mob_bog_mutant": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.6875,
+  "height": 2.1,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794592510
+ },
+ "mob_witch": {
+  "size": 256,
+  "originY": 0.7308,
+  "scale": 0.6531,
+  "height": 2.25,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794598606
+ },
+ "wb_gorgath": {
+  "size": 288,
+  "originY": 0.7494,
+  "scale": 0.7639,
+  "height": 3.2,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794599889
+ },
+ "wb_ignaroth": {
+  "size": 288,
+  "originY": 0.7548,
+  "scale": 0.7944,
+  "height": 3.4,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794600070
+ },
+ "wb_krovak": {
+  "size": 288,
+  "originY": 0.7548,
+  "scale": 0.7944,
+  "height": 3.4,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794600256
+ },
+ "npc_smith": {
+  "size": 224,
+  "originY": 0.7312,
+  "scale": 0.5893,
+  "height": 1.78,
+  "anims": {
+   "idle": {
+    "frames": 24,
+    "fps": 5,
+    "loop": true
+   }
+  },
+  "v": 1794601648
+ },
+ "mob_frost_wolf": {
+  "size": 176,
+  "originY": 0.6516,
+  "scale": 0.6,
+  "height": 1.05,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794609263
+ },
+ "mob_frost_sentinel": {
+  "size": 224,
+  "originY": 0.7389,
+  "scale": 0.6089,
+  "height": 1.9,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794609420
+ },
+ "mob_ice_troll": {
+  "size": 240,
+  "originY": 0.7398,
+  "scale": 0.715,
+  "height": 2.4,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794609597
+ },
+ "mob_lich_king": {
+  "size": 256,
+  "originY": 0.7338,
+  "scale": 0.6875,
+  "height": 2.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794609759
+ },
+ "mob_ash_hound": {
+  "size": 176,
+  "originY": 0.6524,
+  "scale": 0.625,
+  "height": 1.1,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794618137
+ },
+ "mob_magma_brute": {
+  "size": 240,
+  "originY": 0.7461,
+  "scale": 0.6967,
+  "height": 2.4,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794618314
+ },
+ "mob_cinder_cultist": {
+  "size": 224,
+  "originY": 0.7389,
+  "scale": 0.6089,
+  "height": 1.9,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794618491
+ },
+ "mob_ash_dragon": {
+  "size": 352,
+  "originY": 0.6198,
+  "scale": 1.075,
+  "height": 3.4,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794618666
+ },
+ "mob_blood_ghoul": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794618818
+ },
+ "mob_crimson_knight": {
+  "size": 224,
+  "originY": 0.7436,
+  "scale": 0.6286,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794619008
+ },
+ "mob_flesh_horror": {
+  "size": 240,
+  "originY": 0.7359,
+  "scale": 0.6967,
+  "height": 2.3,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794619178
+ },
+ "mob_blood_queen": {
+  "size": 256,
+  "originY": 0.7359,
+  "scale": 0.6531,
+  "height": 2.3,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794619363
+ },
+ "mob_phantom_soldier": {
+  "size": 224,
+  "originY": 0.7389,
+  "scale": 0.6089,
+  "height": 1.9,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794619508
+ },
+ "mob_necromancer": {
+  "size": 224,
+  "originY": 0.7451,
+  "scale": 0.6089,
+  "height": 1.95,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794619688
+ },
+ "mob_spectral_colossus": {
+  "size": 256,
+  "originY": 0.7391,
+  "scale": 0.7563,
+  "height": 2.7,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794619870
+ },
+ "mob_ghost_king": {
+  "size": 256,
+  "originY": 0.7412,
+  "scale": 0.7219,
+  "height": 2.6,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794620067
+ },
+ "mob_void_stalker": {
+  "size": 224,
+  "originY": 0.7389,
+  "scale": 0.6089,
+  "height": 1.9,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794620214
+ },
+ "mob_void_titan": {
+  "size": 256,
+  "originY": 0.7447,
+  "scale": 0.7391,
+  "height": 2.7,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794620391
+ },
+ "mob_void_witch": {
+  "size": 224,
+  "originY": 0.7362,
+  "scale": 0.6482,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794620581
+ },
+ "mob_void_dragon": {
+  "size": 352,
+  "originY": 0.6198,
+  "scale": 1.075,
+  "height": 3.4,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794620734
+ },
+ "pet_dog": {
+  "size": 112,
+  "originY": 0.6361,
+  "scale": 0.55,
+  "height": 0.55,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794671282
+ },
+ "pet_snow_wolf": {
+  "size": 112,
+  "originY": 0.6361,
+  "scale": 0.55,
+  "height": 0.55,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794671384
+ },
+ "pet_ember_drake": {
+  "size": 224,
+  "originY": 0.5595,
+  "scale": 1.2571,
+  "height": 1.1,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794671468
+ },
+ "pet_void_drake": {
+  "size": 224,
+  "originY": 0.5595,
+  "scale": 1.2571,
+  "height": 1.1,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794671549
+ },
+ "pet_fox": {
+  "size": 112,
+  "originY": 0.6083,
+  "scale": 0.6286,
+  "height": 0.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794672303
+ },
+ "pet_husky": {
+  "size": 112,
+  "originY": 0.6299,
+  "scale": 0.6286,
+  "height": 0.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794672380
+ },
+ "pet_shiba": {
+  "size": 112,
+  "originY": 0.6237,
+  "scale": 0.55,
+  "height": 0.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794672457
+ },
+ "mount_horse": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794672885
+ },
+ "mount_white": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794672962
+ },
+ "mount_shadow": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794673338
+ },
+ "mount_ember": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794673119
+ },
+ "mount_wolf": {
+  "size": 176,
+  "originY": 0.6426,
+  "scale": 0.85,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674306
+ },
+ "mount_gold": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674306
+ },
+ "pet_emerald_drake": {
+  "size": 224,
+  "originY": 0.5595,
+  "scale": 1.2571,
+  "height": 1.1,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674306
+ },
+ "mount_wolf_shadow": {
+  "size": 176,
+  "originY": 0.6426,
+  "scale": 0.85,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674410
+ },
+ "pet_frost_drake": {
+  "size": 224,
+  "originY": 0.5595,
+  "scale": 1.2571,
+  "height": 1.1,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674411
+ },
+ "mount_frost": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674411
+ },
+ "mount_wolf_frost": {
+  "size": 176,
+  "originY": 0.6426,
+  "scale": 0.85,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674516
+ },
+ "mount_donkey": {
+  "size": 160,
+  "originY": 0.6461,
+  "scale": 0.88,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674516
+ },
+ "pet_gold_drake": {
+  "size": 224,
+  "originY": 0.5595,
+  "scale": 1.2571,
+  "height": 1.1,
+  "anims": {
+   "idle": {
+    "frames": 12,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674516
+ },
+ "mount_drake_ember": {
+  "size": 320,
+  "originY": 0.5635,
+  "scale": 1.65,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674596
+ },
+ "pet_wolf_pup": {
+  "size": 112,
+  "originY": 0.6299,
+  "scale": 0.6286,
+  "height": 0.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674619
+ },
+ "mount_alpaca": {
+  "size": 176,
+  "originY": 0.6732,
+  "scale": 0.9,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674628
+ },
+ "mount_drake_void": {
+  "size": 320,
+  "originY": 0.5635,
+  "scale": 1.65,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674676
+ },
+ "pet_fawn": {
+  "size": 112,
+  "originY": 0.6426,
+  "scale": 0.6679,
+  "height": 0.7,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674725
+ },
+ "mount_alpaca_royal": {
+  "size": 176,
+  "originY": 0.6732,
+  "scale": 0.9,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674744
+ },
+ "mount_drake_emerald": {
+  "size": 320,
+  "originY": 0.5635,
+  "scale": 1.65,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674758
+ },
+ "pet_spirit_fawn": {
+  "size": 112,
+  "originY": 0.6426,
+  "scale": 0.6679,
+  "height": 0.7,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674823
+ },
+ "mount_deer": {
+  "size": 176,
+  "originY": 0.6528,
+  "scale": 0.85,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674841
+ },
+ "pet_black_dog": {
+  "size": 112,
+  "originY": 0.6361,
+  "scale": 0.55,
+  "height": 0.55,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674868
+ },
+ "pet_alpaca": {
+  "size": 112,
+  "originY": 0.6624,
+  "scale": 0.6286,
+  "height": 0.75,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674932
+ },
+ "mount_stag": {
+  "size": 192,
+  "originY": 0.6732,
+  "scale": 0.9167,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674942
+ },
+ "pet_arctic_fox": {
+  "size": 112,
+  "originY": 0.6083,
+  "scale": 0.6286,
+  "height": 0.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794674972
+ },
+ "pet_donkey": {
+  "size": 112,
+  "originY": 0.6386,
+  "scale": 0.5893,
+  "height": 0.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675037
+ },
+ "mount_stag_spirit": {
+  "size": 192,
+  "originY": 0.6732,
+  "scale": 0.9167,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675048
+ },
+ "pet_ember_fox": {
+  "size": 112,
+  "originY": 0.6083,
+  "scale": 0.6286,
+  "height": 0.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675075
+ },
+ "pet_calf": {
+  "size": 112,
+  "originY": 0.627,
+  "scale": 0.5893,
+  "height": 0.55,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675139
+ },
+ "mount_bull": {
+  "size": 176,
+  "originY": 0.6443,
+  "scale": 0.9,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675149
+ },
+ "pet_black_shiba": {
+  "size": 112,
+  "originY": 0.6237,
+  "scale": 0.55,
+  "height": 0.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675172
+ },
+ "mount_bull_infernal": {
+  "size": 176,
+  "originY": 0.6443,
+  "scale": 0.9,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794675234
+ }
+}

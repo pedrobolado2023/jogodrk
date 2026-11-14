@@ -1,0 +1,1741 @@
+{
+  "_info": "Cada entrada vira client/public/sprites/<chave>/. Mixamo: coloque os .fbx em art-source/mixamo/<pasta>/.",
+  "test_mannequin": {
+    "source": "glb",
+    "path": "sources/UAL1_Standard.glb",
+    "height": 1.8,
+    "anims": {
+      "idle": "Idle_Loop",
+      "walk": "Walk_Loop",
+      "run": "Jog_Fwd_Loop",
+      "attack": "Sword_Attack",
+      "cast": "Spell_Simple_Shoot",
+      "hit": "Hit_Chest",
+      "death": "Death01"
+    }
+  },
+  "mob_wolf": {
+    "source": "glb",
+    "path": "sources/Labrador_AllAnimations.glb",
+    "height": 0.95,
+    "ortho": 2.3,
+    "size": 176,
+    "center": 0.4,
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.74,
+        0.77,
+        0.92
+      ],
+      "gain": 0.5
+    },
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop",
+      "attack": "Bite",
+      "death": "Death_Fast"
+    }
+  },
+  "unit_blade_master": {
+    "source": "mixamo",
+    "dir": "mixamo/blade_master/pack",
+    "height": 1.85,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "paladin",
+    "exposure": 0.9,
+    "ambient": 0.55,
+    "anims": {
+      "idle": "^sword and shield idle[.]fbx$",
+      "walk": "^sword and shield walk[.]fbx$",
+      "run": "^sword and shield run[.]fbx$",
+      "attack": "^sword and shield slash[.]fbx$",
+      "cast": "^sword and shield casting[.]fbx$",
+      "hit": "^sword and shield impact[.]fbx$",
+      "death": "^sword and shield death[.]fbx$"
+    },
+    "ride": true
+  },
+  "unit_grand_sorcerer": {
+    "source": "mixamo",
+    "dir": "mixamo/grand_sorcerer/pack",
+    "height": 1.85,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "heraklios",
+    "exposure": 0.8,
+    "ambient": 0.45,
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    },
+    "ride": true
+  },
+  "unit_night_ranger": {
+    "source": "mixamo",
+    "dir": "mixamo/night_ranger/pack",
+    "height": 1.8,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "erika",
+    "exposure": 0.8,
+    "ambient": 0.45,
+    "anims": {
+      "idle": "^standing idle 01[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing aim recoil[.]fbx$",
+      "cast": "^standing draw arrow[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing death backward 01[.]fbx$"
+    },
+    "ride": true
+  },
+  "mob_skeleton": {
+    "source": "mixamo",
+    "dir": "mixamo/skeleton/pack",
+    "height": 1.8,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "skeletonzombie",
+    "exposure": 0.7,
+    "ambient": 0.35,
+    "anims": {
+      "idle": "^zombie idle[.]fbx$",
+      "walk": "^zombie walk[.]fbx$",
+      "run": "^zombie run[.]fbx$",
+      "attack": "^zombie attack[.]fbx$",
+      "death": "^zombie death[.]fbx$"
+    }
+  },
+  "mob_goblin": {
+    "source": "mixamo",
+    "dir": "mixamo/goblin/pack",
+    "height": 1.4,
+    "ortho": 2.6,
+    "size": 208,
+    "body": "warrok",
+    "exposure": 0.7,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant swiping[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "mob_treant": {
+    "source": "mixamo",
+    "dir": "mixamo/treant/pack",
+    "height": 2.4,
+    "ortho": 3.8,
+    "size": 224,
+    "body": "pumpkinhulk",
+    "exposure": 0.7,
+    "ambient": 0.4,
+    "grade": {
+      "desat": 0.55,
+      "tint": [
+        0.78,
+        1.0,
+        0.62
+      ],
+      "gain": 1.05
+    },
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant swiping[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "mob_death_knight": {
+    "source": "mixamo",
+    "dir": "mixamo/death_knight/pack",
+    "height": 2.6,
+    "ortho": 4.4,
+    "size": 256,
+    "body": "maw",
+    "exposure": 0.7,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant punch[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "mob_ghoul": {
+    "source": "mixamo",
+    "dir": "mixamo/ghoul/pack",
+    "height": 1.8,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "parasite",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "grade": {
+      "desat": 0.35,
+      "tint": [
+        0.82,
+        0.96,
+        0.74
+      ],
+      "gain": 0.95
+    },
+    "anims": {
+      "idle": "^zombie idle[.]fbx$",
+      "walk": "^zombie walk[.]fbx$",
+      "run": "^zombie run[.]fbx$",
+      "attack": "^zombie attack[.]fbx$",
+      "death": "^zombie death[.]fbx$"
+    }
+  },
+  "mob_bog_mutant": {
+    "source": "mixamo",
+    "dir": "mixamo/bog_mutant/pack",
+    "height": 2.1,
+    "ortho": 3.5,
+    "size": 224,
+    "body": "^mutant[.]fbx$",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "grade": {
+      "desat": 0.2,
+      "tint": [
+        0.86,
+        1.0,
+        0.86
+      ],
+      "gain": 1.0
+    },
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant swiping[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "mob_witch": {
+    "_note": "Morgana: the healer's model (she was Ravencrest's healer) corrupted by a dark grade, with the sorcerer's magic animations (same Mixamo skeleton)",
+    "source": "mixamo",
+    "dir": "mixamo/witch",
+    "height": 2.25,
+    "ortho": 3.8,
+    "size": 256,
+    "body": "medea",
+    "exposure": 0.55,
+    "ambient": 0.22,
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        0.66,
+        0.86,
+        0.62
+      ],
+      "gain": 0.72
+    },
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    }
+  },
+  "mob_frost_wolf": {
+    "_note": "chapter III: the Labrador with a pale, icy grade",
+    "source": "glb",
+    "path": "sources/Labrador_AllAnimations.glb",
+    "height": 1.05,
+    "ortho": 2.4,
+    "size": 176,
+    "center": 0.4,
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.9,
+        0.97,
+        1.18
+      ],
+      "gain": 1.0
+    },
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop",
+      "attack": "Bite",
+      "death": "Death_Fast"
+    }
+  },
+  "mob_frost_sentinel": {
+    "_note": "chapter III: the skeleton soldier frozen solid",
+    "source": "mixamo",
+    "dir": "mixamo/skeleton/pack",
+    "height": 1.9,
+    "ortho": 3.1,
+    "size": 224,
+    "body": "skeletonzombie",
+    "exposure": 0.8,
+    "ambient": 0.45,
+    "grade": {
+      "desat": 0.55,
+      "tint": [
+        0.74,
+        0.92,
+        1.28
+      ],
+      "gain": 1.05
+    },
+    "anims": {
+      "idle": "^zombie idle[.]fbx$",
+      "walk": "^zombie walk[.]fbx$",
+      "run": "^zombie run[.]fbx$",
+      "attack": "^zombie attack[.]fbx$",
+      "death": "^zombie death[.]fbx$"
+    }
+  },
+  "mob_ice_troll": {
+    "_note": "chapter III: Warrok grown into a pale-blue troll",
+    "source": "mixamo",
+    "dir": "mixamo/goblin/pack",
+    "height": 2.4,
+    "ortho": 3.9,
+    "size": 240,
+    "body": "warrok",
+    "exposure": 0.8,
+    "ambient": 0.45,
+    "grade": {
+      "desat": 0.7,
+      "tint": [
+        0.82,
+        0.96,
+        1.22
+      ],
+      "gain": 1.08
+    },
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant swiping[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "mob_lich_king": {
+    "_note": "Valdrek, the Lich King: the sorcerer's model drained to a cold, ghostly grade, with his magic animations",
+    "source": "mixamo",
+    "dir": "mixamo/grand_sorcerer/pack",
+    "height": 2.4,
+    "ortho": 4.0,
+    "size": 256,
+    "body": "heraklios",
+    "exposure": 0.6,
+    "ambient": 0.3,
+    "grade": {
+      "desat": 0.8,
+      "tint": [
+        0.7,
+        0.88,
+        1.3
+      ],
+      "gain": 0.85
+    },
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    }
+  },
+  "wb_gorgath": {
+    "_note": "world boss: Warrok scaled up with a blood-red grade",
+    "source": "mixamo",
+    "dir": "mixamo/goblin/pack",
+    "height": 3.2,
+    "ortho": 5.0,
+    "size": 288,
+    "body": "warrok",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "grade": {
+      "desat": 0.3,
+      "tint": [
+        1.0,
+        0.62,
+        0.55
+      ],
+      "gain": 0.92
+    },
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant punch[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "wb_ignaroth": {
+    "_note": "world boss: the swamp Mutant with a fiery grade",
+    "source": "mixamo",
+    "dir": "mixamo/bog_mutant/pack",
+    "height": 3.4,
+    "ortho": 5.2,
+    "size": 288,
+    "body": "^mutant[.]fbx$",
+    "exposure": 0.8,
+    "ambient": 0.4,
+    "grade": {
+      "desat": 0.4,
+      "tint": [
+        1.15,
+        0.72,
+        0.42
+      ],
+      "gain": 1.0
+    },
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant swiping[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "wb_krovak": {
+    "_note": "world boss: Pumpkinhulk with an icy grade",
+    "source": "mixamo",
+    "dir": "mixamo/treant/pack",
+    "height": 3.4,
+    "ortho": 5.2,
+    "size": 288,
+    "body": "pumpkinhulk",
+    "exposure": 0.8,
+    "ambient": 0.45,
+    "grade": {
+      "desat": 0.65,
+      "tint": [
+        0.72,
+        0.9,
+        1.22
+      ],
+      "gain": 1.05
+    },
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant punch[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    }
+  },
+  "npc_elder": {
+    "source": "mixamo",
+    "dir": "mixamo/elder",
+    "height": 1.8,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "ganfaul",
+    "frames": {
+      "idle": 24
+    },
+    "exposure": 0.8,
+    "ambient": 0.45
+  },
+  "npc_healer": {
+    "source": "mixamo",
+    "dir": "mixamo/healer",
+    "height": 1.72,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "medea",
+    "frames": {
+      "idle": 24
+    },
+    "exposure": 0.8,
+    "ambient": 0.45
+  },
+  "npc_merchant": {
+    "source": "mixamo",
+    "dir": "mixamo/merchant",
+    "height": 1.72,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "peasant",
+    "frames": {
+      "idle": 24
+    },
+    "exposure": 0.8,
+    "ambient": 0.5
+  },
+  "npc_smith": {
+    "_note": "Brom, the smith: the villager model with a sooty, warm forge grade",
+    "source": "mixamo",
+    "dir": "mixamo/merchant",
+    "height": 1.78,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "peasant",
+    "frames": {
+      "idle": 24
+    },
+    "exposure": 0.8,
+    "ambient": 0.45,
+    "grade": {
+      "desat": 0.35,
+      "tint": [
+        1.08,
+        0.82,
+        0.66
+      ],
+      "gain": 0.82
+    }
+  },
+  "npc_warrior": {
+    "source": "mixamo",
+    "dir": "mixamo/arena_master",
+    "height": 1.9,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "dreyar",
+    "frames": {
+      "idle": 24
+    },
+    "exposure": 0.8,
+    "ambient": 0.5
+  },
+  "mob_ash_hound": {
+    "source": "glb",
+    "path": "sources/Labrador_AllAnimations.glb",
+    "height": 1.1,
+    "ortho": 2.5,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop",
+      "attack": "Bite",
+      "death": "Death_Fast"
+    },
+    "grade": {
+      "desat": 0.85,
+      "tint": [
+        1.12,
+        0.72,
+        0.5
+      ],
+      "gain": 0.62
+    }
+  },
+  "mob_magma_brute": {
+    "source": "mixamo",
+    "dir": "mixamo/treant/pack",
+    "height": 2.4,
+    "ortho": 3.8,
+    "size": 240,
+    "body": "pumpkinhulk",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant punch[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.45,
+      "tint": [
+        1.3,
+        0.62,
+        0.36
+      ],
+      "gain": 0.9
+    }
+  },
+  "mob_cinder_cultist": {
+    "source": "mixamo",
+    "dir": "mixamo/grand_sorcerer/pack",
+    "height": 1.9,
+    "ortho": 3.1,
+    "size": 224,
+    "body": "heraklios",
+    "exposure": 0.7,
+    "ambient": 0.35,
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.55,
+      "tint": [
+        1.15,
+        0.58,
+        0.46
+      ],
+      "gain": 0.72
+    }
+  },
+  "mob_ash_dragon": {
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 3.4,
+    "ortho": 8.6,
+    "size": 352,
+    "center": 0.35,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop",
+      "attack": "bite",
+      "cast": "roar",
+      "death": "takeoff"
+    },
+    "grade": {
+      "desat": 0.35,
+      "tint": [
+        1.12,
+        0.82,
+        0.66
+      ],
+      "gain": 0.85
+    }
+  },
+  "mob_blood_ghoul": {
+    "source": "mixamo",
+    "dir": "mixamo/ghoul/pack",
+    "height": 1.85,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "parasite",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^zombie idle[.]fbx$",
+      "walk": "^zombie walk[.]fbx$",
+      "run": "^zombie run[.]fbx$",
+      "attack": "^zombie attack[.]fbx$",
+      "death": "^zombie death[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.4,
+      "tint": [
+        1.22,
+        0.56,
+        0.56
+      ],
+      "gain": 0.85
+    }
+  },
+  "mob_crimson_knight": {
+    "source": "mixamo",
+    "dir": "mixamo/blade_master/pack",
+    "height": 2.0,
+    "ortho": 3.2,
+    "size": 224,
+    "body": "paladin",
+    "exposure": 0.8,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^sword and shield idle[.]fbx$",
+      "walk": "^sword and shield walk[.]fbx$",
+      "run": "^sword and shield run[.]fbx$",
+      "attack": "^sword and shield slash[.]fbx$",
+      "cast": "^sword and shield casting[.]fbx$",
+      "hit": "^sword and shield impact[.]fbx$",
+      "death": "^sword and shield death[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.5,
+      "tint": [
+        1.08,
+        0.46,
+        0.46
+      ],
+      "gain": 0.72
+    }
+  },
+  "mob_flesh_horror": {
+    "source": "mixamo",
+    "dir": "mixamo/goblin/pack",
+    "height": 2.3,
+    "ortho": 3.8,
+    "size": 240,
+    "body": "warrok",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant swiping[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.3,
+      "tint": [
+        1.18,
+        0.6,
+        0.66
+      ],
+      "gain": 0.85
+    }
+  },
+  "mob_blood_queen": {
+    "source": "mixamo",
+    "dir": "mixamo/witch",
+    "height": 2.3,
+    "ortho": 3.8,
+    "size": 256,
+    "body": "medea",
+    "exposure": 0.55,
+    "ambient": 0.25,
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.45,
+      "tint": [
+        1.25,
+        0.5,
+        0.56
+      ],
+      "gain": 0.72
+    }
+  },
+  "mob_phantom_soldier": {
+    "source": "mixamo",
+    "dir": "mixamo/skeleton/pack",
+    "height": 1.9,
+    "ortho": 3.1,
+    "size": 224,
+    "body": "skeletonzombie",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^zombie idle[.]fbx$",
+      "walk": "^zombie walk[.]fbx$",
+      "run": "^zombie run[.]fbx$",
+      "attack": "^zombie attack[.]fbx$",
+      "death": "^zombie death[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.75,
+      "tint": [
+        0.74,
+        1.15,
+        0.95
+      ],
+      "gain": 1.1
+    }
+  },
+  "mob_necromancer": {
+    "source": "mixamo",
+    "dir": "mixamo/grand_sorcerer/pack",
+    "height": 1.95,
+    "ortho": 3.1,
+    "size": 224,
+    "body": "heraklios",
+    "exposure": 0.65,
+    "ambient": 0.3,
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.65,
+      "tint": [
+        0.7,
+        1.05,
+        0.8
+      ],
+      "gain": 0.7
+    }
+  },
+  "mob_spectral_colossus": {
+    "source": "mixamo",
+    "dir": "mixamo/death_knight/pack",
+    "height": 2.7,
+    "ortho": 4.4,
+    "size": 256,
+    "body": "maw",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant punch[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.75,
+      "tint": [
+        0.76,
+        1.12,
+        1.02
+      ],
+      "gain": 1.05
+    }
+  },
+  "mob_ghost_king": {
+    "source": "mixamo",
+    "dir": "mixamo/blade_master/pack",
+    "height": 2.6,
+    "ortho": 4.2,
+    "size": 256,
+    "body": "paladin",
+    "exposure": 0.75,
+    "ambient": 0.35,
+    "anims": {
+      "idle": "^sword and shield idle[.]fbx$",
+      "walk": "^sword and shield walk[.]fbx$",
+      "run": "^sword and shield run[.]fbx$",
+      "attack": "^sword and shield slash[.]fbx$",
+      "cast": "^sword and shield casting[.]fbx$",
+      "hit": "^sword and shield impact[.]fbx$",
+      "death": "^sword and shield death[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.8,
+      "tint": [
+        0.72,
+        1.12,
+        0.92
+      ],
+      "gain": 1.0
+    }
+  },
+  "mob_void_stalker": {
+    "source": "mixamo",
+    "dir": "mixamo/ghoul/pack",
+    "height": 1.9,
+    "ortho": 3.1,
+    "size": 224,
+    "body": "parasite",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^zombie idle[.]fbx$",
+      "walk": "^zombie walk[.]fbx$",
+      "run": "^zombie run[.]fbx$",
+      "attack": "^zombie attack[.]fbx$",
+      "death": "^zombie death[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.5,
+      "tint": [
+        0.82,
+        0.6,
+        1.28
+      ],
+      "gain": 0.85
+    }
+  },
+  "mob_void_titan": {
+    "source": "mixamo",
+    "dir": "mixamo/treant/pack",
+    "height": 2.7,
+    "ortho": 4.3,
+    "size": 256,
+    "body": "pumpkinhulk",
+    "exposure": 0.75,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^mutant breathing idle[.]fbx$",
+      "walk": "^mutant walking[.]fbx$",
+      "run": "^mutant run[.]fbx$",
+      "attack": "^mutant punch[.]fbx$",
+      "cast": "^mutant roaring[.]fbx$",
+      "death": "^mutant dying[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.55,
+      "tint": [
+        0.74,
+        0.56,
+        1.32
+      ],
+      "gain": 0.9
+    }
+  },
+  "mob_void_witch": {
+    "source": "mixamo",
+    "dir": "mixamo/witch",
+    "height": 2.0,
+    "ortho": 3.3,
+    "size": 224,
+    "body": "medea",
+    "exposure": 0.6,
+    "ambient": 0.3,
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    },
+    "grade": {
+      "desat": 0.5,
+      "tint": [
+        0.76,
+        0.56,
+        1.3
+      ],
+      "gain": 0.72
+    }
+  },
+  "mob_void_dragon": {
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 3.4,
+    "ortho": 8.6,
+    "size": 352,
+    "center": 0.35,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop",
+      "attack": "bite",
+      "cast": "roar",
+      "death": "takeoff"
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        0.72,
+        0.56,
+        1.35
+      ],
+      "gain": 0.8
+    }
+  },
+  "pet_dog": {
+    "_note": "mascote: Cão Fiel",
+    "source": "glb",
+    "path": "sources/Labrador_AllAnimations.glb",
+    "height": 0.55,
+    "ortho": 1.4,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_snow_wolf": {
+    "_note": "mascote: Lobinho da Neve",
+    "source": "glb",
+    "path": "sources/Labrador_AllAnimations.glb",
+    "height": 0.55,
+    "ortho": 1.4,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.9,
+        0.97,
+        1.18
+      ],
+      "gain": 1.0
+    }
+  },
+  "pet_ember_drake": {
+    "_note": "mascote: Dragãozinho de Brasa",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 1.1,
+    "ortho": 6.4,
+    "size": 224,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "grade": {
+      "desat": 0.35,
+      "tint": [
+        1.12,
+        0.82,
+        0.66
+      ],
+      "gain": 0.85
+    }
+  },
+  "pet_void_drake": {
+    "_note": "mascote: Dragãozinho do Vazio",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 1.1,
+    "ortho": 6.4,
+    "size": 224,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        0.72,
+        0.56,
+        1.35
+      ],
+      "gain": 0.8
+    }
+  },
+  "pet_fox": {
+    "_note": "mascote: Raposa Esperta",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Fox.glb",
+    "height": 0.5,
+    "ortho": 1.6,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_husky": {
+    "_note": "mascote: Husky Valente",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Husky.glb",
+    "height": 0.6,
+    "ortho": 1.6,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_shiba": {
+    "_note": "mascote: Shiba Sorridente",
+    "source": "glb",
+    "path": "sources/quaternius_animals/ShibaInu.glb",
+    "height": 0.5,
+    "ortho": 1.4,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_horse": {
+    "_note": "montaria: Cavalo Baio",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_white": {
+    "_note": "montaria: Corcel Branco",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse_White.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_shadow": {
+    "_note": "montaria: Corcel Sombrio",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.75,
+      "tint": [
+        0.7,
+        0.68,
+        0.9
+      ],
+      "gain": 0.65
+    }
+  },
+  "mount_ember": {
+    "_note": "montaria: Corcel de Brasa",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse_White.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.5,
+      "tint": [
+        1.25,
+        0.72,
+        0.5
+      ],
+      "gain": 0.9
+    }
+  },
+  "mount_gold": {
+    "_note": "montaria: Corcel Dourado",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse_White.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        1.3,
+        1.05,
+        0.55
+      ],
+      "gain": 1.0
+    }
+  },
+  "mount_frost": {
+    "_note": "montaria: Corcel Gélido",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse_White.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.9,
+        0.97,
+        1.18
+      ],
+      "gain": 1.0
+    }
+  },
+  "mount_donkey": {
+    "_note": "montaria: Burro Teimoso",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Donkey.glb",
+    "height": 1.35,
+    "ortho": 3.2,
+    "size": 160,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_alpaca": {
+    "_note": "montaria: Alpaca Andina",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Alpaca.glb",
+    "height": 1.8,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_alpaca_royal": {
+    "_note": "montaria: Alpaca Real",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Alpaca.glb",
+    "height": 1.8,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        1.3,
+        1.05,
+        0.55
+      ],
+      "gain": 1.0
+    }
+  },
+  "mount_deer": {
+    "_note": "montaria: Corça da Floresta",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Deer.glb",
+    "height": 1.5,
+    "ortho": 3.4,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_stag": {
+    "_note": "montaria: Cervo Real",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Stag.glb",
+    "height": 2.0,
+    "ortho": 4.0,
+    "size": 192,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_stag_spirit": {
+    "_note": "montaria: Cervo Espectral",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Stag.glb",
+    "height": 2.0,
+    "ortho": 4.0,
+    "size": 192,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.85,
+      "tint": [
+        0.6,
+        1.15,
+        1.1
+      ],
+      "gain": 1.05
+    }
+  },
+  "mount_bull": {
+    "_note": "montaria: Touro Bravo",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Bull.glb",
+    "height": 1.5,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_bull_infernal": {
+    "_note": "montaria: Touro Infernal",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Bull.glb",
+    "height": 1.5,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.5,
+      "tint": [
+        1.3,
+        0.5,
+        0.45
+      ],
+      "gain": 0.8
+    }
+  },
+  "mount_wolf": {
+    "_note": "montaria: Lobo Cinzento",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Wolf.glb",
+    "height": 1.4,
+    "ortho": 3.4,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "mount_wolf_shadow": {
+    "_note": "montaria: Lobo Sombrio",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Wolf.glb",
+    "height": 1.4,
+    "ortho": 3.4,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.75,
+      "tint": [
+        0.7,
+        0.68,
+        0.9
+      ],
+      "gain": 0.65
+    }
+  },
+  "mount_wolf_frost": {
+    "_note": "montaria: Lobo Glacial",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Wolf.glb",
+    "height": 1.4,
+    "ortho": 3.4,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.9,
+        0.97,
+        1.18
+      ],
+      "gain": 1.0
+    }
+  },
+  "mount_drake_ember": {
+    "_note": "montaria: Dragão de Brasa",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 320,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "grade": {
+      "desat": 0.35,
+      "tint": [
+        1.12,
+        0.82,
+        0.66
+      ],
+      "gain": 0.85
+    }
+  },
+  "mount_drake_void": {
+    "_note": "montaria: Dragão do Vazio",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 320,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        0.72,
+        0.56,
+        1.35
+      ],
+      "gain": 0.8
+    }
+  },
+  "mount_drake_emerald": {
+    "_note": "montaria: Dragão Esmeralda",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 320,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        0.6,
+        1.2,
+        0.75
+      ],
+      "gain": 0.9
+    }
+  },
+  "pet_black_dog": {
+    "_note": "mascote: Cão Negro",
+    "source": "glb",
+    "path": "sources/Labrador_AllAnimations.glb",
+    "height": 0.55,
+    "ortho": 1.4,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.75,
+      "tint": [
+        0.7,
+        0.68,
+        0.9
+      ],
+      "gain": 0.65
+    }
+  },
+  "pet_arctic_fox": {
+    "_note": "mascote: Raposa do Ártico",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Fox.glb",
+    "height": 0.5,
+    "ortho": 1.6,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.9,
+        0.97,
+        1.18
+      ],
+      "gain": 1.0
+    }
+  },
+  "pet_ember_fox": {
+    "_note": "mascote: Raposa de Brasa",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Fox.glb",
+    "height": 0.5,
+    "ortho": 1.6,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.5,
+      "tint": [
+        1.25,
+        0.72,
+        0.5
+      ],
+      "gain": 0.9
+    }
+  },
+  "pet_black_shiba": {
+    "_note": "mascote: Shiba Noturno",
+    "source": "glb",
+    "path": "sources/quaternius_animals/ShibaInu.glb",
+    "height": 0.5,
+    "ortho": 1.4,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.75,
+      "tint": [
+        0.7,
+        0.68,
+        0.9
+      ],
+      "gain": 0.65
+    }
+  },
+  "pet_emerald_drake": {
+    "_note": "mascote: Dragãozinho Esmeralda",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 1.1,
+    "ortho": 6.4,
+    "size": 224,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        0.6,
+        1.2,
+        0.75
+      ],
+      "gain": 0.9
+    }
+  },
+  "pet_frost_drake": {
+    "_note": "mascote: Dragãozinho Gélido",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 1.1,
+    "ortho": 6.4,
+    "size": 224,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "grade": {
+      "desat": 0.9,
+      "tint": [
+        0.9,
+        0.97,
+        1.18
+      ],
+      "gain": 1.0
+    }
+  },
+  "pet_gold_drake": {
+    "_note": "mascote: Dragãozinho Dourado",
+    "source": "glb",
+    "path": "sources/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+    "height": 1.1,
+    "ortho": 6.4,
+    "size": 224,
+    "center": 0.4,
+    "anims": {
+      "idle": "idle_loop",
+      "walk": "walk_loop",
+      "run": "walk_loop"
+    },
+    "grade": {
+      "desat": 0.6,
+      "tint": [
+        1.3,
+        1.05,
+        0.55
+      ],
+      "gain": 1.0
+    }
+  },
+  "pet_wolf_pup": {
+    "_note": "mascote: Lobinho Cinzento",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Wolf.glb",
+    "height": 0.6,
+    "ortho": 1.6,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_fawn": {
+    "_note": "mascote: Filhote de Corça",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Deer.glb",
+    "height": 0.7,
+    "ortho": 1.7,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_spirit_fawn": {
+    "_note": "mascote: Corça Espectral",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Deer.glb",
+    "height": 0.7,
+    "ortho": 1.7,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.85,
+      "tint": [
+        0.6,
+        1.15,
+        1.1
+      ],
+      "gain": 1.05
+    }
+  },
+  "pet_alpaca": {
+    "_note": "mascote: Mini Alpaca",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Alpaca.glb",
+    "height": 0.75,
+    "ortho": 1.6,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_donkey": {
+    "_note": "mascote: Burrinho",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Donkey.glb",
+    "height": 0.6,
+    "ortho": 1.5,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  },
+  "pet_calf": {
+    "_note": "mascote: Touro Mirim",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Bull.glb",
+    "height": 0.55,
+    "ortho": 1.5,
+    "size": 112,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    }
+  }
+}
