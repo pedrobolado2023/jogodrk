@@ -85,6 +85,8 @@ export interface PlayOpts {
   dy?: number;
   /** Seconds before the effect is told to stop (loops then fade out). */
   life?: number;
+  /** Play a looping effect only once (one cycle, then fade) instead of forever: skill casts and hits. */
+  once?: boolean;
   speed?: number;
   /** Radius in world px of the light this effect casts into the night, 0 for none. */
   glow?: number;
@@ -201,6 +203,7 @@ export class PixelFx {
   play(name: string, x: number, y: number, opts: PlayOpts = {}): PfxHandle {
     const mod = LIB[name];
     if (!mod) return this.dummy(x, y);
+    if (opts.once && mod.meta.loop && opts.life === undefined) opts = { ...opts, life: Math.max(0.8, Math.min(2, mod.meta.duration ?? 1)) };
     return mod.meta.loop ? this.playBaked(name, mod, x, y, opts) : this.playLive(name, mod, x, y, opts);
   }
 

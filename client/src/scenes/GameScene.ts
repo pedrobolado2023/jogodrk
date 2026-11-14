@@ -1425,7 +1425,7 @@ export class GameScene extends Phaser.Scene {
       const { sx, sy } = worldToScreen(m.x as number, m.y as number);
       const theme = this.mapInfo?.theme;
       const fx = theme === "frost" ? "ice/frost-nova" : theme === "ash" ? "fire/fire-ring" : "shadow/dark-explosion";
-      this.pfx.play(fx, sx, sy, { scale: 1.1, glow: 260, depth: sy + 4 });
+      this.pfx.play(fx, sx, sy, { once: true, scale: 1.1, glow: 260, depth: sy + 4 });
       this.fx.shake(0.014, 300);
       this.punch(0.06);
     });
@@ -1540,8 +1540,8 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: ghost, alpha: { from: 0.45, to: 0 }, delay: i * 25, duration: 320, onComplete: () => ghost.destroy() });
       }
     }
-    if (v.cast) this.pfx.play(v.cast, from.x, from.y, { scale: v.cs ?? 0.8, palette: pal });
-    if (v.after) this.time.delayedCall(120, () => this.pfx.play(v.after!, caster.root.x, caster.root.y, { scale: v.cs ?? 0.8, palette: pal }));
+    if (v.cast) this.pfx.play(v.cast, from.x, from.y, { once: true, scale: v.cs ?? 0.8, palette: pal });
+    if (v.after) this.time.delayedCall(120, () => this.pfx.play(v.after!, caster.root.x, caster.root.y, { once: true, scale: v.cs ?? 0.8, palette: pal }));
     if (v.buff) this.pfx.play(v.buff, 0, 0, { follow: caster.root, palette: pal, scale: v.bs ?? 0.85, life: Math.min(8, def.buff?.dur ?? 3), glow: 100 });
 
     if (v.proj) {
@@ -1557,8 +1557,8 @@ export class GameScene extends Phaser.Scene {
             onUpdate: () => h.setPosition(pos.x, pos.y),
             onComplete: () => {
               h.stop();
-              if (v.hit && def.kind !== "line") this.pfx.play(v.hit, tx, tmid + 10, { scale: v.hs ?? 0.6, palette: pal, depth: FX_DEPTH, flip: tx < cx });
-              if (v.impact && def.kind !== "line") this.pfx.play(v.impact, tx, tmid + 6, { scale: v.is ?? 0.6, depth: FX_DEPTH + 1, glow: 90 });
+              if (v.hit && def.kind !== "line") this.pfx.play(v.hit, tx, tmid + 10, { once: true, scale: v.hs ?? 0.6, palette: pal, depth: FX_DEPTH, flip: tx < cx });
+              if (v.impact && def.kind !== "line") this.pfx.play(v.impact, tx, tmid + 6, { once: true, scale: v.is ?? 0.6, depth: FX_DEPTH + 1, glow: 90 });
               if (v.status && target) this.pfx.play(v.status, 0, 0, { follow: target.root, scale: 0.7, life: def.dot ? def.dot.ticks * def.dot.every : 3, depth: FX_DEPTH });
               if (v.shake) this.fx.shake(v.shake, 160);
             },
@@ -1567,8 +1567,8 @@ export class GameScene extends Phaser.Scene {
       }
     } else if (v.hit && target && def.kind !== "chain") {
       this.time.delayedCall(dashed ? 110 : 40, () => {
-        this.pfx.play(v.hit!, target.root.x, tmid + 14, { scale: v.hs ?? 0.7, flip: target.root.x < caster.root.x, depth: FX_DEPTH, palette: pal });
-        if (v.impact) this.pfx.play(v.impact, target.root.x, tmid + 8, { scale: v.is ?? 0.6, depth: FX_DEPTH + 1, glow: 90 });
+        this.pfx.play(v.hit!, target.root.x, tmid + 14, { once: true, scale: v.hs ?? 0.7, flip: target.root.x < caster.root.x, depth: FX_DEPTH, palette: pal });
+        if (v.impact) this.pfx.play(v.impact, target.root.x, tmid + 8, { once: true, scale: v.is ?? 0.6, depth: FX_DEPTH + 1, glow: 90 });
         if (v.shake) { this.fx.shake(v.shake, 160); if (caster === this.player) this.punch(0.08); }
       });
       if (v.status) this.pfx.play(v.status, 0, 0, { follow: target.root, scale: 0.7, life: def.dot ? def.dot.ticks * def.dot.every : 3, depth: FX_DEPTH });
@@ -1599,7 +1599,7 @@ export class GameScene extends Phaser.Scene {
         const ax = px, ay = py;
         this.time.delayedCall(i * 90, () => {
           this.lightning(ax, ay, qx, qy, v.beam ?? "#9fd8ff");
-          if (v.hit) this.pfx.play(v.hit, qx, qy + 12, { scale: v.hs ?? 0.7, depth: FX_DEPTH });
+          if (v.hit) this.pfx.play(v.hit, qx, qy + 12, { once: true, scale: v.hs ?? 0.7, depth: FX_DEPTH });
         });
         px = qx; py = qy;
       });
@@ -1774,13 +1774,13 @@ export class GameScene extends Phaser.Scene {
     const circles = m.circles as [number, number, number][];
     if (m.kind === "all") {
       const boss = this.mobs.get(m.mob_id as string);
-      if (boss) this.pfx.play(fx, boss.root.x, boss.root.y, { scale: 2.2, glow: 300, depth: boss.root.y + 4 });
+      if (boss) this.pfx.play(fx, boss.root.x, boss.root.y, { once: true, scale: 2.2, glow: 300, depth: boss.root.y + 4 });
       this.events.emit("player_hurt");
     }
     for (const [cx, cy, r] of circles) {
       const { sx, sy } = worldToScreen(cx, cy);
-      this.pfx.play(fx, sx, sy, { scale: Math.max(0.8, r / 2.4), glow: 260, depth: sy + 4 });
-      if (m.deadly) this.pfx.play("shadow/dark-explosion", sx, sy, { scale: r / 2.6, glow: 320, depth: sy + 5 });
+      this.pfx.play(fx, sx, sy, { once: true, scale: Math.max(0.8, r / 2.4), glow: 260, depth: sy + 4 });
+      if (m.deadly) this.pfx.play("shadow/dark-explosion", sx, sy, { once: true, scale: r / 2.6, glow: 320, depth: sy + 5 });
     }
     this.fx.shake(m.deadly ? 0.02 : 0.01, m.deadly ? 450 : 250);
     this.punch(m.deadly ? 0.08 : 0.04);
