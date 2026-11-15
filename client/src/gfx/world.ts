@@ -828,6 +828,16 @@ export class WorldRenderer {
     }
   }
 
+  /** Rest mode: free every painted ground chunk; update() paints them again around the hero on return. */
+  dropChunks(): void {
+    for (const [key, img] of this.chunks) {
+      img.destroy();
+      this.scene.textures.remove(`chunk_${this.info.map_id}_${key}`);
+    }
+    this.chunks.clear();
+    this.pending = [];
+  }
+
   destroy(): void {
     for (const [key, img] of this.chunks) {
       img.destroy();

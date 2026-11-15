@@ -175,7 +175,7 @@ class MobManager:
             mob.is_dead = True
             mob.died_at = time.monotonic()
             mob.slam_at = 0.0
-            result.update(killed=True, def_id=mob.mob_def_id, exp=mob.exp_reward,
+            result.update(killed=True, def_id=mob.mob_def_id, exp=mob.exp_reward, level=mob.level, boss=mob.boss,
                           gold=random.randint(mob.gold_min, mob.gold_max) if mob.gold_max else 0,
                           loot=[],  # rolled per killer in game.py (items.roll_loot)
                           contributors=list(mob.damage_by.keys()))

@@ -23,6 +23,20 @@ export let SHEETS: Record<string, SheetInfo> = {};
 const loaded = new Set<string>();
 const pending = new Map<string, Promise<boolean>>();
 let queue: Promise<unknown> = Promise.resolve();
+/** Closed while the game rests (tab hidden): loads wait here instead of filling memory nobody looks at. */
+let gate: Promise<void> | null = null;
+let openGate = (): void => undefined;
+
+/** Rest mode: free every loaded sheet and hold new loads until `resumeSheets`. */
+export function suspendSheets(scene: Phaser.Scene): void {
+  if (!gate) gate = new Promise<void>((r) => { openGate = r; });
+  for (const key of [...loaded]) releaseSheet(scene, key);
+}
+
+export function resumeSheets(): void {
+  gate = null;
+  openGate();
+}
 
 /** The character's sheets are in memory and its animations exist. */
 export const hasSheet = (key: string): boolean => loaded.has(key);
@@ -62,6 +76,7 @@ export function requestSheet(scene: Phaser.Scene, key: string): Promise<boolean>
 }
 
 async function loadOne(scene: Phaser.Scene, key: string): Promise<boolean> {
+  while (gate) await gate;
   if (loaded.has(key)) return true;
   const info = SHEETS[key];
   if (!info || !scene.sys.isActive()) return false;

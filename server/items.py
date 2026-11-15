@@ -321,8 +321,26 @@ def pool_item(tier: int, cls: str) -> str | None:
     return random.choice(pick) if pick else None
 
 
-def roll_loot(mob_def: str, cls: str) -> list[str]:
-    out: list[str] = []
+# forge stones from any monster: the upgrade stone of its level band, and rarely the special stones; bosses always
+# give an upgrade stone and often a special one
+STONE_DROP = 0.06
+SPECIAL_DROPS = (("stone_protect", 0.005, 0.25), ("stone_enchant", 0.004, 0.2), ("stone_refine", 0.003, 0.15))
+
+
+def stone_of_level(level: int) -> str:
+    return "stone_up_1" if level < 15 else "stone_up_2" if level < 35 else "stone_up_3"
+
+
+def roll_stones(level: int, boss: bool) -> list[str]:
+    out = [stone_of_level(level)] if boss or random.random() < STONE_DROP else []
+    for stone, rate, boss_rate in SPECIAL_DROPS:
+        if random.random() < (boss_rate if boss else rate):
+            out.append(stone)
+    return out
+
+
+def roll_loot(mob_def: str, cls: str, level: int = 1, boss: bool = False) -> list[str]:
+    out: list[str] = roll_stones(level, boss)
     for entry in LOOT.get(mob_def, []):
         if random.random() > entry["rate"]:
             continue

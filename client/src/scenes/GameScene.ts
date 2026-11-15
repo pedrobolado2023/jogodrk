@@ -12,7 +12,8 @@ import { FONT } from "../gfx/draw";
 import { gfx } from "../gfx/quality";
 import { VEIN_INFO, VEIN_ORIGIN, ensureVeinTextures } from "../gfx/veins";
 import { isTouch } from "../ui/device";
-import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseSheet, requestGraded, requestSheet, skinKey } from "../gfx/sprites3d";
+import { isResting } from "../ui/restMode";
+import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseSheet, requestGraded, requestSheet, resumeSheets, skinKey, suspendSheets } from "../gfx/sprites3d";
 
 export interface DailyState {
   day: string;
@@ -298,6 +299,43 @@ export class GameScene extends Phaser.Scene {
     this.fx.onFlash = (x, y, r, dur) => this.flashLights.push({ x, y, r, dur, until: this.time.now + dur });
     this.pfx = new PixelFx(this);
     this.events.once("shutdown", () => { this.pfx.clear(); socket.disconnect(); socket.clearHandlers(); });
+    // rest mode (tab hidden / window out of focus): keep playing, drop what is only there to be seen
+    const onRest = () => {
+      this.pfx.clear();
+      this.world?.dropChunks();
+      for (const key of this.textures.getTextureKeys()) if (key.startsWith("thumb:")) this.textures.remove(key);
+      // the 3D sheets are most of the memory: every figure goes blank and its pictures are freed until wake
+      // (forget the animation too: Phaser replays the old one, with freed pictures, when asked for a missing one)
+      const blank = (s: Phaser.GameObjects.Sprite) => { s.anims.stop(); s.anims.currentAnim = null; s.anims.currentFrame = null; s.setTexture("__DEFAULT"); };
+      for (const u of this.sheetUnits()) { blank(u.body); u.anim = ""; }
+      for (const u of [this.player, ...this.remotes.values()]) if (u?.ride) { blank(u.ride.horse); u.ride.anim = ""; }
+      suspendSheets(this);
+    };
+    const onWake = () => {
+      resumeSheets();
+      if (!this.mapInfo || !this.world) return;
+      this.world.update(this.player.worldX, this.player.worldY, this.viewRadius(), true);
+      for (const u of this.sheetUnits()) {
+        const key = u.sheet!;
+        void this.loadSheet(key).then((ok) => {
+          if (!ok || !u.root.active || u.sheet !== key) return;
+          u.anim = "";
+          u.body.setTexture(`${key}:idle`, u.dir * SHEETS[key].anims.idle.frames);
+        });
+      }
+      for (const u of [this.player, ...this.remotes.values()]) {
+        const r = u?.ride;
+        if (!r) continue;
+        void this.loadSheet(r.sheet).then((ok) => {
+          if (!ok || u.ride !== r) return;
+          r.anim = "";
+          r.horse.setTexture(`${r.sheet}:idle`, u.dir * SHEETS[r.sheet].anims.idle.frames);
+        });
+      }
+    };
+    this.game.events.on("rest", onRest);
+    this.game.events.on("wake", onWake);
+    this.events.once("shutdown", () => { this.game.events.off("rest", onRest); this.game.events.off("wake", onWake); });
 
     this.player = this.createUnit(`unit_${this.cls}`, 0, 0, HERO_SCALE);
     cam.startFollow(this.player.root, true, 0.09, 0.09);
@@ -729,6 +767,20 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Every unit on the map drawn with a 3D sheet (heroes, monsters, NPCs, mascots). */
+  private sheetUnits(): Unit[] {
+    const all: Unit[] = [this.player, ...this.remotes.values(), ...this.mobs.values(), ...this.npcs.values()];
+    for (const p of this.pets.values()) all.push(p.unit);
+    return all.filter((u) => u?.sheet && u.root.active);
+  }
+
+  /** (Re)load a sheet: a skin's recolour is made again from the class sheet, the rest come from the files. */
+  private loadSheet(key: string): Promise<boolean> {
+    const [base, skin] = key.split("~");
+    const g = skin ? META.skins?.find((s) => s.id === skin)?.grade : undefined;
+    return g ? requestGraded(this, base, skin, g) : requestSheet(this, key);
+  }
+
   /** Free the 3D sheets that no unit on this map uses (the player's hero is always kept). */
   private releaseUnusedSheets(): void {
     const used = new Set<string>([this.player.baseKey]);
@@ -772,6 +824,7 @@ export class GameScene extends Phaser.Scene {
     u.speed += (moved - u.speed) * Math.min(1, dt * 8);
     u.lastX = u.worldX;
     u.lastY = u.worldY;
+    if (!hasSheet(u.sheet!)) return; // resting, or coming back from rest: the pictures are not loaded yet
     const anims = SHEETS[u.sheet!].anims;
     let anim = "idle";
     if (u.action && time < u.action.until) anim = u.action.anim;
@@ -950,7 +1003,7 @@ export class GameScene extends Phaser.Scene {
     u.dead = true;
     u.label?.setVisible(false);
     u.hpBar?.setVisible(false);
-    if (u.sheet && SHEETS[u.sheet].anims.death) {
+    if (u.sheet && SHEETS[u.sheet].anims.death && this.anims.exists(animKey(u.sheet, "death", u.dir))) {
       u.body.play(animKey(u.sheet, "death", u.dir));
       u.anim = "";
     } else {
@@ -2069,6 +2122,7 @@ export class GameScene extends Phaser.Scene {
     const dt = Math.min(this.lastReal ? (now - this.lastReal) / 1000 : delta / 1000, 0.25);
     this.lastReal = now;
     const p = this.player;
+    const rest = isResting();
 
     if (this.pendingCast && this.target) {
       const u = this.unitOf(this.target.id);
@@ -2133,7 +2187,7 @@ export class GameScene extends Phaser.Scene {
         p.worldY += dy * r;
         p.moving = true;
         this.face(p, (dx - dy) * 32, (dx + dy) * 16);
-        if (Math.random() < dt * 6) this.fx.burst("dust", "white", p.root.x, p.root.y, 1);
+        if (!rest && Math.random() < dt * 6) this.fx.burst("dust", "white", p.root.x, p.root.y, 1);
         this.sendPos(false);
       }
       this.placeUnit(p);
@@ -2152,6 +2206,7 @@ export class GameScene extends Phaser.Scene {
     }
     for (const u of [p, ...this.remotes.values(), ...this.mobs.values(), ...this.npcs.values()]) this.animate(u, time, dt);
     this.updateRides(time);
+    if (rest) return; // rest mode: nothing is drawn, so the camera, ground, light and effects can wait
 
     this.world.update(p.worldX, p.worldY, this.viewRadius());
     this.world.updateOcclusion(p.root.x, p.root.y - 30, time);

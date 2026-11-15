@@ -3,6 +3,7 @@ import { LoginScene } from "./scenes/LoginScene";
 import { GameScene } from "./scenes/GameScene";
 import { HUDScene } from "./scenes/HUDScene";
 import { goFullscreenLandscape, isTouch } from "./ui/device";
+import { installRestMode } from "./ui/restMode";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
@@ -38,5 +39,6 @@ const fontsReady = Promise.all([document.fonts.load("16px Cinzel"), document.fon
 const timeout = new Promise((resolve) => setTimeout(resolve, 2000));
 Promise.race([fontsReady, timeout]).finally(() => {
   const game = new Phaser.Game(config);
+  game.events.once(Phaser.Core.Events.READY, () => installRestMode(game));
   if (import.meta.env.DEV) (window as unknown as { __game: Phaser.Game }).__game = game;
 });

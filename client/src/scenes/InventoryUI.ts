@@ -75,7 +75,8 @@ export class InventoryUI {
   private inv: InventoryState | null = null;
   private hero: HeroState | null = null;
   private shop: ShopMsg | null = null;
-  private forge: { name: string } | null = null;
+  /** the forge panel: at the smith, or `portable` when opened from an item (upgrade/refine/enchant only) */
+  private forge: { name: string; portable?: boolean } | null = null;
   private market: MarketMsg | null = null;
   private marketTab: "buy" | "mine" = "buy";
   private forgeTab: ForgeTab = "stones";
@@ -101,7 +102,7 @@ export class InventoryUI {
 
   setInventory(inv: InventoryState): void {
     this.inv = inv;
-    if (!inv.shop) { this.shop = null; this.forge = null; this.market = null; } // the server closed it (e.g. map change)
+    if (!inv.shop) { this.shop = null; if (!this.forge?.portable) this.forge = null; this.market = null; } // the server closed it (e.g. map change)
     if (this.sel && !this.selected()) this.sel = null;    // the selected piece moved or is gone
     if (this.visible) this.redraw();
   }
@@ -154,7 +155,7 @@ export class InventoryUI {
   }
 
   close(): void {
-    if (this.shop || this.forge || this.market) this.send({ type: "close_shop" });
+    if (this.shop || this.market || (this.forge && !this.forge.portable)) this.send({ type: "close_shop" });
     this.shop = null;
     this.forge = null;
     this.market = null;
@@ -282,7 +283,7 @@ export class InventoryUI {
     const slots = inv.cap ?? META.bag_slots ?? 30;
     const pages = Math.max(1, Math.ceil(slots / BAG_PAGE));
     this.bagPage = Math.min(this.bagPage, pages - 1);
-    const selling = !!(this.shop || this.forge);
+    const selling = !!(this.shop || this.atSmith);
     objs.push(this.scene.add.text(gx, gy, "BOLSA", txt(11, "#d6b878", { fontStyle: "bold" })));
     objs.push(this.scene.add.text(gx + 6 * BAG_STRIDE - 5, gy, `${inv.bag.length}/${slots}`,
       txt(11, inv.bag.length >= slots ? "#ff7a6a" : "#a8987a")).setOrigin(1, 0));
@@ -330,7 +331,7 @@ export class InventoryUI {
       () => this.send({ type: "auto_equip" }), "#7aff7a");
     auto.setOrigin(1, 0);
     const hint = this.market ? "Clique num item da bolsa para anunciar no mercado."
-      : this.forge ? "Clique num equipamento para escolher o que a forja vai trabalhar."
+      : this.forge ? "Clique num equipamento para evoluir, refinar ou encantar."
       : this.shop ? "Clique num item da bolsa para vender. Q e E bebem poções." : "Clique num item para usar ou equipar. Q e E bebem poções.";
     objs.push(this.scene.add.text(px + INV_W / 2, py + H - 24, hint, txt(10, "#8a7c62")).setOrigin(0.5, 0));
   }
@@ -457,9 +458,11 @@ export class InventoryUI {
 
   // ── forge ────────────────────────────────────────────────────────────
 
-  private drawForge(objs: Obj[], px: number, py: number, f: { name: string }): void {
-    this.frame(objs, px, py, FORGE_W, H, `FORJA — ${f.name.split(",")[0].toUpperCase()}`, () => this.close());
-    const tabs: [ForgeTab, string][] = [["stones", "Pedras"], ["upgrade", "Aprimorar"], ["refine", "Refinar"], ["enchant", "Encantar"]];
+  private drawForge(objs: Obj[], px: number, py: number, f: { name: string; portable?: boolean }): void {
+    this.frame(objs, px, py, FORGE_W, H, f.portable ? "FORJA" : `FORJA — ${f.name.split(",")[0].toUpperCase()}`, () => this.close());
+    // away from the smith there are no stones to craft (that needs his anvil): only the work on the piece
+    const all: [ForgeTab, string][] = [["stones", "Pedras"], ["upgrade", "Evoluir"], ["refine", "Refinar"], ["enchant", "Encantar"]];
+    const tabs = f.portable ? all.slice(1) : all;
     tabs.forEach(([id, label], i) => {
       const on = this.forgeTab === id;
       const t = this.scene.add.text(px + 14 + i * 74, py + 38, label, txt(10, on ? "#ffd77a" : "#a8987a", {
@@ -539,7 +542,7 @@ export class InventoryUI {
           objs.push(box);
         }
         can = gold >= fee && haveStone > 0 && (!this.protect || target <= 5 || haveProt > 0);
-        label = "APRIMORAR";
+        label = "EVOLUIR";
         const sel = this.sel;
         run = () => this.send({ type: "forge_upgrade", where: sel.where, ref: sel.ref, item: p.id, protect: this.protect && target > 5 });
       }
@@ -702,18 +705,45 @@ export class InventoryUI {
     });
   }
 
-  private select(sel: Sel): void {
+  private select(sel: Sel, tab?: ForgeTab): void {
     this.sel = sel;
     this.lastResult = null;
-    if (this.forgeTab === "stones") this.forgeTab = "upgrade";
+    if (tab) this.forgeTab = tab;
+    else if (this.forgeTab === "stones") this.forgeTab = "upgrade";
     this.redraw();
+  }
+
+  private get atSmith(): boolean {
+    return !!this.forge && !this.forge.portable;
+  }
+
+  /** Evolve / refine / enchant straight from the item: opens the forge panel on it (anywhere, the stones are the cost). */
+  private forgeOn(sel: Sel, tab: ForgeTab): void {
+    if (!this.forge) {
+      if (this.shop || this.market) this.send({ type: "close_shop" });
+      this.shop = null;
+      this.market = null;
+      this.forge = { name: "Forja", portable: true };
+    }
+    this.select(sel, tab);
+  }
+
+  /** The forge options for a gear piece: evolve (+N), refine, and enchant for weapons. */
+  private forgeOptions(sel: Sel, p: Piece): MenuOption[] {
+    const def = META.items[p.id];
+    const plus = p.plus ?? 0, max = META.forge?.max_plus ?? 15;
+    const opts: MenuOption[] = [];
+    if (plus < max) opts.push({ label: `⬆ Evoluir (+${plus} → +${plus + 1})`, color: "#ffd77a", run: () => this.forgeOn(sel, "upgrade") });
+    if (def.slot === "weapon") opts.push({ label: "✶ Encantar", color: "#ffb070", run: () => this.forgeOn(sel, "enchant") });
+    opts.push({ label: "✦ Refinar", color: "#c08cff", run: () => this.forgeOn(sel, "refine") });
+    return opts;
   }
 
   // ── menus ────────────────────────────────────────────────────────────
 
   private gearOptions(slot: GearSlot, p: GearPiece): MenuOption[] {
     const opts: MenuOption[] = [];
-    if (this.forge) opts.push({ label: "Escolher na forja", color: "#ffd77a", run: () => this.select({ where: "gear", ref: slot, id: p.id }) });
+    opts.push(...this.forgeOptions({ where: "gear", ref: slot, id: p.id }, p));
     opts.push({ label: "Desequipar", run: () => this.send({ type: "unequip", slot }) });
     return opts;
   }
@@ -722,11 +752,11 @@ export class InventoryUI {
     const def = META.items[e.id];
     const id = e.id, qty = e.qty;
     const opts: MenuOption[] = [];
-    if (def.type === "gear" && this.forge) opts.push({ label: "Escolher na forja", color: "#ffd77a", run: () => this.select({ where: "bag", ref: index, id }) });
     if (this.market) opts.push({ label: "Anunciar no mercado", color: "#ffd77a", run: () => this.promptListing(index, e) });
     if (def.type === "gear") opts.push({ label: "Equipar", color: "#9dff8a", run: () => this.send({ type: "equip", index, item: id }) });
+    if (def.type === "gear") opts.push(...this.forgeOptions({ where: "bag", ref: index, id }, e));
     if (def.type === "potion") opts.push({ label: "Beber", color: "#9dff8a", run: () => this.send({ type: "use_potion", kind: def.kind }) });
-    if (this.shop || this.forge) {
+    if (this.shop || this.atSmith) {
       const price = this.sellPrice(e);
       opts.push({ label: `Vender (+${price} ouro)`, color: "#ffd77a", run: () => this.send({ type: "sell", index, item: id, qty: 1 }) });
       if (qty > 1) opts.push({ label: `Vender todos (+${price * qty} ouro)`, color: "#ffd77a",

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { isResting } from "../ui/restMode";
 import { PAL, clearFrame, composite, createFrame, createFx, type PfxFrame, type PfxInstance, type PfxModule } from "pixelfx";
 import * as swordSlash from "pixelfx/fx/melee/sword-slash";
 import * as spinSlash from "pixelfx/fx/melee/spin-slash";
@@ -203,6 +204,8 @@ export class PixelFx {
   play(name: string, x: number, y: number, opts: PlayOpts = {}): PfxHandle {
     const mod = LIB[name];
     if (!mod) return this.dummy(x, y);
+    // resting (tab hidden): one-shot effects would never be seen; lasting ones (portals, fires) still start
+    if (isResting() && (opts.once || opts.life !== undefined)) return this.dummy(x, y);
     if (opts.once && mod.meta.loop && opts.life === undefined) opts = { ...opts, life: Math.max(0.8, Math.min(2, mod.meta.duration ?? 1)) };
     return mod.meta.loop ? this.playBaked(name, mod, x, y, opts) : this.playLive(name, mod, x, y, opts);
   }

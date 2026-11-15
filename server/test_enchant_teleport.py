@@ -24,9 +24,10 @@ async def enchant() -> None:
     hero.gold = 100000
     inv.add_piece(hero.bag, {"id": "sword_t1", "plus": 7, "ref": {"crit": 0.02}})
     inv.add_piece(hero.bag, "plate_t1")
-    assert await game.forge_enchant(hero, "bag", 0, "sword_t1", "fire") == "Fale com o ferreiro para usar a forja."
-    await game.dialog_option(hero, "shop:forge")
+    # enchanting works anywhere (opened from the item); only the stone is missing
     assert "Pedra de Encantamento" in await game.forge_enchant(hero, "bag", 0, "sword_t1", "fire")
+    assert await game.forge_craft(hero, "stone_enchant", 1) == "Fale com o ferreiro para usar a forja."  # crafting: at the smith
+    await game.dialog_option(hero, "shop:forge")
     inv.add_item(hero.bag, "ore_arcane", 2)
     inv.add_item(hero.bag, "ore_silver", 3)
     assert await game.forge_craft(hero, "stone_enchant", 1) is None and inv.count(hero.bag, "stone_enchant") == 1

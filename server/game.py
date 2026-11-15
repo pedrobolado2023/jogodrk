@@ -641,7 +641,7 @@ class Game:
                 if h.red_left > 0:
                     h.red_left = max(0.0, h.red_left - pk.RED_MOB_RELIEF)
                 lost = False
-                for item in inv.roll_loot(res["def_id"], h.cls):
+                for item in inv.roll_loot(res["def_id"], h.cls, res.get("level", 1), res.get("boss", False)):
                     if inv.add_item(h.bag, item):
                         names.append(inv.ITEMS[item]["name"])
                     else:
@@ -2044,8 +2044,6 @@ class Game:
                 qty -= n
 
     async def forge_upgrade(self, hero: Hero, where: str, ref: Any, item_id: str, protect: bool) -> str | None:
-        if not self.at_forge(hero):
-            return "Fale com o ferreiro para usar a forja."
         p = self.find_piece(hero, where, ref, item_id)
         if p is None:
             return "Esse item não está mais aí."
@@ -2106,8 +2104,6 @@ class Game:
         await self.to_map(hero.map_id, {"type": "enchant_proc", "target": mob_id, "kind": kind})
 
     async def forge_enchant(self, hero: Hero, where: str, ref: Any, item_id: str, element: str) -> str | None:
-        if not self.at_forge(hero):
-            return "Fale com o ferreiro para usar a forja."
         if element not in forge.ENCHANTS:
             return "Escolha um elemento."
         p = self.find_piece(hero, where, ref, item_id)
@@ -2133,8 +2129,6 @@ class Game:
         return None
 
     async def forge_refine(self, hero: Hero, where: str, ref: Any, item_id: str) -> str | None:
-        if not self.at_forge(hero):
-            return "Fale com o ferreiro para usar a forja."
         p = self.find_piece(hero, where, ref, item_id)
         if p is None:
             return "Esse item não está mais aí."

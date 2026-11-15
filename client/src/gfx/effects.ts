@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { isResting } from "../ui/restMode";
 
 export const FX_DEPTH = 900_000;
 export const DECAL_DEPTH = -999_000;
@@ -31,6 +32,7 @@ export class Fx {
   constructor(private scene: Phaser.Scene) {}
 
   burst(preset: Preset, color: string, x: number, y: number, count: number): void {
+    if (isResting()) return;
     const tex = TEXTURE[preset](color);
     const key = `${preset}:${tex}`;
     let em = this.emitters.get(key);
