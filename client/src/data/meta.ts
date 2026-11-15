@@ -212,6 +212,8 @@ export interface InventoryState {
   gear: Partial<Record<GearSlot, GearPiece>>;
   gold: number;
   shop: string | null;
+  /** bag spaces (more with VIP) */
+  cap?: number;
 }
 
 export interface PartyMember {
@@ -270,7 +272,7 @@ export interface ShopOffer {
 }
 export interface ShopMeta {
   currency: string;
-  packs: { gems: number; bonus: number }[];
+  packs: { id: string; gems: number; bonus: number; price: number }[];
   offers: ShopOffer[];
   soon: { name: string; desc: string }[];
 }
@@ -314,6 +316,8 @@ export interface HeroState {
   gems?: number;
   /** active shop boosts: "exp" | "gold" → seconds left */
   boosts?: Record<string, number>;
+  /** the account's active VIP level (0 = none) */
+  vip?: number;
   cls: string;
   level: number;
   exp: number;

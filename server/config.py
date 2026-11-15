@@ -35,3 +35,12 @@ DEV_TOOLS = ENV == "dev" and os.getenv("GAME_DEV_TOOLS") == "1"
 
 # admin panel (/admin.html): usernames allowed in, comma-separated (e.g. ADMIN_USERS=admin,pedro). Empty = nobody.
 ADMIN_USERS = {name.strip().lower() for name in os.getenv("ADMIN_USERS", "").split(",") if name.strip()}
+
+# Mercado Pago (payments.py). The access token is the production "Access Token" (APP_USR-…) of the Mercado Pago app;
+# the webhook secret is the "assinatura secreta" shown in the app's Webhooks page. Without a token, purchases are off.
+MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN", "").strip()
+MP_WEBHOOK_SECRET = os.getenv("MP_WEBHOOK_SECRET", "").strip()
+# public addresses: the backend (where Mercado Pago sends notifications) and the game site (where the player returns)
+PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "").strip()
+PUBLIC_SITE_URL = os.getenv("PUBLIC_SITE_URL", next((o for o in CORS_ORIGINS if o != "*"), "")).strip()
+

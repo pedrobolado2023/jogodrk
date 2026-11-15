@@ -277,7 +277,7 @@ export class InventoryUI {
 
     // bag grid
     const gx = px + 304, gy = py + 44;
-    const slots = META.bag_slots ?? 30;
+    const slots = inv.cap ?? META.bag_slots ?? 30;
     const pages = Math.max(1, Math.ceil(slots / BAG_PAGE));
     this.bagPage = Math.min(this.bagPage, pages - 1);
     const selling = !!(this.shop || this.forge);

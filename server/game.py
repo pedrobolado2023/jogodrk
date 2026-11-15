@@ -19,6 +19,7 @@ import daily as dly
 import guild as gd
 import season as ssn
 import shop as gshop
+import vip
 import titles
 import forge
 import market as mk
@@ -105,10 +106,13 @@ class Hero:
     cosmetics: dict[str, Any] = field(default_factory=dict)  # titles and auras owned for good, and the aura worn
     gems: int = 0                                             # premium currency (shop.py)
     boosts: dict[str, float] = field(default_factory=dict)   # shop boost → when it ends (unix time)
+    vip_level: int = 0                                        # the account's VIP (vip.py), set when the hero joins
+    vip_until: float = 0.0
 
     def boost(self, kind: str) -> float:
-        """Extra share from an active shop boost (0.5 = +50%), 0 when none."""
-        return gshop.BOOSTS[kind][1] if self.boosts.get(kind, 0) > time.time() else 0.0
+        """Extra share from an active shop boost (0.5 = +50%) plus the VIP bonus, 0 when none."""
+        shop = gshop.BOOSTS[kind][1] if self.boosts.get(kind, 0) > time.time() else 0.0
+        return shop + vip.bonus(vip.active_level(self.vip_level, self.vip_until))
 
     def pk_status(self) -> str:
         if self.red_left > 0:
@@ -166,6 +170,7 @@ class Hero:
             "exp": self.exp, "exp_next": exp_to_next(self.level), "gold": self.gold, "title": self.title,
             "cosmetics": ssn.cosmetics(self.cosmetics), "gems": self.gems,
             "boosts": {k: int(v - time.time()) for k, v in self.boosts.items() if v > time.time()},
+            "vip": vip.active_level(self.vip_level, self.vip_until),
             "hp": self.hp, "mp": self.mp, "max_hp": self.max_hp, "max_mp": self.max_mp,
             "atk": int(self.atk), "def": self.defense, "crit": round(self.crit, 3), "crit_dmg": round(self.crit_dmg, 3), "dodge": round(self.dodge, 3),
             "str": self.stat("str"), "agi": self.stat("agi"), "int": self.stat("int"), "vit": self.stat("vit"),
@@ -231,7 +236,7 @@ class Game:
 
     async def push_inventory(self, hero: Hero) -> None:
         await self.send(hero.char_id, {"type": "inventory", "bag": hero.bag, "gear": hero.gear, "gold": hero.gold,
-                                       "shop": hero.shop})
+                                       "shop": hero.shop, "cap": getattr(hero.bag, "cap", inv.BAG_SLOTS)})
 
     # ── session lifecycle ────────────────────────────────────────────────
 
@@ -1448,6 +1453,8 @@ class Game:
         return None
 
     def can_wear_title(self, hero: Hero, title_id: str) -> bool:
+        if title_id.startswith("vip_"):
+            return title_id == f"vip_{vip.active_level(hero.vip_level, hero.vip_until)}"
         return titles.can_use(hero.level, title_id) or title_id in ssn.cosmetics(hero.cosmetics)["titles"]
 
     # ── titles ───────────────────────────────────────────────────────────

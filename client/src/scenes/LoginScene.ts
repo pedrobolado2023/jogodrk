@@ -157,12 +157,28 @@ export class LoginScene extends Phaser.Scene {
     if (getToken()) {
       try {
         await this.loadAccount();
+        void this.paymentReturn();
         return;
       } catch (err) {
         this.statusText.setText(err instanceof Error ? err.message : "Não foi possível carregar sua conta.").setColor("#ff6666");
       }
     }
     this.showAccount();
+  }
+
+  /** Back from Mercado Pago (?pagamento=…&ref=…): tell the player how the payment went (the server delivers it). */
+  private async paymentReturn(): Promise<void> {
+    const q = new URLSearchParams(location.search);
+    const ref = q.get("ref");
+    if (!q.get("pagamento") || !ref) return;
+    history.replaceState(null, "", location.pathname);
+    this.statusText.setText("Conferindo seu pagamento…").setColor("#c9b98a");
+    try {
+      const r = await this.api(`/pay/check/${encodeURIComponent(ref)}`);
+      this.statusText.setText(r.message).setColor(r.status === "approved" ? "#9dff8a" : r.status === "rejected" ? "#ff8a7a" : "#ffd77a");
+    } catch (err) {
+      this.statusText.setText(err instanceof Error ? err.message : "Não foi possível conferir o pagamento.").setColor("#ff8a7a");
+    }
   }
 
   private async api(path: string, body?: unknown): Promise<any> {
@@ -370,6 +386,7 @@ export class LoginScene extends Phaser.Scene {
       setToken(data.token);
       await this.loadAccount();
       this.statusText.setText("");
+      void this.paymentReturn();
     } catch (err) {
       this.statusText.setText(err instanceof Error ? err.message : "Não foi possível conectar ao servidor.").setColor("#ff6666");
     } finally { this.busy = false; }

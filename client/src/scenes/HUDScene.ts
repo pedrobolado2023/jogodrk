@@ -730,6 +730,8 @@ export class HUDScene extends Phaser.Scene {
       .map(([k, end]) => [k, Math.ceil((end - Date.now()) / 60_000)] as const)
       .filter(([, min]) => min > 0)
       .map(([k, min]) => `⚡ ${names[k] ?? k} · ${min >= 60 ? `${Math.floor(min / 60)}h${String(min % 60).padStart(2, "0")}` : `${min} min`}`);
+    const v = this.hero?.vip ?? 0;
+    if (v > 0) lines.unshift(`★ VIP ${v} · EXP e ouro +${v * 5}%`);
     this.boostText.setText(lines.join("\n"));
   }
 

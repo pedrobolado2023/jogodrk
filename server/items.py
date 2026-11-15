@@ -16,7 +16,13 @@ from __future__ import annotations
 import random
 from typing import Any
 
-BAG_SLOTS = 100  # every hero; can grow later (keep it in the catalog so the client follows)
+BAG_SLOTS = 100  # every hero; VIP adds more (vip.py), up to BAG_MAX
+BAG_MAX = 170
+
+
+class Bag(list):
+    """A hero's bag: a list of entries that knows its own size (VIP heroes have more spaces)."""
+    cap = BAG_SLOTS
 STACK_MAX = 99
 GEAR_SLOTS = ("weapon", "armor", "legs", "boots", "ring", "necklace")
 POTION_COOLDOWN = 3.0  # seconds, per kind (hp / mp)
@@ -382,7 +388,7 @@ def sell_price(entry: dict[str, Any]) -> int:
 
 
 def free_slots(bag: list[dict[str, Any]]) -> int:
-    return BAG_SLOTS - len(bag)
+    return getattr(bag, "cap", BAG_SLOTS) - len(bag)
 
 
 def can_add(bag: list[dict[str, Any]], item_id: str, qty: int = 1) -> bool:
@@ -478,7 +484,7 @@ def clean(bag: Any, gear: Any) -> tuple[list[dict[str, Any]], dict[str, dict[str
         # the old single "accessory" slot: its ring or amulet moves to the ring or necklace slot
         if slot in GEAR_SLOTS and (slot == s or s == "accessory") and slot not in g:
             g[slot] = strip(v)
-    return b[:BAG_SLOTS], g
+    return b[:BAG_MAX], g  # spaces beyond the bag size (an expired VIP) keep their items until they are used
 
 
 def catalog() -> dict[str, Any]:

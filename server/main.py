@@ -26,7 +26,9 @@ import items as inv
 from auto_farm import auto_farm
 from config import ENV, CORS_ORIGINS, DATABASE_URL, DEV_TOOLS
 from game import Game, Hero
-from models import Base, Character, CharacterClass, GameState, User
+from models import Base, Character, CharacterClass, GameState, User, VipStatus
+import payments
+import vip
 from websocket_manager import manager
 import season
 import titles
@@ -153,6 +155,7 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials
 
 import admin  # noqa: E402  (needs `game` and the database session above)
 app.include_router(admin.make_router(game, lambda: async_session(), save_hero))  # looked up per call (tests swap it)
+app.include_router(payments.make_router(game, lambda: async_session(), save_hero))
 
 
 @app.exception_handler(RequestValidationError)
@@ -498,7 +501,7 @@ async def game_ws(ws: WebSocket, character_id: str):
     story = normalize_story(char.story)
     hero = Hero(char_id=char.id, name=char.name, cls=cls, level=char.level, exp=char.exp,
                 gold=char.gold, story=story, map_id=map_id,
-                hp=char.hp, mp=char.mp, loot=loot, bag=bag, gear=gear)
+                hp=char.hp, mp=char.mp, loot=loot, bag=inv.Bag(bag), gear=gear)
     pk_saved = char.pk or {}
     hero.red_left = max(0.0, float(pk_saved.get("red_left", 0)))  # the red time does not run out while offline
     hero.pk_kills = int(pk_saved.get("kills", 0))
@@ -509,12 +512,26 @@ async def game_ws(ws: WebSocket, character_id: str):
     hero.cosmetics = season.cosmetics(char.cosmetics)
     hero.gems = max(0, int(char.gems or 0))
     hero.boosts = {k: float(v) for k, v in (char.boosts or {}).items() if k in ("exp", "gold")}
+    # the account's VIP (bonus, bag spaces, title, auras) and its gems of the day
+    daily = 0
+    async with async_session() as db:
+        vrow = await db.get(VipStatus, user.id)
+        vlevel, vuntil = (vrow.level, vrow.until) if vrow else (0, 0.0)
+        if vrow and vip.active_level(vlevel, vuntil) and vrow.last_daily != vip.today():
+            daily = vip.daily_gems(vlevel)
+            vrow.last_daily = vip.today()
+            await db.commit()
+    await payments.apply_vip(game, hero, vlevel, vuntil, push=False)
+    hero.gems += daily
     hero.title = char.title if isinstance(char.title, str) and game.can_wear_title(hero, char.title) else titles.best(hero.level)
 
     await manager.connect(ws, char.id, char.name, map_id, x, y,
                           info={"cls": hero.cls, "level": hero.level, "pk": hero.pk_status(), "title": hero.title, "aura": hero.cosmetics["aura"], "pet": hero.cosmetics["pet"], "mount": hero.cosmetics["mount"],
                                 "guild": game.guild_name(hero.char_id)})
     await game.join(hero, x, y)
+    if daily:
+        await game.notice(hero.char_id, f"VIP {vip.active_level(vlevel, vuntil)}: +{daily} gemas do dia!", "quest")
+        await game.save_hero(hero)
 
     try:
         while True:

@@ -47,6 +47,8 @@ PASS_TITLES: list[tuple[str, str, str]] = [
     ("sombra_errante", "Sombra Errante", "#9a8ac8"),
     ("lamina_rubra", "Lâmina Rubra", "#ff6a6a"),
 ]
+import vip as _vip  # noqa: E402
+PASS_TITLES += _vip.TITLES  # the VIP titles (worn while the account is VIP)
 TITLE_BY_ID = {t[0]: t for t in PASS_TITLES}
 
 # id → name, glow colour (a client GLOW_COLORS name)
@@ -60,6 +62,8 @@ AURAS: dict[str, tuple[str, str]] = {
     "aura_celeste": ("Aura Celeste", "blue"),
     "aura_esmeralda": ("Aura Esmeralda", "green"),
     "aura_alma": ("Aura das Almas", "teal"),
+    # VIP 3, 5 and 7 (vip.py)
+    **{a: (n, c) for a, n, c, _ in _vip.AURAS},
 }
 
 # id → name, 3D sprite sheet (client/public/sprites/<sheet>) — mascots that follow the hero, looks only

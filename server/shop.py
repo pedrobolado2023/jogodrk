@@ -110,7 +110,10 @@ def price(o: dict[str, Any], quest_index: int = 0) -> int:
 BY_ID = {o["id"]: o for o in OFFERS}
 
 # packs of gems for real money — shown, not sold yet
-PACKS = [{"gems": 500, "bonus": 0}, {"gems": 1100, "bonus": 100}, {"gems": 2400, "bonus": 400}, {"gems": 5000, "bonus": 1000}]
+# (the price that counts is in payments.PRODUCTS; gems here already include the bonus)
+PACKS = [{"id": "gems_500", "gems": 500, "bonus": 0, "price": 5.00}, {"id": "gems_1100", "gems": 1100, "bonus": 100, "price": 10.00},
+         {"id": "gems_3000", "gems": 3000, "bonus": 500, "price": 25.00}, {"id": "gems_6500", "gems": 6500, "bonus": 1500, "price": 50.00},
+         {"id": "gems_14000", "gems": 14000, "bonus": 4000, "price": 100.00}]
 
 
 def offer_name(o: dict[str, Any]) -> str:

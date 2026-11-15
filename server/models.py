@@ -353,3 +353,31 @@ class GameState(Base):
 
     key = Column(String(64), primary_key=True)
     value = Column(JSON, nullable=False, default=dict)
+
+
+# ── Real-money purchases (payments.py) and VIP (vip.py) ──────────────────────
+
+class Payment(Base):
+    """One purchase: created when the player opens Mercado Pago, approved when Mercado Pago confirms it."""
+    __tablename__ = "payments"
+
+    id = Column(String(36), primary_key=True, default=_str_uuid)       # our reference, sent as external_reference
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    character_id = Column(String(36), nullable=False)                   # the hero who receives gems / the pass
+    product = Column(String(32), nullable=False)
+    amount = Column(Float, nullable=False)                              # in reais
+    status = Column(String(20), nullable=False, default="created")      # created | pending | approved | rejected | refunded …
+    mp_payment_id = Column(String(32), unique=True, nullable=True)
+    delivered = Column(Boolean, nullable=False, default=False)          # gems / pass / VIP already given
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class VipStatus(Base):
+    """VIP of an account: level and when it ends (unix time), and the day its daily gems were last given."""
+    __tablename__ = "vip_status"
+
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    level = Column(SmallInteger, nullable=False, default=0)
+    until = Column(Float, nullable=False, default=0.0)
+    last_daily = Column(String(10), nullable=True)
