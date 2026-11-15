@@ -86,6 +86,8 @@ export interface PlayOpts {
   dy?: number;
   /** Seconds before the effect is told to stop (loops then fade out). */
   life?: number;
+  /** Part of the map (portal glows, fires): still made while the game rests, everything else is skipped. */
+  keep?: boolean;
   /** Play a looping effect only once (one cycle, then fade) instead of forever: skill casts and hits. */
   once?: boolean;
   speed?: number;
@@ -204,8 +206,8 @@ export class PixelFx {
   play(name: string, x: number, y: number, opts: PlayOpts = {}): PfxHandle {
     const mod = LIB[name];
     if (!mod) return this.dummy(x, y);
-    // resting (tab hidden): one-shot effects would never be seen; lasting ones (portals, fires) still start
-    if (isResting() && (opts.once || opts.life !== undefined)) return this.dummy(x, y);
+    // resting (tab hidden): nobody sees them, and piled up they froze the game on return; only map effects start
+    if (isResting() && !opts.keep) return this.dummy(x, y);
     if (opts.once && mod.meta.loop && opts.life === undefined) opts = { ...opts, life: Math.max(0.8, Math.min(2, mod.meta.duration ?? 1)) };
     return mod.meta.loop ? this.playBaked(name, mod, x, y, opts) : this.playLive(name, mod, x, y, opts);
   }

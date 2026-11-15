@@ -828,6 +828,19 @@ export class WorldRenderer {
     }
   }
 
+  /** Back from rest: the chunks nearest the hero are painted now, the others one per frame by update(). */
+  rebuild(wx: number, wy: number, radius: number): void {
+    const ctx = Math.round(wx), cty = Math.round(wy);
+    this.center = { x: ctx, y: cty };
+    this.refreshChunks(ctx, cty, radius);
+    this.refreshProps(ctx, cty, radius);
+    for (let i = 0; i < 4 && this.pending.length; i++) {
+      const [cx, cy] = this.pending.shift()!;
+      const key = `${cx}_${cy}`;
+      if (!this.chunks.has(key)) this.chunks.set(key, this.renderChunk(cx, cy));
+    }
+  }
+
   /** Rest mode: free every painted ground chunk; update() paints them again around the hero on return. */
   dropChunks(): void {
     for (const [key, img] of this.chunks) {

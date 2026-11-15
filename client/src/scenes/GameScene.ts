@@ -314,7 +314,7 @@ export class GameScene extends Phaser.Scene {
     const onWake = () => {
       resumeSheets();
       if (!this.mapInfo || !this.world) return;
-      this.world.update(this.player.worldX, this.player.worldY, this.viewRadius(), true);
+      this.world.rebuild(this.player.worldX, this.player.worldY, this.viewRadius());
       for (const u of this.sheetUnits()) {
         const key = u.sheet!;
         void this.loadSheet(key).then((ok) => {
@@ -390,7 +390,7 @@ export class GameScene extends Phaser.Scene {
 
     for (const f of this.world.theme.fires) {
       const { sx, sy } = worldToScreen(f.wx, f.wy);
-      this.portalFx.push(this.pfx.play(f.fx, sx, sy + 4, { scale: f.scale }));
+      this.portalFx.push(this.pfx.play(f.fx, sx, sy + 4, { scale: f.scale, keep: true }));
     }
     this.buildPortals(info);
     for (const n of info.npcs) this.addNpc(n.id, n.name, n.look, n.role, n.x, n.y);
@@ -419,7 +419,7 @@ export class GameScene extends Phaser.Scene {
         fontFamily: FONT, fontSize: "24px", color: p.locked ? "#8a8690" : "#e6d2ff", stroke: "#000", strokeThickness: 6, align: "center",
       }).setOrigin(0.5).setDepth(sy + 200).setScale(SHARP);
       this.portalObjs.push(base, label);
-      if (!p.locked) this.portalFx.push(this.pfx.play("arcane/portal", sx, sy + 6, { scale: 0.75, glow: 160 }));
+      if (!p.locked) this.portalFx.push(this.pfx.play("arcane/portal", sx, sy + 6, { scale: 0.75, glow: 160, keep: true }));
     }
   }
 
@@ -1014,6 +1014,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private hitFlash(u: Unit): void {
+    if (isResting()) return;
     if (u.sheet) {
       this.tweens.add({ targets: u.body, alpha: { from: 1, to: 0.45 }, duration: 60, yoyo: true });
       if (!u.action || this.time.now > u.action.until) this.playAction(u, "hit");
@@ -1780,6 +1781,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private playSkillVfx(def: SkillDef, caster: Unit, m: ServerMessage, from: { x: number; y: number }, dashed: boolean): void {
+    if (isResting()) return; // this screen is resting: skip the show (other players' screens still draw it)
     const v = def.vfx ?? {};
     const pal = palette(v.pal);
     const target = this.unitOf(m.target as string);
@@ -1879,6 +1881,7 @@ export class GameScene extends Phaser.Scene {
   /** Extra punch for every attack: a shockwave the size of the area, light, sparks on each enemy hit,
    *  a streak for line skills and a small ring for the splash around single-target hits. */
   private playImpactVfx(def: SkillDef, caster: Unit, m: ServerMessage, from: { x: number; y: number }, tx: number, ty: number): void {
+    if (isResting()) return;
     const color = def.vfx?.ring ?? (def.cls === "grand_sorcerer" ? "cyan" : def.cls === "night_ranger" ? "green" : "orange");
     const own = caster === this.player;
     const delay = (def.vfx?.delay ?? 0) * 1000;
@@ -2549,6 +2552,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private floatText(x: number, y: number, text: string, color: string, size: number, delay: number): void {
+    if (isResting()) return;
     const t = this.cachedText(x, y, text, {
       fontFamily: FONT, fontSize: `${Math.round(size * 0.75)}px`, color, stroke: "#000000", strokeThickness: 3, fontStyle: "bold",
     }).setOrigin(0.5).setDepth(FX_DEPTH + 10).setAlpha(0);
@@ -2565,6 +2569,7 @@ export class GameScene extends Phaser.Scene {
    * so a burst of hits does not pile up.
    */
   private damageNumber(x: number, y: number, amount: number, taken: boolean, crit: boolean, dot?: string): void {
+    if (isResting()) return;
     const magnitude = Phaser.Math.Clamp(Math.log10(Math.max(10, amount)) / 7, 0, 1);  // 10 → 0.14 … 10 mi → 1
     const base = dot ? 11 : taken ? 14 : 14 + magnitude * 9;
     const size = Math.round(crit ? base * 1.6 : base);
