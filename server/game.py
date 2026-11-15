@@ -952,7 +952,11 @@ class Game:
         if now - self.last_save > SAVE_EVERY:
             self.last_save = now
             for hero in list(self.heroes.values()):
-                await self.save_hero(hero)
+                # one hero that cannot be saved must not stop the others (and must show in the log)
+                try:
+                    await self.save_hero(hero)
+                except Exception as e:
+                    print(f"[save] could not save {hero.name} ({hero.char_id}): {e!r}", flush=True)
 
     async def tick_dots(self, now: float) -> None:
         keep: list[Dot] = []

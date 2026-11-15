@@ -142,11 +142,34 @@ def _add_missing_columns(conn) -> None:
             conn.execute(text(f"ALTER TABLE characters ADD COLUMN {name} JSON"))
 
 
+# columns that outgrow their first type: Postgres refuses the save of a value past the column's limit (EXP passes
+# INTEGER's 2.1 billion around level 75), which silently rolled heroes back to their last good save on reconnect
+WIDEN = {"exp": "BIGINT", "gold": "BIGINT", "hp": "BIGINT", "max_hp": "BIGINT", "mp": "BIGINT", "max_mp": "BIGINT",
+         "str": "INTEGER", "agi": "INTEGER", "int": "INTEGER", "vit": "INTEGER"}
+
+
+def _widen_number_columns(conn) -> list[str]:
+    """Postgres only (SQLite stores any size): turn too-small number columns into BIGINT / INTEGER, keeping the data."""
+    if conn.dialect.name != "postgresql":
+        return []
+    have = {c["name"]: str(c["type"]).upper() for c in inspect(conn).get_columns("characters")}
+    done = []
+    for name, kind in WIDEN.items():
+        cur = have.get(name, "")
+        if cur and cur != kind and not (kind == "INTEGER" and cur == "BIGINT"):
+            conn.execute(text(f'ALTER TABLE characters ALTER COLUMN "{name}" TYPE {kind}'))
+            done.append(f"{name} {cur}→{kind}")
+    if done:
+        print("[db] widened columns:", ", ".join(done), flush=True)
+    return done
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await conn.run_sync(_add_missing_columns)
+        await conn.run_sync(_widen_number_columns)
     async with async_session() as db:
         import market as mk
         row = await db.get(GameState, "market")
@@ -581,5 +604,8 @@ async def game_ws(ws: WebSocket, character_id: str):
         if current is None or current.ws is ws:  # skip if a newer connection already took this hero over
             left = await game.leave(hero.char_id)
             if left:
-                await save_hero(left)
+                try:
+                    await save_hero(left)
+                except Exception as e:  # never lose the disconnect itself; the error shows in the log
+                    print(f"[save] could not save {left.name} ({left.char_id}) on leaving: {e!r}", flush=True)
             await manager.disconnect(hero.char_id)

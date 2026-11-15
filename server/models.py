@@ -13,6 +13,7 @@ def _str_uuid():
     return str(_uuid4())
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Column,
     DateTime,
@@ -99,21 +100,22 @@ class Character(Base):
 
     # progression
     level = Column(SmallInteger, default=1, nullable=False)
-    exp = Column(Integer, default=0, nullable=False)
+    # big numbers: EXP passes 2.1 billion (INTEGER's limit in Postgres) around level 75, so BIGINT
+    exp = Column(BigInteger, default=0, nullable=False)
     stat_points = Column(SmallInteger, default=0, nullable=False)
     skill_points = Column(SmallInteger, default=0, nullable=False)
 
     # base stats (allocated by player)
-    str = Column(SmallInteger, default=5, nullable=False)
-    agi = Column(SmallInteger, default=5, nullable=False)
-    int_ = Column("int", SmallInteger, default=5, nullable=False)
-    vit = Column(SmallInteger, default=5, nullable=False)
+    str = Column(Integer, default=5, nullable=False)
+    agi = Column(Integer, default=5, nullable=False)
+    int_ = Column("int", Integer, default=5, nullable=False)
+    vit = Column(Integer, default=5, nullable=False)
 
     # current state
-    hp = Column(Integer, nullable=False, default=100)
-    max_hp = Column(Integer, nullable=False, default=100)
-    mp = Column(Integer, nullable=False, default=50)
-    max_mp = Column(Integer, nullable=False, default=50)
+    hp = Column(BigInteger, nullable=False, default=100)
+    max_hp = Column(BigInteger, nullable=False, default=100)
+    mp = Column(BigInteger, nullable=False, default=50)
+    max_mp = Column(BigInteger, nullable=False, default=50)
 
     # world position
     map_id = Column(String(64), nullable=False, default="town_01")
@@ -126,7 +128,7 @@ class Character(Base):
     pk_timer_expires = Column(DateTime(timezone=True))
 
     # currency
-    gold = Column(Integer, default=0, nullable=False)
+    gold = Column(BigInteger, default=0, nullable=False)
     premium_coins = Column(Integer, default=0, nullable=False)
 
     # story progress {"q": quest index, "st": offer|active|ready|done, "n": kills} and collected loot counts
