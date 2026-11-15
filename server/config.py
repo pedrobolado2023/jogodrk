@@ -32,3 +32,6 @@ CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "" if ENV
 
 # test helpers (e.g. starting a world boss now with /bossteste) — never on unless explicitly enabled
 DEV_TOOLS = ENV == "dev" and os.getenv("GAME_DEV_TOOLS") == "1"
+
+# admin panel (/admin.html): usernames allowed in, comma-separated (e.g. ADMIN_USERS=admin,pedro). Empty = nobody.
+ADMIN_USERS = {name.strip().lower() for name in os.getenv("ADMIN_USERS", "").split(",") if name.strip()}

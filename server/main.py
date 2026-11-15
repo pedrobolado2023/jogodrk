@@ -151,6 +151,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Dark Fantasy MMORPG", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials=CORS_ORIGINS != ["*"], allow_methods=["*"], allow_headers=["*"])
 
+import admin  # noqa: E402  (needs `game` and the database session above)
+app.include_router(admin.make_router(game, lambda: async_session(), save_hero))  # looked up per call (tests swap it)
+
 
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):

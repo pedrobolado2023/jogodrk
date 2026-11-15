@@ -20,6 +20,7 @@ Use um projeto no Easypanel com um Postgres e dois serviços App, ambos ligados 
    DATABASE_URL=postgres://usuario:senha@host:5432/banco
    SECRET_KEY=troque_por_uma_chave_aleatoria
    CORS_ORIGINS=https://jogo.seudominio
+   ADMIN_USERS=seu_usuario
    ```
 
    Use a URL real do Postgres. Os prefixos `postgres://` e `postgresql://` são convertidos automaticamente para `postgresql+asyncpg://`. Em produção, a URL é obrigatória. Para vários frontends, separe as origens por vírgula, sem caminho ou barra final.
@@ -60,3 +61,14 @@ SECRET_KEY é obrigatória em produção, com pelo menos 32 caracteres. Gere uma
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 Guarde a chave no ambiente do backend. Trocar a chave encerra as sessões existentes. O proxy deve substituir X-Forwarded-For pelo IP real; mantenha o backend acessível apenas pelo proxy.
+
+## Painel do administrador
+
+O painel fica em `https://jogo.seudominio/privado`. Só entram as contas listadas em `ADMIN_USERS` no backend
+(nomes de usuário separados por vírgula, por exemplo `ADMIN_USERS=admin,pedro`). Sem essa variável, ninguém entra.
+Depois de mudar a variável, faça **Deploy** do backend.
+
+No painel dá para: ver quem está online e onde, buscar heróis, dar ou tirar ouro e gemas, dar itens, mandar mensagem
+para um jogador, levar um herói para a vila, desconectar, bloquear ou desbloquear contas, mandar aviso para todos e
+começar um Boss Global. Cada ação fica registrada no log do backend e na lista "Últimas ações".
+

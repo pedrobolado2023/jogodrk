@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Painel do Administrador</title>
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08060b; --panel: #120e18; --panel2: #1a1422; --line: #3a2e22; --gold: #d6aa5a; --gold2: #ffd77a;
+      --text: #efe6d2; --muted: #a8987a; --red: #e0485a; --green: #7ddc6a; --blue: #6f8cff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: radial-gradient(circle at 50% -20%, #22162a, var(--bg) 60%) fixed; color: var(--text);
+      font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+    h1, h2, .brand { font-family: Cinzel, Georgia, serif; letter-spacing: .5px; }
+    a { color: var(--gold2); }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px;
+      border-bottom: 1px solid var(--line); background: rgba(12,9,16,.85); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(6px); }
+    header .brand { font-size: 20px; color: #e0485a; text-shadow: 0 0 12px rgba(224,72,90,.5); }
+    header .sub { color: var(--muted); font-size: 13px; }
+    header .right { margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn { background: #2a1e10; border: 1px solid var(--gold); color: var(--gold2); padding: 7px 14px; border-radius: 8px; cursor: pointer;
+      font-weight: 600; transition: filter .15s, background .15s; white-space: nowrap; }
+    .btn:hover { filter: brightness(1.25); }
+    .btn:disabled { opacity: .5; cursor: default; filter: none; }
+    .btn.ghost { background: transparent; border-color: var(--line); color: var(--muted); }
+    .btn.red { border-color: var(--red); color: #ffb0b8; background: #2a1014; }
+    .btn.green { border-color: var(--green); color: #c8ffbe; background: #12220e; }
+    .btn.small { padding: 4px 10px; font-size: 13px; }
+    input, select, textarea { background: #0a080e; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; outline: none; min-width: 0; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(214,170,90,.18); }
+    .card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+    .card h2 { font-size: 15px; color: var(--gold2); margin-bottom: 12px; }
+    .grid { display: grid; gap: 14px; }
+    .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 14px; }
+    .stat .v { font-size: 26px; font-weight: 700; color: var(--gold2); font-variant-numeric: tabular-nums; }
+    .stat .l { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+    .two { grid-template-columns: 1fr 1fr; margin-bottom: 14px; }
+    @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    textarea { width: 100%; resize: vertical; min-height: 64px; }
+    .bosses { display: flex; gap: 8px; flex-wrap: wrap; }
+    .muted { color: var(--muted); }
+    .pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; border: 1px solid var(--line); }
+    .pill.on { color: var(--green); border-color: #2f5a28; background: #0f1d0c; }
+    .pill.off { color: var(--muted); }
+    .pill.ban { color: #ffb0b8; border-color: #5a2830; background: #22100f; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #261e18; white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: rgba(214,170,90,.06); }
+    tbody tr.sel { background: rgba(214,170,90,.12); }
+    .table-wrap { overflow-x: auto; }
+    .cls-blade_master { color: #ff8a8a; } .cls-grand_sorcerer { color: #9fb4ff; } .cls-night_ranger { color: #9ff08a; }
+    .log { max-height: 260px; overflow: auto; font-size: 13px; }
+    .log div { padding: 5px 0; border-bottom: 1px dashed #2a2118; }
+    .log time { color: var(--muted); margin-right: 8px; font-variant-numeric: tabular-nums; }
+    .maps div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #2a2118; }
+    /* hero panel */
+    #detail { position: fixed; right: 0; top: 0; bottom: 0; width: min(420px, 100%); background: #0e0b13; border-left: 1px solid var(--gold);
+      box-shadow: -10px 0 30px rgba(0,0,0,.6); padding: 18px; overflow-y: auto; transform: translateX(105%); transition: transform .2s; z-index: 20; }
+    #detail.open { transform: none; }
+    #detail h2 { font-size: 20px; color: var(--gold2); }
+    #detail section { border-top: 1px solid var(--line); padding: 12px 0; }
+    #detail section h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+    #detail .close { position: absolute; right: 14px; top: 12px; }
+    #detail input[type=number] { width: 110px; }
+    #detail select { flex: 1; }
+    .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 10px 0 4px; }
+    .facts span:nth-child(odd) { color: var(--muted); }
+    /* login */
+    #login { max-width: 380px; margin: 12vh auto; }
+    #login form { display: grid; gap: 10px; }
+    #login input { width: 100%; }
+    #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #1a1422; border: 1px solid var(--gold);
+      padding: 10px 18px; border-radius: 10px; z-index: 30; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; }
+    #toast.show { opacity: 1; }
+    #toast.err { border-color: var(--red); color: #ffb0b8; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="brand">Dark Fantasy</span>
+    <span class="sub">Painel do Administrador</span>
+    <div class="right">
+      <span id="who" class="muted"></span>
+      <a class="btn ghost small" href="/">Ir para o jogo</a>
+      <button id="logout" class="btn ghost small hidden">Sair</button>
+    </div>
+  </header>
+
+  <div id="login" class="card hidden">
+    <h2>Entrar como administrador</h2>
+    <form id="login-form">
+      <input id="lu" autocomplete="username" placeholder="Usuário" required />
+      <input id="lp" type="password" autocomplete="current-password" placeholder="Senha" required />
+      <button class="btn" type="submit">Entrar</button>
+      <p id="login-msg" class="muted"></p>
+    </form>
+  </div>
+
+  <main id="app" class="wrap hidden">
+    <div class="grid stats">
+      <div class="card stat"><div class="v" id="s-online">–</div><div class="l">Online agora</div></div>
+      <div class="card stat"><div class="v" id="s-accounts">–</div><div class="l">Contas</div></div>
+      <div class="card stat"><div class="v" id="s-chars">–</div><div class="l">Heróis</div></div>
+      <div class="card stat"><div class="v" id="s-banned">–</div><div class="l">Contas bloqueadas</div></div>
+      <div class="card stat"><div class="v" id="s-uptime">–</div><div class="l">Servidor ligado há</div></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <h2>Aviso para todos os jogadores</h2>
+        <textarea id="bc-text" maxlength="300" placeholder="Ex.: Manutenção às 22h. Salve seu progresso!"></textarea>
+        <div class="row" style="margin-top:8px"><button id="bc-send" class="btn">Enviar aviso</button>
+          <span class="muted">Aparece na tela e no chat de quem está online.</span></div>
+      </div>
+      <div class="card">
+        <h2>Boss Global</h2>
+        <p id="boss-state" class="muted" style="margin-bottom:10px">–</p>
+        <div id="bosses" class="bosses"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2>Jogadores</h2>
+      <div class="row" style="margin-bottom:10px">
+        <input id="q" placeholder="Buscar por herói ou conta…" style="flex:1; min-width:180px" />
+        <label class="row muted"><input id="only-online" type="checkbox" /> Só online</label>
+        <button id="refresh" class="btn ghost small">Atualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Herói</th><th>Classe</th><th class="num">Nível</th><th>Mapa</th><th class="num">Ouro</th><th class="num">Gemas</th><th>Conta</th><th>Situação</th></tr></thead>
+          <tbody id="players"></tbody>
+        </table>
+      </div>
+      <p id="players-empty" class="muted hidden" style="padding:10px">Nenhum herói encontrado.</p>
+    </div>
+
+    <div class="grid two">
+      <div class="card"><h2>Onde estão os jogadores</h2><div id="maps" class="maps"></div></div>
+      <div class="card"><h2>Últimas ações dos administradores</h2><div id="log" class="log"></div></div>
+    </div>
+  </main>
+
+  <aside id="detail" aria-label="Herói">
+    <button class="btn ghost small close" id="d-close">Fechar</button>
+    <h2 id="d-name">–</h2>
+    <div class="facts" id="d-facts"></div>
+    <section>
+      <h3>Mensagem só para ele</h3>
+      <div class="row"><input id="d-msg" maxlength="300" placeholder="Escreva…" style="flex:1" /><button class="btn small" data-act="message">Enviar</button></div>
+    </section>
+    <section>
+      <h3>Ouro</h3>
+      <div class="row"><input id="d-gold" type="number" value="1000" step="100" />
+        <button class="btn green small" data-act="gold+">Dar</button><button class="btn red small" data-act="gold-">Tirar</button></div>
+    </section>
+    <section>
+      <h3>Gemas</h3>
+      <div class="row"><input id="d-gems" type="number" value="100" step="10" />
+        <button class="btn green small" data-act="gems+">Dar</button><button class="btn red small" data-act="gems-">Tirar</button></div>
+    </section>
+    <section>
+      <h3>Dar item</h3>
+      <div class="row"><select id="d-item"></select><input id="d-qty" type="number" value="1" min="1" max="999" style="width:80px" />
+        <button class="btn green small" data-act="item">Dar</button></div>
+    </section>
+    <section>
+      <h3>Ações</h3>
+      <div class="row">
+        <button class="btn small" data-act="town">Levar para a vila</button>
+        <button class="btn small" data-act="kick">Desconectar</button>
+        <button class="btn red small" data-act="ban" id="d-ban">Bloquear conta</button>
+      </div>
+      <p class="muted" style="margin-top:8px;font-size:12px">Bloquear desconecta todos os heróis da conta e impede de entrar até desbloquear.</p>
+    </section>
+  </aside>
+
+  <div id="toast" role="status"></div>
+  <script type="module" src="/src/admin/main.ts"></script>
+</body>
+</html>

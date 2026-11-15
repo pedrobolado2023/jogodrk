@@ -13,6 +13,7 @@ type MessageHandler = (msg: ServerMessage) => void;
 
 /** Close code the server uses when a newer connection of the same hero replaces this one (main.py). */
 const REPLACED_CODE = 4001;
+const KICKED_CODE = 4002; // an administrator disconnected this hero (or blocked the account)
 
 export class GameSocket {
   private ws: WebSocket | null = null;
@@ -71,6 +72,10 @@ export class GameSocket {
         // the same hero connected from another window/tab: reconnecting would just kick that one back
         console.log("[WS] replaced by a newer connection");
         this.emit("notice", { type: "notice", text: "Seu herói entrou em outra janela. Recarregue a página para jogar aqui.", kind: "warn" });
+        return;
+      }
+      if (ev.code === KICKED_CODE) {
+        this.emit("notice", { type: "notice", text: "Você foi desconectado por um administrador. Recarregue a página para voltar.", kind: "warn" });
         return;
       }
       console.log("[WS] disconnected, reconnecting in 3s…");
