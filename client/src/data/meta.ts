@@ -80,6 +80,10 @@ export interface Meta {
   pets?: { id: string; name: string; sheet: string }[];
   /** horses the hero rides (looks only) */
   mounts?: { id: string; name: string; sheet: string; saddle?: number }[];
+  /** skins: the hero's class recoloured (grade applied in the client) */
+  skins?: { id: string; name: string; desc: string; grade?: { desat?: number; tint?: [number, number, number]; gain?: number };
+    /** a skin with its own 3D model: sheets `<sheet>_<class>` */
+    sheet?: string }[];
   season?: SeasonMeta;
   shop?: ShopMeta;
 }
@@ -264,7 +268,7 @@ export function critText(h: { crit: number; crit_dmg?: number; dodge?: number })
 /** The gem shop (server: shop.meta): only looks and the pass Premium track. */
 export interface ShopOffer {
   id: string;
-  kind: "premium_pass" | "aura" | "title" | "pet" | "mount" | "boost" | "pass_level" | "quest_skip";
+  kind: "premium_pass" | "aura" | "title" | "pet" | "mount" | "skin" | "boost" | "pass_level" | "quest_skip";
   ref?: string;
   name: string;
   price: number;
@@ -316,7 +320,7 @@ export interface HeroState {
   /** chosen level title id ("" = none) */
   title?: string;
   /** titles and auras owned for good (season pass) and the aura worn */
-  cosmetics?: { titles: string[]; auras: string[]; aura: string; pets?: string[]; pet?: string; mounts?: string[]; mount?: string };
+  cosmetics?: { titles: string[]; auras: string[]; aura: string; pets?: string[]; pet?: string; mounts?: string[]; mount?: string; skins?: string[]; skin?: string };
   /** premium currency (gem shop) */
   gems?: number;
   /** active shop boosts: "exp" | "gold" → seconds left */

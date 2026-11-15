@@ -3035,5 +3035,68 @@
     "frames": {
       "idle": 10
     }
+  },
+  "skin_praieiro_blade_master": {
+    "source": "mixamo",
+    "dir": "mixamo/blade_master/pack",
+    "height": 1.85,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "paladin",
+    "exposure": 0.6,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^sword and shield idle[.]fbx$",
+      "walk": "^sword and shield walk[.]fbx$",
+      "run": "^sword and shield run[.]fbx$",
+      "attack": "^sword and shield slash[.]fbx$",
+      "cast": "^sword and shield casting[.]fbx$",
+      "hit": "^sword and shield impact[.]fbx$",
+      "death": "^sword and shield death[.]fbx$"
+    },
+    "_note": "skin Praieiro com as animações de unit_blade_master",
+    "body_path": "skins/praieiro.fbx"
+  },
+  "skin_praieiro_grand_sorcerer": {
+    "source": "mixamo",
+    "dir": "mixamo/grand_sorcerer/pack",
+    "height": 1.85,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "heraklios",
+    "exposure": 0.6,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^standing idle[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing 1h magic attack 01[.]fbx$",
+      "cast": "^standing 2h magic area attack 01[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing react death backward[.]fbx$"
+    },
+    "_note": "skin Praieiro com as animações de unit_grand_sorcerer",
+    "body_path": "skins/praieiro.fbx"
+  },
+  "skin_praieiro_night_ranger": {
+    "source": "mixamo",
+    "dir": "mixamo/night_ranger/pack",
+    "height": 1.8,
+    "ortho": 3.0,
+    "size": 224,
+    "body": "erika",
+    "exposure": 0.6,
+    "ambient": 0.4,
+    "anims": {
+      "idle": "^standing idle 01[.]fbx$",
+      "walk": "^standing walk forward[.]fbx$",
+      "run": "^standing run forward[.]fbx$",
+      "attack": "^standing aim recoil[.]fbx$",
+      "cast": "^standing draw arrow[.]fbx$",
+      "hit": "^standing react small from front[.]fbx$",
+      "death": "^standing death backward 01[.]fbx$"
+    },
+    "_note": "skin Praieiro com as animações de unit_night_ranger",
+    "body_path": "skins/praieiro.fbx"
   }
 }

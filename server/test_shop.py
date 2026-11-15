@@ -13,11 +13,12 @@ import season as ssn
 import shop
 from game import Game
 from test_skills import _hero, _noop_save
+from websocket_manager import manager
 
 
 async def run_all() -> None:
     # looks and time savers only: no gear, stones, stats or combat buffs
-    assert {o["kind"] for o in shop.OFFERS} <= {"premium_pass", "aura", "title", "pet", "mount", "boost", "pass_level", "quest_skip"}
+    assert {o["kind"] for o in shop.OFFERS} <= {"premium_pass", "aura", "title", "pet", "mount", "skin", "boost", "pass_level", "quest_skip"}
     assert all(o["ref"] in ("exp", "gold") for o in shop.OFFERS if o["kind"] == "boost")
     for o in shop.OFFERS:
         assert o["price"] > 0
@@ -131,6 +132,22 @@ async def run_all() -> None:
     assert (h4.atk, h4.defense, h4.max_hp, h4.mod("speed")) == stats0
     print("ok  montarias: só visual, compra uma vez, tecla M monta e desmonta")
 
+    # skins: looks only — bought once, worn at once, everyone on the map is told; back to the class look with ""
+    h6, ws6 = _hero(game, "blade_master", "town_01", 28, 28, level=20)
+    h6.gems = 5000
+    stats0 = (h6.atk, h6.defense, h6.max_hp, h6.mod("speed"))
+    assert "ainda não tem" in await game.set_skin(h6, "skin_real")
+    ws6.sent.clear()
+    assert await game.shop_buy(h6, "skin_carmesim") is None and h6.cosmetics["skin"] == "skin_carmesim" and h6.gems == 3500
+    assert any(m.get("type") == "skin" and m["skin"] == "skin_carmesim" for m in ws6.sent)
+    assert "já tem" in await game.shop_buy(h6, "skin_carmesim")
+    assert await game.set_skin(h6, "") is None and h6.public()["cosmetics"]["skin"] == ""
+    assert await game.set_skin(h6, "skin_carmesim") is None
+    assert manager.sessions[h6.char_id].info["skin"] == "skin_carmesim"
+    assert (h6.atk, h6.defense, h6.max_hp, h6.mod("speed")) == stats0
+    assert all(s["id"] in ssn.SKINS and ("grade" in s) != ("sheet" in s) for s in ssn.skins_meta())  # a recolour or a model
+    print("ok  skins: só visual, compra uma vez, veste na hora e todos no mapa veem")
+
     # with the Premium pass, buying one item gives that item only and takes its price once
     h5 = _hero(game, "night_ranger", "town_01", 26, 26, level=20)[0]
     h5.gems = 50000
@@ -139,9 +156,9 @@ async def run_all() -> None:
     price = next(o for o in shop.OFFERS if o["id"] == "mount_horse")["price"]
     assert h5.gems == 50000 - price, h5.gems
     c = ssn.cosmetics(h5.cosmetics)
-    assert c["mounts"] == ["mount_horse"] and c["pets"] == [] and c["auras"] == [] and c["titles"] == []
+    assert c["mounts"] == ["mount_horse"] and c["pets"] == [] and c["auras"] == [] and c["titles"] == [] and c["skins"] == []
     st = game.season_state(h5)
-    still = [o["id"] for o in shop.OFFERS if o["kind"] in ("pet", "mount", "aura", "title") and o["id"] != "mount_horse"
+    still = [o["id"] for o in shop.OFFERS if o["kind"] in ("pet", "mount", "skin", "aura", "title") and o["id"] != "mount_horse"
              and shop.owned(o, c, st)]
     assert not still, still
     print("ok  com o Passe Premium, comprar 1 item dá só esse item e cobra uma vez")

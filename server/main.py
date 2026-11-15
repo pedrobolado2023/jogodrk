@@ -447,6 +447,7 @@ INVENTORY_ACTIONS = {
     "set_aura": lambda h, d: game.set_aura(h, str(d.get("aura", ""))),
     "set_pet": lambda h, d: game.set_pet(h, str(d.get("pet", ""))),
     "set_mount": lambda h, d: game.set_mount(h, str(d.get("mount", ""))),
+    "set_skin": lambda h, d: game.set_skin(h, str(d.get("skin", ""))),
     "toggle_mount": lambda h, d: game.toggle_mount(h),
     "pass_claim": lambda h, d: game.pass_claim(h, str(d.get("track", "")), _int(d.get("level"), 0)),
     "pass_claim_all": lambda h, d: game.pass_claim_all(h),
@@ -569,6 +570,7 @@ async def game_ws(ws: WebSocket, character_id: str):
 
     await manager.connect(ws, char.id, char.name, map_id, x, y,
                           info={"cls": hero.cls, "level": hero.level, "pk": hero.pk_status(), "title": hero.title, "aura": hero.cosmetics["aura"], "pet": hero.cosmetics["pet"], "mount": hero.cosmetics["mount"],
+                                "skin": hero.cosmetics["skin"],
                                 "guild": game.guild_name(hero.char_id)})
     await game.join(hero, x, y)
     if daily:

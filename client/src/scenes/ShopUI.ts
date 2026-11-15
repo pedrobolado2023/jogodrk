@@ -8,11 +8,11 @@ import { isTouch } from "../ui/device";
 import { API, META, fmtBig, type HeroState, type SeasonState, type ShopOffer } from "../data/meta";
 import { authHeaders } from "../network/session";
 import { GLOW_COLORS } from "../gfx/textures";
-import { SHEETS, animKey, hasSheet, requestSheet } from "../gfx/sprites3d";
+import { SHEETS, animKey, hasSheet, requestGraded, requestSheet, skinKey } from "../gfx/sprites3d";
 import { panel, txt } from "./uiStyle";
 
 type Obj = Phaser.GameObjects.GameObject;
-type Tab = "destaques" | "visuais" | "mascotes" | "montarias" | "bonus" | "passe" | "embreve" | "gemas" | "vip";
+type Tab = "destaques" | "visuais" | "skins" | "mascotes" | "montarias" | "bonus" | "passe" | "embreve" | "gemas" | "vip";
 
 interface PayCatalog { enabled: boolean; products: Record<string, { kind: string; price: number; title: string; gems?: number; tier?: number }> }
 interface VipInfo { level: number; last_level: number; days_left: number }
@@ -173,6 +173,7 @@ export class ShopUI {
       case "title": return !!c?.titles.includes(ref);
       case "pet": return !!c?.pets?.includes(ref);
       case "mount": return !!c?.mounts?.includes(ref);
+      case "skin": return !!c?.skins?.includes(ref);
       case "premium_pass": return !!this.season?.premium;
       default: return false;
     }
@@ -196,12 +197,13 @@ export class ShopUI {
       this.scene.add.text(-W / 2 + 50, -this.H / 2 + 18, `${fmtBig(gems)}`, txt(15, "#8ad8ff", { fontStyle: "bold" })),
       this.scene.add.text(-W / 2 + 50, -this.H / 2 + 36, shop?.currency ?? "Gemas", txt(9, "#a8987a")));
     // tabs
-    const tabs: [Tab, string][] = [["destaques", "Destaques"], ["visuais", "Visuais"], ["mascotes", "Mascotes"], ["montarias", "Montarias"],
+    const tabs: [Tab, string][] = [["destaques", "Destaques"], ["visuais", "Visuais"], ["skins", "Skins"], ["mascotes", "Mascotes"], ["montarias", "Montarias"],
       ["bonus", "Bônus"], ["passe", "Passe/Missões"], ["embreve", "Em breve"], ["gemas", "◆ Gemas"], ["vip", "★ VIP"]];
     tabs.forEach(([id, label], i) => {
       const on = this.tab === id;
-      const t = this.scene.add.text(-W / 2 + 12 + i * 77.5, -this.H / 2 + 62, label, txt(9, on ? "#ffd77a" : id === "vip" || id === "gemas" ? "#ffcf6a" : "#a8987a", {
-        backgroundColor: on ? "#2e2414" : "#15110c", padding: { x: 2, y: 5 }, fontStyle: on ? "bold" : "normal", fixedWidth: 75, align: "center",
+      const tw = (W - 24) / tabs.length;
+      const t = this.scene.add.text(-W / 2 + 12 + i * tw, -this.H / 2 + 62, label, txt(9, on ? "#ffd77a" : id === "vip" || id === "gemas" ? "#ffcf6a" : "#a8987a", {
+        backgroundColor: on ? "#2e2414" : "#15110c", padding: { x: 2, y: 5 }, fontStyle: on ? "bold" : "normal", fixedWidth: tw - 2, align: "center",
       })).setInteractive({ useHandCursor: true });
       t.on("pointerdown", () => { this.tab = id; this.page = 0; this.confirm = ""; this.draw(); });
       objs.push(t);
@@ -268,6 +270,26 @@ export class ShopUI {
       const t = META.titles.find((tt) => tt.id === o.ref);
       objs.push(this.scene.add.image(cx, y + 30, "item_pass_title").setScale(0.75),
         this.scene.add.text(cx, y + 58, `« ${t?.name ?? ""} »`, txt(11, t?.color ?? "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5));
+    } else if (o.kind === "skin") {
+      // the player's own hero wearing it, recoloured in the browser the first time the card shows
+      const def = META.skins?.find((s) => s.id === o.ref);
+      const base = `unit_${this.hero?.cls ?? "blade_master"}`;
+      const key = def?.sheet ? `${def.sheet}_${base.replace(/^unit_/, "")}` : def ? skinKey(base, def.id) : base;
+      const stage = this.scene.add.graphics();
+      stage.fillStyle(0x2a2238, 0.6).fillEllipse(cx, y + 66, 92, 18);
+      objs.push(stage);
+      if (hasSheet(key)) {
+        const info = SHEETS[key];
+        const fig = this.scene.add.sprite(cx, y + 68, `${key}:idle`, 1 * info.anims.idle.frames).setOrigin(0.5, info.originY)
+          .setScale(Math.min(info.scale * 1.6, 62 / (info.height * (44 / info.scale))));
+        const anim = animKey(key, "idle", 1);
+        if (this.scene.anims.exists(anim)) fig.play(anim);
+        objs.push(fig);
+      } else if (def) {
+        objs.push(this.scene.add.text(cx, y + 36, "…", txt(14, "#a8987a")).setOrigin(0.5));
+        const load = def.sheet ? requestSheet(this.scene, key) : def.grade ? requestGraded(this.scene, base, def.id, def.grade) : Promise.resolve(false);
+        void load.then((ok) => { if (ok && this.root && this.tab === "skins") this.draw(); });
+      }
     } else if (o.kind === "pet" || o.kind === "mount") {
       // the mascot / horse itself, breathing in its idle pose (its 3D sheet loads the first time the card shows)
       const def = (o.kind === "pet" ? META.pets : META.mounts)?.find((p) => p.id === o.ref);

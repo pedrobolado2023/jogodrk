@@ -12,7 +12,7 @@ import { FONT } from "../gfx/draw";
 import { gfx } from "../gfx/quality";
 import { VEIN_INFO, VEIN_ORIGIN, ensureVeinTextures } from "../gfx/veins";
 import { isTouch } from "../ui/device";
-import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseSheet, requestSheet } from "../gfx/sprites3d";
+import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseSheet, requestGraded, requestSheet, skinKey } from "../gfx/sprites3d";
 
 export interface DailyState {
   day: string;
@@ -133,6 +133,8 @@ interface Unit {
   phase: number;
   seed: number;
   baseKey: string;
+  /** heroes: the skin worn ("" = the class's own look); baseKey is then `unit_<cls>~<skin>` */
+  skin?: string;
   frame: string;
   hp: number;
   maxHp: number;
@@ -558,6 +560,45 @@ export class GameScene extends Phaser.Scene {
     this.layoutTags(u);
   }
 
+  /** A hero's class sheet (`unit_<cls>`), whatever skin he wears. */
+  private heroBase(u: Unit): string {
+    const r = u as Partial<RemoteHero>;
+    if (u === this.player) return `unit_${this.cls}`;
+    return r.cls ? `unit_${r.cls}` : u.baseKey.split("~")[0];
+  }
+
+  /** Dresses a hero in a skin (or back in the class's own look). The recoloured sheets are made in the browser
+   *  from the class's own (no download); the hero keeps his current look until they are ready. */
+  private setSkin(u: Unit, skinId: string | undefined): void {
+    const want = skinId ?? "";
+    if ((u.skin ?? "") === want) return;
+    u.skin = want;
+    const base = this.heroBase(u);
+    const def = want ? META.skins?.find((s) => s.id === want) : undefined;
+    const apply = (key: string): void => {
+      if ((u.skin ?? "") !== want || !u.root.active || u.baseKey === key) return;
+      u.baseKey = key;
+      if (!u.sheet) { this.upgradeUnit(u); return; }
+      u.sheet = key;
+      u.anim = "";
+      u.body.setTexture(`${key}:idle`, u.dir * SHEETS[key].anims.idle.frames);
+    };
+    if (!def) {
+      if (hasSheet(base)) apply(base);
+      else void requestSheet(this, base).then((ok) => { if (ok) apply(base); });
+      return;
+    }
+    if (def.sheet) {
+      // its own model, rendered with this class's animations
+      const key = `${def.sheet}_${base.replace(/^unit_/, "")}`;
+      if (!knowsSheet(key)) return;
+      if (hasSheet(key)) apply(key);
+      else void requestSheet(this, key).then((ok) => { if (ok) apply(key); });
+      return;
+    }
+    if (def.grade) void requestGraded(this, base, def.id, def.grade).then((ok) => { if (ok) apply(skinKey(base, def.id)); });
+  }
+
   /** Puts a hero on a mount (or takes him off). Looks only, the pace never changes. The hero seated on that mount is
    *  one 3D sheet (ride_<class>_<mount>), the only thing loaded; a mount without one (none today) falls back to the
    *  plain animal under the hero's body. */
@@ -575,7 +616,7 @@ export class GameScene extends Phaser.Scene {
     }
     const def = META.mounts?.find((m) => m.id === want);
     if (!def) return;
-    const combined = `ride_${u.baseKey.replace(/^unit_/, "")}_${def.id}`;
+    const combined = `ride_${this.heroBase(u).replace(/^unit_/, "")}_${def.id}`;
     const full = knowsSheet(combined);
     const sheet = full ? combined : def.sheet;
     const put = () => {
@@ -807,6 +848,7 @@ export class GameScene extends Phaser.Scene {
     this.setAura(r, m.aura as string | undefined);
     this.setPet(id, m.pet as string | undefined);
     this.setMount(id, m.mount as string | undefined);
+    this.setSkin(r, m.skin as string | undefined);
     this.setGuildTag(r, r.guild);
     this.remotes.set(id, r);
   }
@@ -1395,6 +1437,7 @@ export class GameScene extends Phaser.Scene {
       if (this.player) this.setAura(this.player, this.hero.cosmetics?.aura);
       if (this.player) this.setPet(this.charId, this.hero.cosmetics?.pet);
       if (this.player) this.setMount(this.charId, this.hero.cosmetics?.mount);
+      if (this.player) this.setSkin(this.player, this.hero.cosmetics?.skin);
       this.events.emit("hero", this.hero);
       this.loadMap(m as unknown as MapInfo, m.x as number, m.y as number);
     });
@@ -1414,6 +1457,7 @@ export class GameScene extends Phaser.Scene {
       if (this.player) this.setAura(this.player, this.hero.cosmetics?.aura);
       if (this.player) this.setPet(this.charId, this.hero.cosmetics?.pet);
       if (this.player) this.setMount(this.charId, this.hero.cosmetics?.mount);
+      if (this.player) this.setSkin(this.player, this.hero.cosmetics?.skin);
       this.events.emit("hero", this.hero);
       if (prev?.story?.st !== this.hero.story?.st) this.updateQuestMarkers();
     });
@@ -1478,6 +1522,10 @@ export class GameScene extends Phaser.Scene {
     socket.on("season", (m) => this.events.emit("season", m));
     socket.on("mount", (m) => { if (m.char_id !== this.charId) this.setMount(m.char_id as string, m.mount as string); });
     socket.on("pet", (m) => { if (m.char_id !== this.charId) this.setPet(m.char_id as string, m.pet as string); });
+    socket.on("skin", (m) => {
+      const u = m.char_id === this.charId ? this.player : this.remotes.get(m.char_id as string);
+      if (u) this.setSkin(u, m.skin as string);
+    });
     socket.on("title", (m) => {
       const u = m.char_id === this.charId ? this.player : this.remotes.get(m.char_id as string);
       if (u) this.setTitleTag(u, m.title as string);

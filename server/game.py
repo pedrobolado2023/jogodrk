@@ -1477,6 +1477,10 @@ class Game:
             if not hero.cosmetics["mount"]:  # the first horse is saddled right away
                 await self.set_mount(hero, o["ref"])
             tip = " Você já está montado! Troque ou desmonte na janela do personagem (C) ou com a tecla M."
+        elif kind == "skin":
+            hero.cosmetics["skins"].append(o["ref"])
+            await self.set_skin(hero, o["ref"])  # worn right away
+            tip = " Você já está com ela! Troque na janela do personagem (C)."
         elif kind == "pet":
             hero.cosmetics["pets"].append(o["ref"])
             if not hero.cosmetics["pet"]:  # the first mascot comes out right away
@@ -1524,6 +1528,20 @@ class Game:
         if not last or last not in hero.cosmetics["mounts"]:
             return "Você ainda não tem montaria. Veja na Loja (L)."
         return await self.set_mount(hero, last)
+
+    async def set_skin(self, hero: Hero, skin_id: str) -> str | None:
+        """Wears one owned skin (or the class's own look); everyone on the map sees it. Looks only."""
+        hero.cosmetics = ssn.cosmetics(hero.cosmetics)
+        if skin_id and skin_id not in hero.cosmetics["skins"]:
+            return "Você ainda não tem essa skin."
+        hero.cosmetics["skin"] = skin_id
+        s = manager.sessions.get(hero.char_id)
+        if s:
+            s.info["skin"] = skin_id
+        await self.to_map(hero.map_id, {"type": "skin", "char_id": hero.char_id, "skin": skin_id})
+        await self.push_hero(hero)
+        await self.save_hero(hero)
+        return None
 
     async def set_pet(self, hero: Hero, pet_id: str) -> str | None:
         """Shows one owned mascot following the hero (or none); everyone on the map sees it."""

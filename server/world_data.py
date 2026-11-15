@@ -603,6 +603,7 @@ def meta() -> dict[str, Any]:
         "auras": season_meta.auras_meta(),
         "pets": season_meta.pets_meta(),
         "mounts": season_meta.mounts_meta(),
+        "skins": season_meta.skins_meta(),
         "season": season_meta.meta(),
         "shop": shop_meta.meta(),
         **catalog(),

@@ -3690,5 +3690,137 @@
    }
   },
   "v": 1794766581
+ },
+ "skin_praieiro_grand_sorcerer": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794770321
+ },
+ "skin_praieiro_blade_master": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794770330
+ },
+ "skin_praieiro_night_ranger": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794770341
  }
 }

@@ -214,9 +214,17 @@ def load_unit(key, u):
         is_anim = lambda f: any(re.search(rx, os.path.basename(f), re.I) for rx in pattern.values())
         body = next((f for f in files if re.search(u.get("body", r"character|t.?pose|model"), os.path.basename(f), re.I)),
                     next((f for f in files if not is_anim(f)), files[0]))
+        used = {body}
+        src = None
+        if u.get("body_path"):  # a skin: another Mixamo-rigged model wearing this pack's animations
+            src_objs = import_file(body)  # the pack's own hero: the animations play on it and are copied over
+            src = next(o for o in src_objs if o.type == "ARMATURE")
+            for o in src_objs:
+                if o.type == "MESH":
+                    bpy.data.objects.remove(o, do_unlink=True)
+            body = os.path.join(ART, u["body_path"])
         objs = import_file(body)
         arm = next(o for o in objs if o.type == "ARMATURE")
-        used = {body}
         for name, rx in pattern.items():
             f = next((f for f in files if f not in used and re.search(rx, os.path.basename(f), re.I)), None)
             if not f:
@@ -230,6 +238,9 @@ def load_unit(key, u):
                 act.name = f"{key}_{name}"
                 actions[name] = act
             delete(extra)
+        if src:
+            actions = {name: retarget(src, arm, act, f"{key}_{name}_rt") for name, act in actions.items()}
+            bpy.data.objects.remove(src, do_unlink=True)
         if "idle" not in actions and arm.animation_data and arm.animation_data.action:
             actions["idle"] = arm.animation_data.action
     meshes = [o for o in bpy.data.objects if o.type == "MESH" and (o.parent == arm or any(
@@ -238,6 +249,75 @@ def load_unit(key, u):
            [o for o in bpy.data.objects if o.type not in ("MESH", "ARMATURE")])
     log(f"{key}: animações {sorted(actions)}")
     return arm, meshes, actions
+
+
+def retarget(src, dst, act, name):
+    """Bakes `act` (made for the Mixamo rig `src`) onto another Mixamo rig `dst` whose bones rest differently:
+    each bone gets the same change of world orientation from its rest as the source bone, and the hips the same
+    movement scaled by the height of the two rigs. Bones are matched by name (after the "mixamorig:" prefix)."""
+    short = lambda n: n.split(":")[-1]
+    sp = {short(pb.name): pb for pb in src.pose.bones}
+    order = sorted(dst.pose.bones, key=lambda pb: len(list(pb.parent_recursive)))
+    sw, dw = src.matrix_world.to_3x3().normalized(), dst.matrix_world.to_3x3().normalized()
+    dwi = dst.matrix_world.inverted()
+
+    def frame(a):
+        """World frame of a rig's rest pose from its shape (hips→head up, left→right shoulder), and its height."""
+        hd = {short(b.name): a.matrix_world @ b.head_local for b in a.data.bones}
+        up = (hd["Head"] - hd["Hips"])
+        side = (hd["RightArm"] - hd["LeftArm"])
+        z = up.normalized()
+        x = (side - z * side.dot(z)).normalized()
+        return Matrix((x, z.cross(x), z)).transposed(), up.length
+
+    # some rigs (auto-rigged exports) rest lying down or turned: C turns dst's rest into src's rest orientation
+    fs, hs = frame(src)
+    fd, hdz = frame(dst)
+    C = fs @ fd.inverted()
+    ratio = hdz / max(1e-6, hs)
+    set_action(src, act)
+    if dst.animation_data:
+        dst.animation_data.action = None
+    for pb in dst.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+    out = bpy.data.actions.new(name)
+    out.use_fake_user = True
+    set_action(dst, out)
+    sc = bpy.context.scene
+    f0, f1 = int(act.frame_range[0]), int(math.ceil(act.frame_range[1]))
+    for f in range(f0, f1 + 1):
+        sc.frame_set(f)
+        want = {}  # bone → desired armature-space matrix of dst
+        for pb in order:
+            s = sp.get(short(pb.name))
+            rest_w = C @ dw @ pb.bone.matrix_local.to_3x3()
+            if s:
+                delta = (sw @ s.matrix.to_3x3()) @ (sw @ s.bone.matrix_local.to_3x3()).inverted()
+                rot_w = delta @ rest_w
+            else:
+                rot_w = rest_w
+            rot_a = (dw.inverted() @ rot_w).normalized()
+            if pb.parent is None:
+                head_w = dst.matrix_world @ pb.bone.head_local
+                if s:
+                    move = (src.matrix_world @ s.head) - (src.matrix_world @ s.bone.head_local)
+                    head_w = head_w + move * ratio
+                head_a = dwi @ head_w
+            else:
+                pm = want[pb.parent.name]
+                head_a = pm @ (pb.parent.bone.matrix_local.inverted() @ pb.bone.matrix_local).translation
+            m = rot_a.to_4x4()
+            m.translation = head_a
+            want[pb.name] = m
+            parent_m = want[pb.parent.name] @ (pb.parent.bone.matrix_local.inverted() @ pb.bone.matrix_local) if pb.parent else pb.bone.matrix_local
+            basis = parent_m.inverted() @ m
+            loc, rot, _sc = basis.decompose()
+            pb.rotation_quaternion = rot
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            if pb.parent is None:
+                pb.location = loc
+                pb.keyframe_insert("location", frame=f)
+    return out
 
 
 def hips_bone(arm, u):
@@ -476,4 +556,5 @@ def main():
         render_unit(key, u, preview, only)
 
 
-main()
+if __name__ == "__main__":  # Blender -P runs this as __main__; importing it for tests does not render
+    main()

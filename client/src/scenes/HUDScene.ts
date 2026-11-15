@@ -1498,6 +1498,26 @@ export class HUDScene extends Phaser.Scene {
       cy += earned.length ? 24 : 0;
       items.push(this.add.text(-W / 2 + 20, cy, `Próximo: «${next.name}» no nível ${next.level}`, txt(10, next.color)));
     }
+    // skins (cosmetic): wear one, or the class's own look
+    const skins = (META.skins ?? []).filter((s) => h.cosmetics?.skins?.includes(s.id));
+    if (skins.length) {
+      cy += 26;
+      items.push(this.add.text(-W / 2 + 20, cy, "SKIN  (clique para vestir)", txt(10, "#a8987a")));
+      cx = -W / 2 + 20; cy += 18;
+      for (const s of [{ id: "", name: "Original" }, ...skins]) {
+        const on = (h.cosmetics?.skin ?? "") === s.id;
+        const chip = this.add.text(cx, cy, s.name, txt(10, s.id ? "#ffb0d0" : "#a8a090", {
+          backgroundColor: on ? "#3a2e14" : "#16120c", padding: { x: 6, y: 3 }, fontStyle: on ? "bold" : "normal",
+        })).setInteractive({ useHandCursor: true });
+        if (cx + chip.width > W / 2 - 20) { cx = -W / 2 + 20; cy += 22; chip.setPosition(cx, cy); }
+        cx += chip.width + 6;
+        chip.on("pointerdown", () => {
+          this.scene.get("GameScene").events.emit("inv_action", { type: "set_skin", skin: s.id });
+          this.time.delayedCall(250, () => { this.toggleChar(); this.toggleChar(); });
+        });
+        items.push(chip);
+      }
+    }
     // mounts (cosmetic): ride one, or walk
     const mounts = (META.mounts ?? []).filter((m) => h.cosmetics?.mounts?.includes(m.id));
     cy += 26;

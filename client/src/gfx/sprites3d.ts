@@ -83,6 +83,12 @@ async function loadOne(scene: Phaser.Scene, key: string): Promise<boolean> {
     });
   }
   if (!scene.textures.exists(`${key}:idle`)) return false;
+  makeAnims(scene, key, info);
+  loaded.add(key);
+  return true;
+}
+
+function makeAnims(scene: Phaser.Scene, key: string, info: SheetInfo): void {
   for (const [anim, a] of Object.entries(info.anims)) {
     const tex = `${key}:${anim}`;
     if (!scene.textures.exists(tex)) continue;
@@ -97,8 +103,62 @@ async function loadOne(scene: Phaser.Scene, key: string): Promise<boolean> {
       });
     }
   }
-  loaded.add(key);
-  return true;
+}
+
+/** Colour grade of a skin: desaturate by `desat`, multiply by `tint`, scale by `gain` (as art-source's grade()). */
+export interface Grade { desat?: number; tint?: [number, number, number]; gain?: number }
+
+/** Sheet key of a character wearing a recolour skin. */
+export const skinKey = (base: string, skin: string): string => `${base}~${skin}`;
+
+function gradePixels(px: Uint8ClampedArray, g: Grade): void {
+  const d = g.desat ?? 0, [tr, tg, tb] = g.tint ?? [1, 1, 1], k = g.gain ?? 1;
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] === 0) continue;
+    const r = px[i], gg = px[i + 1], b = px[i + 2];
+    const lum = r * 0.299 + gg * 0.587 + b * 0.114;
+    px[i] = (r + (lum - r) * d) * tr * k;
+    px[i + 1] = (gg + (lum - gg) * d) * tg * k;
+    px[i + 2] = (b + (lum - b) * d) * tb * k;
+  }
+}
+
+/** A character recoloured by a skin: its own sheets, graded once on canvases (no extra download). Sheet by sheet,
+ *  one per tick, so the game never freezes. Resolves true when `skinKey(base, skin)` is usable like any sheet. */
+export function requestGraded(scene: Phaser.Scene, base: string, skin: string, g: Grade): Promise<boolean> {
+  const key = skinKey(base, skin);
+  if (loaded.has(key)) return Promise.resolve(true);
+  const info = SHEETS[base];
+  if (!info) return Promise.resolve(false);
+  let p = pending.get(key);
+  if (!p) {
+    SHEETS[key] = info;
+    p = requestSheet(scene, base).then(async (ok) => {
+      if (!ok || !scene.sys.isActive()) return false;
+      for (const anim of Object.keys(info.anims)) {
+        const tex = `${key}:${anim}`;
+        if (scene.textures.exists(tex) || !scene.textures.exists(`${base}:${anim}`)) continue;
+        const src = scene.textures.get(`${base}:${anim}`).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+        const c = document.createElement("canvas");
+        c.width = src.width;
+        c.height = src.height;
+        const ctx = c.getContext("2d", { willReadFrequently: true })!;
+        ctx.drawImage(src, 0, 0);
+        const img = ctx.getImageData(0, 0, c.width, c.height);
+        gradePixels(img.data, g);
+        ctx.putImageData(img, 0, 0);
+        scene.textures.addSpriteSheet(tex, c as unknown as HTMLImageElement, { frameWidth: info.size, frameHeight: info.size });
+        await new Promise((r) => setTimeout(r, 0));
+        if (!scene.sys.isActive()) return false;
+      }
+      makeAnims(scene, key, info);
+      loaded.add(key);
+      return true;
+    }).catch(() => false);
+    pending.set(key, p);
+    void p.finally(() => pending.delete(key));
+  }
+  return p;
 }
 
 /** Frees a character's sheets and animations. Only call when no live sprite uses them. */

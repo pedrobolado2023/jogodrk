@@ -91,6 +91,23 @@ PETS: dict[str, tuple[str, str]] = {
     "pet_calf": ("Touro Mirim", "pet_calf"),
 }
 
+# id → name, colour grade, what it looks like — skins: the hero's own class recoloured (looks only). The client grades
+# the class sheet once on a canvas (desaturate by "desat", multiply by "tint", scale by "gain"): no new images to load.
+# A skin with its own 3D model has "sheet" instead: rendered once per class as <sheet>_<class> (render_units.py), the
+# model wearing that class's animations.
+SKINS: dict[str, dict[str, Any]] = {
+    "skin_carmesim": {"name": "Sombra Carmesim", "grade": {"desat": 0.55, "tint": [1.45, 0.55, 0.55], "gain": 1.0},
+                      "desc": "Armadura tingida de vermelho-sangue."},
+    "skin_gelido": {"name": "Espectro Gélido", "grade": {"desat": 0.7, "tint": [0.72, 1.0, 1.5], "gain": 1.15},
+                    "desc": "O frio dos Picos Congelados na sua armadura."},
+    "skin_vazio": {"name": "Arauto do Vazio", "grade": {"desat": 0.6, "tint": [1.1, 0.62, 1.5], "gain": 1.0},
+                   "desc": "Tons violeta de quem voltou do Vazio."},
+    "skin_real": {"name": "Ouro Real", "grade": {"desat": 0.6, "tint": [1.5, 1.2, 0.55], "gain": 1.2},
+                  "desc": "Dourado como a guarda do rei."},
+    "skin_praieiro": {"name": "Praieiro", "sheet": "skin_praieiro",
+                      "desc": "Camisa florida, bermuda e chinelo: o herói de férias, pronto para a luta."},
+}
+
 # id → name, 3D sprite sheet — horses the hero rides, looks only (no speed: the same pace on foot or mounted)
 MOUNTS: dict[str, tuple[str, str, float]] = {  # name, sheet, saddle height (share of the animal's height)
     "mount_horse": ("Cavalo Baio", "mount_horse", 0.72),
@@ -204,6 +221,10 @@ def cosmetics(state: dict[str, Any] | None) -> dict[str, Any]:
     c.setdefault("pet", "")
     c.setdefault("mounts", [])
     c.setdefault("mount", "")
+    c.setdefault("skins", [])
+    c.setdefault("skin", "")
+    if c["skin"] and c["skin"] not in c["skins"]:
+        c["skin"] = ""
     if c["mount"] and c["mount"] not in c["mounts"]:
         c["mount"] = ""
     if c["aura"] and c["aura"] not in c["auras"]:
@@ -266,6 +287,10 @@ def titles_meta() -> list[dict[str, Any]]:
 
 def mounts_meta() -> list[dict[str, Any]]:
     return [{"id": mid, "name": nm, "sheet": sheet, "saddle": saddle} for mid, (nm, sheet, saddle) in MOUNTS.items()]
+
+
+def skins_meta() -> list[dict[str, Any]]:
+    return [{"id": sid, **s} for sid, s in SKINS.items()]
 
 
 def pets_meta() -> list[dict[str, Any]]:

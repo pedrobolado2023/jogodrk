@@ -57,6 +57,12 @@ OFFERS: list[dict[str, Any]] = [
     {"id": "pet_alpaca", "kind": "pet", "ref": "pet_alpaca", "price": 1100, "tab": "mascotes", "desc": "Uma alpaca de bolso, fofa demais."},
     {"id": "pet_donkey", "kind": "pet", "ref": "pet_donkey", "price": 800, "tab": "mascotes", "desc": "Um burrinho pequeno e muito teimoso."},
     {"id": "pet_calf", "kind": "pet", "ref": "pet_calf", "price": 900, "tab": "mascotes", "desc": "Um touro pequeno que se acha enorme."},
+    # skins: the hero's own look recoloured (any class)
+    {"id": "skin_carmesim", "kind": "skin", "ref": "skin_carmesim", "price": 1500, "tab": "skins", "desc": ssn.SKINS["skin_carmesim"]["desc"]},
+    {"id": "skin_gelido", "kind": "skin", "ref": "skin_gelido", "price": 1500, "tab": "skins", "desc": ssn.SKINS["skin_gelido"]["desc"]},
+    {"id": "skin_vazio", "kind": "skin", "ref": "skin_vazio", "price": 1800, "tab": "skins", "desc": ssn.SKINS["skin_vazio"]["desc"]},
+    {"id": "skin_real", "kind": "skin", "ref": "skin_real", "price": 2200, "tab": "skins", "desc": ssn.SKINS["skin_real"]["desc"]},
+    {"id": "skin_praieiro", "kind": "skin", "ref": "skin_praieiro", "price": 2800, "tab": "skins", "desc": ssn.SKINS["skin_praieiro"]["desc"]},
     # mounts: ride them, looks only (no speed)
     {"id": "mount_horse", "kind": "mount", "ref": "mount_horse", "price": 1200, "tab": "montarias", "desc": "Um cavalo baio, firme e tranquilo."},
     {"id": "mount_white", "kind": "mount", "ref": "mount_white", "price": 1600, "tab": "montarias", "desc": "Um corcel branco digno de um herói."},
@@ -98,7 +104,7 @@ OFFERS: list[dict[str, Any]] = [
 BOOSTS = {"exp": ("EXP +50%", 0.5), "gold": ("Ouro +50%", 0.5)}
 # coming later: shown in the shop so players know what to expect
 SOON = [
-    {"name": "Skins de equipamento", "desc": "Mude a aparência da armadura e da arma sem mudar os atributos."},
+    {"name": "Skins com modelo próprio", "desc": "Heróis com um visual 3D totalmente novo, sem mudar os atributos."},
 ]
 
 
@@ -125,6 +131,8 @@ def offer_name(o: dict[str, Any]) -> str:
         return ssn.PETS[o["ref"]][0]
     if o["kind"] == "mount":
         return ssn.MOUNTS[o["ref"]][0]
+    if o["kind"] == "skin":
+        return ssn.SKINS[o["ref"]]["name"]
     if o["kind"] == "title":
         return f"Título «{ssn.TITLE_BY_ID[o['ref']][1]}»"
     return o["name"]
@@ -139,6 +147,8 @@ def owned(o: dict[str, Any], cosmetics: dict[str, Any], season_state: dict[str, 
         return o["ref"] in cosmetics["pets"]
     if o["kind"] == "mount":
         return o["ref"] in cosmetics["mounts"]
+    if o["kind"] == "skin":
+        return o["ref"] in cosmetics["skins"]
     if o["kind"] == "premium_pass":
         return bool(season_state.get("premium"))
     return False  # boosts, pass levels and quest finishing can be bought again

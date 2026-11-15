@@ -33,3 +33,4 @@
 
 # hero-on-mount source models (2 GB): only their rendered sprites go in git
 art-source/modelos-montados-3d/
+/art-source/skins/
