@@ -19,7 +19,15 @@ interface VipInfo { level: number; last_level: number; days_left: number }
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const W = 720;
-const H = 512;
+const H_FULL = 512;
+/** the gems and VIP tabs are shorter: a smaller window shows them bigger (phones) */
+const H_SHORT: Partial<Record<Tab, number>> = { gemas: 436, vip: 446 };
+/** prices shown if the price list could not be loaded (the server checks the real price anyway) */
+const FALLBACK: Record<string, { kind: string; price: number; title: string }> = {
+  pass_premium: { kind: "pass", price: 19.9, title: "Passe de Temporada Premium" },
+  vip_1: { kind: "vip", price: 10, title: "VIP 1 (30 dias)" }, vip_3: { kind: "vip", price: 25, title: "VIP 3 (30 dias)" },
+  vip_7: { kind: "vip", price: 60, title: "VIP 7 (30 dias)" },
+};
 const CARD_W = 160;
 const CARD_H = 168;
 const GAP = 12;
@@ -39,6 +47,18 @@ export class ShopUI {
   private vipInfo: VipInfo | null = null;
 
   constructor(private scene: Phaser.Scene, private send: (m: Record<string, unknown>) => void) {}
+
+  private get H(): number {
+    return H_SHORT[this.tab] ?? H_FULL;
+  }
+
+  /** A real-money product: from the server's price list, or the shown price while it loads. */
+  private product(id: string): { kind: string; price: number; title: string } | undefined {
+    const p = this.catalog?.products[id];
+    if (p) return p;
+    const pack = META.shop?.packs.find((x) => x.id === id);
+    return pack ? { kind: "gems", price: pack.price, title: `${fmtBig(pack.gems)} Gemas` } : FALLBACK[id];
+  }
 
   get isOpen(): boolean {
     return !!this.root;
@@ -68,12 +88,13 @@ export class ShopUI {
   /** Prices and whether purchases are open, and the account's VIP (asked each time the shop opens). */
   private async loadPay(): Promise<void> {
     try {
-      const [cat, v] = await Promise.all([
-        fetch(`${API}/pay/catalog`).then((r) => r.json()),
+      // separately: a VIP lookup that fails must not hide the prices
+      const [cat, v] = await Promise.allSettled([
+        fetch(`${API}/pay/catalog`).then((r) => (r.ok ? r.json() : null)),
         fetch(`${API}/pay/vip`, { headers: authHeaders() }).then((r) => (r.ok ? r.json() : null)),
       ]);
-      this.catalog = cat;
-      this.vipInfo = v;
+      if (cat.status === "fulfilled" && cat.value) this.catalog = cat.value;
+      if (v.status === "fulfilled") this.vipInfo = v.value;
       if (this.root) this.draw();
     } catch { /* the shop still works with gems */ }
   }
@@ -100,9 +121,10 @@ export class ShopUI {
 
   /** A price button for a real-money product; the first tap asks to confirm. */
   private payButton(objs: Obj[], x: number, y: number, product: string, w: number): void {
-    const p = this.catalog?.products[product];
-    if (!p || !this.catalog?.enabled) {
-      objs.push(this.scene.add.text(x, y, this.catalog ? "Em breve" : "…", txt(11, "#6a7a8a", { fontStyle: "bold", backgroundColor: "#121820", padding: { x: 12, y: 5 } })).setOrigin(0.5, 0));
+    const p = this.product(product);
+    // closed only when the server says so; while the price list loads, the price shows (the server checks the purchase)
+    if (!p || this.catalog?.enabled === false) {
+      objs.push(this.scene.add.text(x, y, "Em breve", txt(11, "#6a7a8a", { fontStyle: "bold", backgroundColor: "#121820", padding: { x: 12, y: 5 } })).setOrigin(0.5, 0));
       return;
     }
     const b = this.scene.add.text(x, y, brl(p.price), txt(13, "#fff1c4", {
@@ -115,13 +137,13 @@ export class ShopUI {
 
   /** "You are going to Mercado Pago" box over the shop. */
   private drawPayConfirm(objs: Obj[]): void {
-    const p = this.catalog?.products[this.payConfirm];
+    const p = this.product(this.payConfirm);
     if (!p) return;
     const hero = this.hero?.name ?? "seu herói";
     const g = this.scene.add.graphics();
-    g.fillStyle(0x000000, 0.7).fillRect(-W / 2, -H / 2, W, H);
+    g.fillStyle(0x000000, 0.7).fillRect(-W / 2, -this.H / 2, W, this.H);
     panel(g, -230, -110, 460, 220, 12, 0.99);
-    objs.push(this.scene.add.zone(-W / 2, -H / 2, W, H).setOrigin(0).setInteractive(), g);
+    objs.push(this.scene.add.zone(-W / 2, -this.H / 2, W, this.H).setOrigin(0).setInteractive(), g);
     const who = p.kind === "vip" ? "Vale para todos os heróis da sua conta por 30 dias." : `Vai para o herói ${hero}.`;
     objs.push(this.scene.add.text(0, -92, p.title, txt(17, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5, 0),
       this.scene.add.text(0, -62, `${brl(p.price)} · Pix ou cartão`, txt(14, "#9dff8a", { fontStyle: "bold" })).setOrigin(0.5, 0),
@@ -154,29 +176,29 @@ export class ShopUI {
     const gems = this.hero?.gems ?? 0;
     const objs: Obj[] = [];
     const g = this.scene.add.graphics();
-    panel(g, -W / 2, -H / 2, W, H, 12, 0.97);
-    objs.push(this.scene.add.zone(-W / 2, -H / 2, W, H).setOrigin(0).setInteractive(), g);
-    const close = this.scene.add.text(W / 2 - 16, -H / 2 + 10, "✕", txt(16, "#e8dcc0")).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+    panel(g, -W / 2, -this.H / 2, W, this.H, 12, 0.97);
+    objs.push(this.scene.add.zone(-W / 2, -this.H / 2, W, this.H).setOrigin(0).setInteractive(), g);
+    const close = this.scene.add.text(W / 2 - 16, -this.H / 2 + 10, "✕", txt(16, "#e8dcc0")).setOrigin(1, 0).setInteractive({ useHandCursor: true });
     close.on("pointerdown", () => this.close());
     objs.push(close,
-      this.scene.add.text(0, -H / 2 + 12, "LOJA DE RAVENCREST", txt(16, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5, 0),
-      this.scene.add.text(0, -H / 2 + 34, "Visual e tempo: nada aqui deixa seu herói mais forte.", txt(10, "#9dd8a0")).setOrigin(0.5, 0));
+      this.scene.add.text(0, -this.H / 2 + 12, "LOJA DE RAVENCREST", txt(16, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5, 0),
+      this.scene.add.text(0, -this.H / 2 + 34, "Visual e tempo: nada aqui deixa seu herói mais forte.", txt(10, "#9dd8a0")).setOrigin(0.5, 0));
     // balance
-    objs.push(this.scene.add.image(-W / 2 + 34, -H / 2 + 26, "item_gem").setScale(0.55),
-      this.scene.add.text(-W / 2 + 50, -H / 2 + 18, `${fmtBig(gems)}`, txt(15, "#8ad8ff", { fontStyle: "bold" })),
-      this.scene.add.text(-W / 2 + 50, -H / 2 + 36, shop?.currency ?? "Gemas", txt(9, "#a8987a")));
+    objs.push(this.scene.add.image(-W / 2 + 34, -this.H / 2 + 26, "item_gem").setScale(0.55),
+      this.scene.add.text(-W / 2 + 50, -this.H / 2 + 18, `${fmtBig(gems)}`, txt(15, "#8ad8ff", { fontStyle: "bold" })),
+      this.scene.add.text(-W / 2 + 50, -this.H / 2 + 36, shop?.currency ?? "Gemas", txt(9, "#a8987a")));
     // tabs
     const tabs: [Tab, string][] = [["destaques", "Destaques"], ["visuais", "Visuais"], ["mascotes", "Mascotes"], ["montarias", "Montarias"],
       ["bonus", "Bônus"], ["passe", "Passe/Missões"], ["embreve", "Em breve"], ["gemas", "◆ Gemas"], ["vip", "★ VIP"]];
     tabs.forEach(([id, label], i) => {
       const on = this.tab === id;
-      const t = this.scene.add.text(-W / 2 + 12 + i * 77.5, -H / 2 + 62, label, txt(9, on ? "#ffd77a" : id === "vip" || id === "gemas" ? "#ffcf6a" : "#a8987a", {
+      const t = this.scene.add.text(-W / 2 + 12 + i * 77.5, -this.H / 2 + 62, label, txt(9, on ? "#ffd77a" : id === "vip" || id === "gemas" ? "#ffcf6a" : "#a8987a", {
         backgroundColor: on ? "#2e2414" : "#15110c", padding: { x: 2, y: 5 }, fontStyle: on ? "bold" : "normal", fixedWidth: 75, align: "center",
       })).setInteractive({ useHandCursor: true });
       t.on("pointerdown", () => { this.tab = id; this.page = 0; this.confirm = ""; this.draw(); });
       objs.push(t);
     });
-    const top = -H / 2 + 100;
+    const top = -this.H / 2 + 100;
     if (!shop) {
       objs.push(this.scene.add.text(0, 0, "Carregando a loja…", txt(12, "#a8987a")).setOrigin(0.5));
     } else if (this.tab === "gemas") {
@@ -211,11 +233,11 @@ export class ShopUI {
         this.card(objs, x, y, o, gems);
       });
     }
-    if (this.payMsg) objs.push(this.scene.add.text(0, H / 2 - 26, this.payMsg, txt(11, "#ffd77a", { align: "center" })).setOrigin(0.5, 0));
+    if (this.payMsg) objs.push(this.scene.add.text(0, this.H / 2 - 26, this.payMsg, txt(11, "#ffd77a", { align: "center" })).setOrigin(0.5, 0));
     if (this.payConfirm) this.drawPayConfirm(objs);
     const s = this.scene.scale;
     this.root = this.scene.add.container(s.width / 2, s.height / 2, objs).setDepth(82)
-      .setScale(Math.min(1, (s.width - 16) / W, (s.height - (isTouch() ? 12 : 100)) / H));
+      .setScale(Math.min(1, (s.width - 16) / W, (s.height - (isTouch() ? 12 : 100)) / this.H));
   }
 
   private card(objs: Obj[], x: number, y: number, o: ShopOffer, gems: number): void {
@@ -387,7 +409,7 @@ export class ShopUI {
       this.scene.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1400 + i * 200, yoyo: true, repeat: -1 });
       const auras = [3, 5, 7].filter((n) => lv >= n).map((n) => auraOf[n]);
       const lines = [`+${lv * 5}% de EXP e ouro`, `${lv * 10} gemas por dia`, `+${lv * 10} espaços na bolsa`, `Título «VIP ${lv}»`, ...auras];
-      objs.push(this.scene.add.text(x + 18, y + 66, lines.map((l) => `✦ ${l}`).join("\n"), txt(11, "#f3e3b8", { lineSpacing: 5 })));
+      objs.push(this.scene.add.text(x + 16, y + 62, lines.map((l) => `✦ ${l}`).join("\n"), txt(10, "#f3e3b8", { lineSpacing: 3 })));
       objs.push(this.scene.add.text(x + w / 2, y + 196, "30 dias · todos os seus heróis", txt(9, "#a8987a")).setOrigin(0.5, 0));
       this.payButton(objs, x + w / 2, y + 222, id, w - 30);
     });
