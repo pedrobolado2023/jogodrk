@@ -131,6 +131,21 @@ async def run_all() -> None:
     assert (h4.atk, h4.defense, h4.max_hp, h4.mod("speed")) == stats0
     print("ok  montarias: só visual, compra uma vez, tecla M monta e desmonta")
 
+    # with the Premium pass, buying one item gives that item only and takes its price once
+    h5 = _hero(game, "night_ranger", "town_01", 26, 26, level=20)[0]
+    h5.gems = 50000
+    game.season_state(h5)["premium"] = True
+    assert await game.shop_buy(h5, "mount_horse") is None
+    price = next(o for o in shop.OFFERS if o["id"] == "mount_horse")["price"]
+    assert h5.gems == 50000 - price, h5.gems
+    c = ssn.cosmetics(h5.cosmetics)
+    assert c["mounts"] == ["mount_horse"] and c["pets"] == [] and c["auras"] == [] and c["titles"] == []
+    st = game.season_state(h5)
+    still = [o["id"] for o in shop.OFFERS if o["kind"] in ("pet", "mount", "aura", "title") and o["id"] != "mount_horse"
+             and shop.owned(o, c, st)]
+    assert not still, still
+    print("ok  com o Passe Premium, comprar 1 item dá só esse item e cobra uma vez")
+
 
 if __name__ == "__main__":
     asyncio.run(run_all())

@@ -163,11 +163,19 @@ export class ShopUI {
     this.root = undefined;
   }
 
+  /** Same rule as the server (shop.owned): each look by its own list; boosts, pass levels and quest skips can be
+   *  bought again. (Before, every offer that was not an aura or a title showed as owned once the pass was Premium.) */
   private owned(o: ShopOffer): boolean {
     const c = this.hero?.cosmetics;
-    if (o.kind === "aura") return !!c?.auras.includes(o.ref ?? "");
-    if (o.kind === "title") return !!c?.titles.includes(o.ref ?? "");
-    return !!this.season?.premium;
+    const ref = o.ref ?? "";
+    switch (o.kind) {
+      case "aura": return !!c?.auras.includes(ref);
+      case "title": return !!c?.titles.includes(ref);
+      case "pet": return !!c?.pets?.includes(ref);
+      case "mount": return !!c?.mounts?.includes(ref);
+      case "premium_pass": return !!this.season?.premium;
+      default: return false;
+    }
   }
 
   private draw(): void {
