@@ -96,7 +96,10 @@
       "hit": "^standing react small from front[.]fbx$",
       "death": "^standing death backward 01[.]fbx$"
     },
-    "ride": true
+    "ride": true,
+    "ride_hide": [
+      "arrow"
+    ]
   },
   "mob_skeleton": {
     "source": "mixamo",
@@ -1759,6 +1762,1329 @@
         1.4
       ],
       "gain": 1.25
+    }
+  },
+  "ride_grand_sorcerer_mount_alpaca": {
+    "_note": "montado: Grande Feiticeiro em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_alpaca_royal": {
+    "_note": "montado: Grande Feiticeiro em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_donkey": {
+    "_note": "montado: Grande Feiticeiro em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_horse": {
+    "_note": "montado: Grande Feiticeiro em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_stag_spirit": {
+    "_note": "montado: Grande Feiticeiro em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_stag": {
+    "_note": "montado: Grande Feiticeiro em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_deer": {
+    "_note": "montado: Grande Feiticeiro em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_white": {
+    "_note": "montado: Grande Feiticeiro em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_ember": {
+    "_note": "montado: Grande Feiticeiro em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_gold": {
+    "_note": "montado: Grande Feiticeiro em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_phantom": {
+    "_note": "montado: Grande Feiticeiro em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_frost": {
+    "_note": "montado: Grande Feiticeiro em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_shadow": {
+    "_note": "montado: Grande Feiticeiro em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_drake_ember": {
+    "_note": "montado: Grande Feiticeiro em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_grand_sorcerer_mount_drake_void": {
+    "_note": "montado: Grande Feiticeiro em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_grand_sorcerer_mount_drake_emerald": {
+    "_note": "montado: Grande Feiticeiro em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_grand_sorcerer_mount_wolf": {
+    "_note": "montado: Grande Feiticeiro em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_wolf_frost": {
+    "_note": "montado: Grande Feiticeiro em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_wolf_shadow": {
+    "_note": "montado: Grande Feiticeiro em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_bull": {
+    "_note": "montado: Grande Feiticeiro em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_grand_sorcerer_mount_bull_infernal": {
+    "_note": "montado: Grande Feiticeiro em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/grande-feiticeiro/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_alpaca": {
+    "_note": "montado: Mestre da Lâmina em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_alpaca_royal": {
+    "_note": "montado: Mestre da Lâmina em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_donkey": {
+    "_note": "montado: Mestre da Lâmina em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_horse": {
+    "_note": "montado: Mestre da Lâmina em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_stag_spirit": {
+    "_note": "montado: Mestre da Lâmina em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_stag": {
+    "_note": "montado: Mestre da Lâmina em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_deer": {
+    "_note": "montado: Mestre da Lâmina em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_white": {
+    "_note": "montado: Mestre da Lâmina em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_ember": {
+    "_note": "montado: Mestre da Lâmina em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_gold": {
+    "_note": "montado: Mestre da Lâmina em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_phantom": {
+    "_note": "montado: Mestre da Lâmina em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_frost": {
+    "_note": "montado: Mestre da Lâmina em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_shadow": {
+    "_note": "montado: Mestre da Lâmina em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_drake_ember": {
+    "_note": "montado: Mestre da Lâmina em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_blade_master_mount_drake_void": {
+    "_note": "montado: Mestre da Lâmina em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_blade_master_mount_drake_emerald": {
+    "_note": "montado: Mestre da Lâmina em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_blade_master_mount_wolf": {
+    "_note": "montado: Mestre da Lâmina em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_wolf_frost": {
+    "_note": "montado: Mestre da Lâmina em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_wolf_shadow": {
+    "_note": "montado: Mestre da Lâmina em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_bull": {
+    "_note": "montado: Mestre da Lâmina em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_blade_master_mount_bull_infernal": {
+    "_note": "montado: Mestre da Lâmina em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/mestre-da-lamina/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_alpaca": {
+    "_note": "montado: Patrulheiro Noturno em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_alpaca_royal": {
+    "_note": "montado: Patrulheiro Noturno em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_donkey": {
+    "_note": "montado: Patrulheiro Noturno em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_horse": {
+    "_note": "montado: Patrulheiro Noturno em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_stag_spirit": {
+    "_note": "montado: Patrulheiro Noturno em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_stag": {
+    "_note": "montado: Patrulheiro Noturno em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_deer": {
+    "_note": "montado: Patrulheiro Noturno em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_white": {
+    "_note": "montado: Patrulheiro Noturno em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_ember": {
+    "_note": "montado: Patrulheiro Noturno em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_gold": {
+    "_note": "montado: Patrulheiro Noturno em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_phantom": {
+    "_note": "montado: Patrulheiro Noturno em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_frost": {
+    "_note": "montado: Patrulheiro Noturno em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_shadow": {
+    "_note": "montado: Patrulheiro Noturno em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_drake_ember": {
+    "_note": "montado: Patrulheiro Noturno em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_night_ranger_mount_drake_void": {
+    "_note": "montado: Patrulheiro Noturno em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_night_ranger_mount_drake_emerald": {
+    "_note": "montado: Patrulheiro Noturno em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_night_ranger_mount_wolf": {
+    "_note": "montado: Patrulheiro Noturno em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_wolf_frost": {
+    "_note": "montado: Patrulheiro Noturno em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_wolf_shadow": {
+    "_note": "montado: Patrulheiro Noturno em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_bull": {
+    "_note": "montado: Patrulheiro Noturno em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_night_ranger_mount_bull_infernal": {
+    "_note": "montado: Patrulheiro Noturno em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/patrulheiro-noturno/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
     }
   }
 }

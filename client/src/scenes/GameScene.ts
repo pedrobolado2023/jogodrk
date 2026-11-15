@@ -114,7 +114,10 @@ interface Unit {
   /** season pass aura at the feet (a cosmetic): glow, ring and rising sparks */
   aura?: { id: string; objs: Phaser.GameObjects.GameObject[] };
   /** the horse this hero rides (looks only); `on` is false for a moment while attacking or casting */
-  ride?: { id: string; sheet: string; horse: Phaser.GameObjects.Sprite; raise: number; on: boolean; anim: string; combat: number };
+  ride?: { id: string; sheet: string; horse: Phaser.GameObjects.Sprite; raise: number; on: boolean; anim: string; combat: number;
+    /** the hero already seated on this mount, drawn in 3D as one sheet (ride_<class>_<mount>); once loaded it
+     *  replaces the hero body + horse pair while riding */
+    full?: string };
   /** guild name shown above the name */
   guildTag?: Phaser.GameObjects.Text;
   bubble?: Phaser.GameObjects.Text;
@@ -564,7 +567,7 @@ export class GameScene extends Phaser.Scene {
     if (u.ride) {
       u.ride.horse.destroy();
       u.ride = undefined;
-      u.body.setY(0);
+      u.body.setY(0).setVisible(true);
       if (u.body.isCropped) u.body.setCrop();
       this.layoutTags(u);
     }
@@ -579,6 +582,22 @@ export class GameScene extends Phaser.Scene {
       u.root.addAt(horse, u.root.getIndex(u.body));  // just under the rider
       // saddle: the animal's back, as a share of its height (horse 0.72, stag 0.52, dragon 0.40…)
       u.ride = { id: def.id, sheet: def.sheet, horse, raise: Math.round(info.height * 44 * (def.saddle ?? 0.72)), on: false, anim: "", combat: 0 };
+      // the hero seated on this very mount, one 3D sheet: swaps in when it arrives (the pair above shows meanwhile)
+      const full = `ride_${u.baseKey.replace(/^unit_/, "")}_${def.id}`;
+      if (!knowsSheet(full)) return;
+      void requestSheet(this, full).then((ok) => {
+        const r = u.ride;
+        if (!ok || !r || r.id !== def.id || !u.root.active) return;
+        const fi = SHEETS[full];
+        r.full = full;
+        r.horse.setTexture(`${full}:idle`, u.dir * fi.anims.idle.frames).setOrigin(0.5, fi.originY).setScale(fi.scale);
+        r.anim = "";
+        // name and tags above the rider's head (about 1.45× the mount's height), not above the saddle
+        r.raise = Math.max(0, Math.round(fi.height * 44 * 1.45 - (u.height - 4)));
+        if (u.body.isCropped) u.body.setCrop();
+        u.body.setY(0).setVisible(!r.on);
+        this.layoutTags(u);
+      });
     };
     if (hasSheet(def.sheet)) put();
     else void requestSheet(this, def.sheet).then((ok) => { if (ok) put(); });
@@ -596,7 +615,10 @@ export class GameScene extends Phaser.Scene {
         r.on = on;
         r.horse.setVisible(on);
         u.shadow.setScale(on ? u.shadow.scaleX * 1.8 : u.shadow.scaleX / 1.8, u.shadow.scaleY);
-        if (on && !SHEETS[u.sheet].anims.ride) {
+        u.body.setVisible(!(on && r.full));
+        if (r.full) {
+          if (u.body.isCropped) u.body.setCrop();
+        } else if (on && !SHEETS[u.sheet].anims.ride) {
           // no seated pose rendered: keep the body from the head down to the knees (feet at originY of the frame)
           const info = SHEETS[u.sheet];
           const foot = info.originY * info.size, bodyPx = (info.height * 44) / info.scale;
@@ -608,6 +630,14 @@ export class GameScene extends Phaser.Scene {
         this.layoutTags(u);
       }
       if (!on) continue;
+      if (r.full) {
+        // one sheet: the mount walks and the hero rides it, both from the same 3D render
+        const fa = SHEETS[r.full].anims;
+        const anim = u.moving ? (fa.run && (u === this.player || u.speed > 2.6) ? "run" : fa.walk ? "walk" : "idle") : "idle";
+        const key = animKey(r.full, anim, u.dir);
+        if (key !== r.anim && this.anims.exists(key)) { r.horse.play(key); r.anim = key; }
+        continue;
+      }
       // the horse's body sits ~9 px ahead of its frame point and the saddle just behind the middle:
       // nudge the rider a little forward along his direction (screen angles clockwise from east, ground squashed 2:1)
       const ang = (u.dir * Math.PI) / 4;
@@ -669,7 +699,7 @@ export class GameScene extends Phaser.Scene {
   private releaseUnusedSheets(): void {
     const used = new Set<string>([this.player.baseKey]);
     for (const p of this.pets.values()) used.add(p.unit.baseKey);
-    for (const u of [this.player, ...this.remotes.values()]) if (u.ride) used.add(u.ride.sheet);
+    for (const u of [this.player, ...this.remotes.values()]) if (u.ride) { used.add(u.ride.sheet); if (u.ride.full) used.add(u.ride.full); }
     for (const group of [this.mobs, this.remotes, this.npcs] as Map<string, Unit>[]) {
       for (const u of group.values()) if (u.root.active) used.add(u.baseKey);
     }

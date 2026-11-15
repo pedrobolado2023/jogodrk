@@ -69,10 +69,12 @@ def set_action(arm, act):
         ad.action_slot = act.slots[0]
 
 
-# "ride": a seated pose made from the idle (units with "ride": true). The leg channels are removed from a copy of
-# the idle and the legs are set once: thigh forward and a little open, knee bent — sitting astride a saddle.
+# "ride": a seated pose made from the idle (units with "ride": true). The rider sits still: the upper body is frozen
+# on the idle's first frame and kept upright (the hips and spine lose the idle's crouch and lean), and the legs sit
+# astride the saddle — thighs forward and only a little open, knees bent so the shins hang down the horse's flanks.
 # Degrees, Euler XYZ in each bone's local space (Mixamo rig); the right side mirrors Y and Z.
-RIDE_POSE = {"UpLeg": [-62, 0, 26], "Leg": [78, 0, 0], "Foot": [-10, 0, 0]}
+RIDE_POSE = {"UpLeg": [-80, 0, 12], "Leg": [88, 0, 0], "Foot": [-18, 0, 0]}
+RIDE_UPRIGHT = ("Hips", "Spine", "Spine1", "Spine2")  # bones that lose the idle's motion (back to their rest pose)
 
 
 def action_fcurves(act):
@@ -103,9 +105,28 @@ def ride_action(arm, idle, u):
     act = idle.copy()
     act.name = idle.name + "_ride"
     act.use_fake_user = True
+    start = act.frame_range[0]
     for fc in action_fcurves(act):
-        if any(f'"{name}"' in fc.data_path and "rotation" in fc.data_path for name in legs):
-            fc.mute = True
+        m = re.search(r'pose\.bones\["([^"]+)"\]', fc.data_path)
+        bone = m.group(1) if m else ""
+        short = bone.split(":")[-1]
+        hide = short in u.get("ride_hide", [])  # props that make no sense on a horse (the archer's loose arrow)
+        if hide or (bone in legs and "rotation" in fc.data_path) or (short in RIDE_UPRIGHT and ("rotation" in fc.data_path or short == "Hips")):
+            fc.mute = True  # posed below (legs) or back to the rest pose (upright hips and spine)
+            continue
+        # everything else holds the idle's first frame: the rider does not sway while the horse walks
+        v = fc.evaluate(start)
+        for kp in fc.keyframe_points:
+            kp.co[1] = v
+            kp.handle_left[1] = v
+            kp.handle_right[1] = v
+    for pb in arm.pose.bones:
+        if pb.name.split(":")[-1] in u.get("ride_hide", []):
+            pb.scale = (0.0, 0.0, 0.0)  # the mesh weighted to it shrinks away
+        if pb.name.split(":")[-1] in RIDE_UPRIGHT:
+            pb.location = (0.0, 0.0, 0.0)
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = (1.0, 0.0, 0.0, 0.0)
     for name, rot in legs.items():
         pb = arm.pose.bones[name]
         pb.rotation_mode = "QUATERNION"
@@ -120,9 +141,62 @@ def delete(objs):
         bpy.data.objects.remove(o, do_unlink=True)
 
 
+# "mounted" units (art-source/modelos-montados-3d): one GLB with a hero already seated on a mount — the mount's
+# armature plays the animations, the hero's armature hangs from an anchor on the mount's back and holds its seated
+# clip. Filled by load_unit for render_unit: the object to turn (the whole hierarchy) and the mount's meshes (sizing).
+MOUNTED = {}
+
+
+def _ancestors(o):
+    while o.parent:
+        o = o.parent
+        yield o
+
+
+def load_mounted(key, u):
+    objs = import_file(os.path.join(ART, u["path"]))
+    arms = [o for o in objs if o.type == "ARMATURE"]
+    rider = next((a for a in arms if any(x.name.startswith("Encaixe") for x in _ancestors(a))), None)
+    mount = next(a for a in arms if a is not rider)
+    if rider:
+        # the seated pose comes as imported: its clip only holds rest keys, so assigning it would undo the seat
+        if rider.animation_data:
+            rider.animation_data.action = None
+        # the game draws heroes larger than life next to their mounts (1.85 m hero, 1.6 m horse): grow the rider
+        # around the saddle anchor so he reads as the same hero as on foot
+        anchor = next(x for x in _ancestors(rider) if x.name.startswith("Encaixe"))
+        hips = next((pb for pb in rider.pose.bones if re.search(r"hips|pelvis", pb.name, re.I)), rider.pose.bones[0])
+        bpy.context.view_layer.update()
+        seat = rider.matrix_world @ hips.head  # where the GLB sits him: the hips stay there, he grows around them
+        anchor.scale = anchor.scale * u.get("rider_scale", 1.0)
+        bpy.context.view_layer.update()
+        rider.matrix_world = Matrix.Translation(seat - rider.matrix_world @ hips.head) @ rider.matrix_world
+        if u.get("rider_offset"):  # the drakes' export sinks the rider into the body: lift him onto the back
+            bpy.context.view_layer.update()
+            rider.matrix_world = Matrix.Translation(Vector(u["rider_offset"])) @ rider.matrix_world
+    actions = {}
+    for name, act in u["anims"].items():
+        if act in bpy.data.actions:
+            actions[name] = bpy.data.actions[act]
+        else:
+            log(f"{key}: ação '{act}' não encontrada")
+    owners = [mount] + ([rider] if rider else [])
+    meshes = [o for o in bpy.data.objects if o.type == "MESH" and any(x in owners for x in _ancestors(o))]
+    delete([o for o in bpy.data.objects if o.type == "MESH" and o not in meshes])  # stray spheres and the like
+    root = mount
+    for x in _ancestors(mount):
+        root = x
+    MOUNTED.clear()
+    MOUNTED.update(root=root, mount_meshes=[o for o in meshes if rider not in _ancestors(o)])
+    log(f"{key}: montado ({len(meshes)} malhas), animações {sorted(actions)}")
+    return mount, meshes, actions
+
+
 def load_unit(key, u):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     actions = {}
+    if u["source"] == "mounted":
+        return load_mounted(key, u)
     if u["source"] == "glb":
         objs = import_file(os.path.join(ART, u["path"]))
         arm = next(o for o in objs if o.type == "ARMATURE")
@@ -277,11 +351,13 @@ def render_unit(key, u, preview=False, only=None):
         actions = {**actions, "ride": None}  # built after the framing (it changes the legs)
     pivot = bpy.data.objects.new("pivot", None)
     bpy.context.scene.collection.objects.link(pivot)
-    arm.parent = pivot
+    mounted = u["source"] == "mounted"
+    (MOUNTED["root"] if mounted else arm).parent = pivot  # mounted: the whole hierarchy turns, rider included
     first = actions.get("idle") or next(a for a in actions.values() if a)
     set_action(arm, first)
     bpy.context.scene.frame_set(int(first.frame_range[0]))
-    x0, x1, y0, y1, z0, z1 = world_bounds(meshes)
+    # mounted: sized by the mount alone, so the animal keeps the size of the plain mount and the rider follows
+    x0, x1, y0, y1, z0, z1 = world_bounds(MOUNTED["mount_meshes"] if mounted else meshes)
     height = u.get("height", 1.8)
     scale = height / max(1e-4, z1 - z0)
     pivot.scale = (scale, scale, scale)

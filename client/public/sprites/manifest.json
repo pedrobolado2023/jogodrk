@@ -80,7 +80,7 @@
     "loop": true
    }
   },
-  "v": 1794673503
+  "v": 1794752531
  },
  "unit_grand_sorcerer": {
   "size": 224,
@@ -129,7 +129,7 @@
     "loop": true
    }
   },
-  "v": 1794673530
+  "v": 1794752558
  },
  "unit_night_ranger": {
   "size": 224,
@@ -178,7 +178,7 @@
     "loop": true
    }
   },
-  "v": 1794673577
+  "v": 1794752764
  },
  "mob_skeleton": {
   "size": 224,
@@ -2403,5 +2403,1517 @@
    }
   },
   "v": 1794743428
+ },
+ "ride_grand_sorcerer_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764839
+ },
+ "ride_grand_sorcerer_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764415
+ },
+ "ride_grand_sorcerer_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764415
+ },
+ "ride_grand_sorcerer_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764415
+ },
+ "ride_grand_sorcerer_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764526
+ },
+ "ride_grand_sorcerer_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764526
+ },
+ "ride_grand_sorcerer_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764526
+ },
+ "ride_grand_sorcerer_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764637
+ },
+ "ride_grand_sorcerer_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764637
+ },
+ "ride_grand_sorcerer_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764637
+ },
+ "ride_grand_sorcerer_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764750
+ },
+ "ride_grand_sorcerer_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764748
+ },
+ "ride_grand_sorcerer_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764750
+ },
+ "ride_grand_sorcerer_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764843
+ },
+ "ride_grand_sorcerer_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764862
+ },
+ "ride_grand_sorcerer_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764958
+ },
+ "ride_grand_sorcerer_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764956
+ },
+ "ride_grand_sorcerer_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794764963
+ },
+ "ride_grand_sorcerer_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765071
+ },
+ "ride_grand_sorcerer_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765067
+ },
+ "ride_grand_sorcerer_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765074
+ },
+ "ride_blade_master_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765170
+ },
+ "ride_blade_master_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765166
+ },
+ "ride_blade_master_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765175
+ },
+ "ride_blade_master_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765261
+ },
+ "ride_blade_master_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765259
+ },
+ "ride_blade_master_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765272
+ },
+ "ride_blade_master_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765359
+ },
+ "ride_blade_master_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765356
+ },
+ "ride_blade_master_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765371
+ },
+ "ride_blade_master_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765455
+ },
+ "ride_blade_master_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765451
+ },
+ "ride_blade_master_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765470
+ },
+ "ride_blade_master_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765534
+ },
+ "ride_blade_master_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765552
+ },
+ "ride_blade_master_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765557
+ },
+ "ride_blade_master_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765631
+ },
+ "ride_blade_master_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765625
+ },
+ "ride_blade_master_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765653
+ },
+ "ride_blade_master_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765727
+ },
+ "ride_blade_master_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765722
+ },
+ "ride_blade_master_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765752
+ },
+ "ride_night_ranger_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765846
+ },
+ "ride_night_ranger_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765839
+ },
+ "ride_night_ranger_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765873
+ },
+ "ride_night_ranger_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765958
+ },
+ "ride_night_ranger_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765964
+ },
+ "ride_night_ranger_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794765994
+ },
+ "ride_night_ranger_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766076
+ },
+ "ride_night_ranger_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766081
+ },
+ "ride_night_ranger_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766117
+ },
+ "ride_night_ranger_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766199
+ },
+ "ride_night_ranger_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766205
+ },
+ "ride_night_ranger_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766242
+ },
+ "ride_night_ranger_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766299
+ },
+ "ride_night_ranger_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766329
+ },
+ "ride_night_ranger_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766346
+ },
+ "ride_night_ranger_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766423
+ },
+ "ride_night_ranger_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766430
+ },
+ "ride_night_ranger_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766471
+ },
+ "ride_night_ranger_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766546
+ },
+ "ride_night_ranger_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766554
+ },
+ "ride_night_ranger_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794766581
  }
 }
