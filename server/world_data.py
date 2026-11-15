@@ -584,9 +584,9 @@ def meta() -> dict[str, Any]:
     from titles import meta as titles_meta
     import season as season_meta
     import shop as shop_meta
-    from skills_data import ACTIVES, PASSIVES
+    from skills_data import ACTIVES, BASICS, PASSIVES
     return {
-        "skills": ACTIVES,
+        "skills": ACTIVES + BASICS,
         "passives": PASSIVES,
         "mobs": {k: {"name": v["name"], "level": v["level"], "boss": v.get("boss", False)} for k, v in MOBS.items()},
         "maps": {k: {"name": v["name"], "theme": v["theme"], "level": v["level"], "pvp": v["pvp"], "safe": v["safe"]}

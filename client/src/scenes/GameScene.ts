@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { socket, type ServerMessage } from "../network/socket";
 import { worldToScreen, screenToWorld } from "../utils/isometric";
 import { MOVE_SPEED } from "../utils/constants";
-import { META, PARTY_COLOR, fmtBig, PK_INFO, classSkills, skillById, type GuildState, type HeroState, type InventoryState, type MapInfo, type PartyMember, type PkStatus, type SkillDef } from "../data/meta";
+import { META, PARTY_COLOR, fmtBig, PK_INFO, basicSkill, classSkills, skillById, type GuildState, type HeroState, type InventoryState, type MapInfo, type PartyMember, type PkStatus, type SkillDef } from "../data/meta";
 import { GLOW_COLORS, ensureTextures, UNIT_ORIGIN, UNIT_RES, WALK_FRAMES } from "../gfx/textures";
 import { ensureSkillIcons } from "../gfx/themeProps";
 import { WorldRenderer } from "../gfx/world";
@@ -17,11 +17,11 @@ import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseS
 export interface DailyState {
   day: string;
   bonus: boolean;
-  tasks: { text: string; n: number; count: number; claimed: boolean }[];
+  tasks: { text: string; kind?: string; target?: string; n: number; count: number; claimed: boolean }[];
 }
 
 interface AutoState {
-  mode: "farm" | "quest";
+  mode: "farm" | "quest" | "daily";
   ax: number;
   ay: number;
   map: string;
@@ -213,6 +213,8 @@ export class GameScene extends Phaser.Scene {
   private remotes = new Map<string, RemoteHero>();
   private mobs = new Map<string, MobUnit>();
   private npcs = new Map<string, Npc>();
+  /** the Hidden Wanderer's exploration marks (only the quest holder gets them, only up close) */
+  private hqMarks = new Map<number, Phaser.GameObjects.GameObject[]>();
   /** our guild's name and the guilds we are at war with */
   myGuild = "";
   private guildEnemies = new Set<string>();
@@ -325,6 +327,8 @@ export class GameScene extends Phaser.Scene {
     for (const f of this.fog) f.img.destroy();
     this.pfx.clear();
     this.mobs.clear(); this.remotes.clear(); this.npcs.clear(); this.statuses.clear();
+    for (const objs of this.hqMarks.values()) objs.forEach((o) => o.destroy());
+    this.hqMarks.clear();
     for (const r of this.rays) r.img.destroy();
     this.portalObjs = []; this.portalFx = []; this.ambient = []; this.fog = []; this.rays = [];
     this.target = null; this.pendingCast = null; this.pendingTalk = null; this.moveTarget = null; this.dangers = [];
@@ -818,6 +822,51 @@ export class GameScene extends Phaser.Scene {
     this.npcs.set(id, npc);
   }
 
+  /** A hooded figure in purple that fades in out of the mist, with a slow glow at its feet. */
+  private addHiddenNpc(id: string, name: string, x: number, y: number): void {
+    const u = this.createUnit(NPC_LOOK.elder, x, y, HERO_SCALE, name, "#c8a8ff");
+    u.body.setFlipX(true);
+    u.flash.setFlipX(true);
+    u.body.setTint(0xb8a8ff);
+    const glow = this.add.image(0, -u.height * 0.45, "glow_purple").setBlendMode(Phaser.BlendModes.ADD).setScale(2.4).setAlpha(0.35);
+    const ring = this.add.image(0, 0, "ring_purple").setBlendMode(Phaser.BlendModes.ADD).setScale(0.55, 0.22).setAlpha(0.6);
+    const mist = this.add.particles(0, -10, "spark_purple", {
+      x: { min: -18, max: 18 }, lifespan: 1600, speedY: { min: -26, max: -10 }, scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.8, end: 0 }, frequency: 160, blendMode: "ADD",
+    });
+    u.root.addAt([glow, ring, mist], 0);
+    this.tweens.add({ targets: glow, alpha: { from: 0.2, to: 0.5 }, duration: 1600, yoyo: true, repeat: -1 });
+    this.tweens.add({ targets: ring, alpha: { from: 0.3, to: 0.7 }, duration: 1300, yoyo: true, repeat: -1 });
+    u.root.setAlpha(0);
+    this.tweens.add({ targets: u.root, alpha: 1, duration: 900 });
+    this.npcs.set(id, Object.assign(u, { id, name, role: "hidden" }) as Npc);
+  }
+
+  /** An exploration mark on the ground: a purple glow; touching it is checked by the server. */
+  private hqMark(id: number, wx: number, wy: number, gone: boolean, found: boolean): void {
+    const old = this.hqMarks.get(id);
+    if (old) {
+      const first = old[0] as Phaser.GameObjects.Image;
+      if (found) {
+        this.fx.ring(first.x, first.y, "purple", 0.4, 2.4, 600);
+        this.fx.burst("wisps", "purple", first.x, first.y - 10, 24);
+      }
+      old.forEach((o) => o.destroy());
+      this.hqMarks.delete(id);
+    }
+    if (gone) return;
+    const { sx, sy } = worldToScreen(wx, wy);
+    const ring = this.add.image(sx, sy, "ring_purple").setBlendMode(Phaser.BlendModes.ADD).setScale(0.5, 0.2).setDepth(DECAL_DEPTH + 20);
+    const glow = this.add.image(sx, sy - 14, "glow_purple").setBlendMode(Phaser.BlendModes.ADD).setScale(1.4).setDepth(sy + 1);
+    const sparks = this.add.particles(sx, sy, "spark_purple", {
+      x: { min: -14, max: 14 }, lifespan: 1400, speedY: { min: -40, max: -15 }, scale: { start: 0.6, end: 0 },
+      alpha: { start: 1, end: 0 }, frequency: 110, blendMode: "ADD",
+    }).setDepth(sy + 2);
+    this.tweens.add({ targets: glow, alpha: { from: 0.35, to: 0.9 }, scale: { from: 1.1, to: 1.6 }, duration: 900, yoyo: true, repeat: -1 });
+    this.tweens.add({ targets: ring, scaleX: { from: 0.4, to: 0.7 }, scaleY: { from: 0.16, to: 0.28 }, alpha: { from: 0.9, to: 0.3 }, duration: 1200, repeat: -1 });
+    this.hqMarks.set(id, [ring, glow, sparks]);
+  }
+
   private updateQuestMarkers(): void {
     const st = this.hero?.story?.st;
     const dailyReady = !!this.daily?.tasks.some((t) => t.n >= t.count && !t.claimed);
@@ -884,6 +933,7 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
     const keys = ["ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "ZERO"];
     keys.forEach((k, i) => this.input.keyboard!.on(`keydown-${k}`, () => this.castSlot(i)));
+    this.input.keyboard!.on("keydown-SPACE", (e: KeyboardEvent) => { e.preventDefault(); this.castBasic(); });
     this.input.keyboard!.on("keydown-ESC", () => { this.setTarget(null); this.events.emit("escape"); });
     this.input.keyboard!.on("keydown-TAB", (e: KeyboardEvent) => { e.preventDefault(); this.cycleTarget(); });
     this.input.keyboard!.on("keydown-K", () => this.events.emit("toggle_book"));
@@ -900,6 +950,7 @@ export class GameScene extends Phaser.Scene {
     // inventory and shop actions from the HUD: {type: "buy" | "sell" | "equip" | "unequip" | "discard" | ...}
     this.events.on("inv_action", (msg: Record<string, unknown>) => socket.send(msg));
     this.events.on("request_skill", (slot: number) => this.castSlot(slot));
+    this.events.on("basic_attack", () => this.castBasic());
     // touch controls (HUD): joystick, next target, mount
     this.events.on("joy", (x: number, y: number) => {
       const was = this.joy.active;
@@ -920,6 +971,10 @@ export class GameScene extends Phaser.Scene {
     this.events.on("auto_quest", () => {
       if (this.auto?.mode === "quest") { this.stopAuto(); return; }
       this.startAuto("quest");
+    });
+    this.events.on("auto_daily", () => {
+      if (this.auto?.mode === "daily") { this.stopAuto(); return; }
+      this.startAuto("daily");
     });
   }
 
@@ -1046,12 +1101,14 @@ export class GameScene extends Phaser.Scene {
 
   // ── Auto-pilot ───────────────────────────────────────────────────────
 
-  private startAuto(mode: "farm" | "quest"): void {
+  private startAuto(mode: "farm" | "quest" | "daily"): void {
     const p = this.player;
     this.auto = { mode, ax: p.worldX, ay: p.worldY, map: this.mapInfo?.map_id ?? "", nextThink: 0, nextPot: 0, nextTalk: 0, deaths: [], dead: false };
     this.events.emit("auto_state", mode);
     this.events.emit("notice", {
-      text: mode === "farm" ? "Auto-Farm ligado: caçando os monstros por perto." : "Missão automática ligada: vou cumprir, entregar e pegar as próximas missões sozinho.",
+      text: mode === "farm" ? "Auto-Farm ligado: caçando os monstros por perto."
+        : mode === "daily" ? "Diárias automáticas ligadas: vou fazer as caçadas do dia e entregar ao Sargento Hald."
+        : "Missão automática ligada: vou cumprir, entregar e pegar as próximas missões sozinho.",
       kind: "quest",
     });
   }
@@ -1177,6 +1234,39 @@ export class GameScene extends Phaser.Scene {
       prey = q.mob;
       home = { x: spot[1], y: spot[2] };
       radius = 30;
+    } else if (a.mode === "daily") {
+      // the day's hunts one after another, then hand them in to Sergeant Hald in town
+      const d = this.daily;
+      if (!d) return;
+      const hunt = d.tasks.find((t) => t.kind === "kill" && t.target && !t.claimed && t.n < t.count);
+      if (hunt) {
+        const spots = META.spawns[hunt.target!] ?? [];
+        const spot = spots.find(([m]) => m === this.mapInfo!.map_id) ?? spots[0];
+        if (!spot) { this.stopAuto(); return; }
+        if (!this.travelTo(spot[0])) return;
+        prey = hunt.target!;
+        home = { x: spot[1], y: spot[2] };
+        radius = 30;
+      } else if (d.tasks.some((t) => !t.claimed && t.n >= t.count)) {
+        if (!this.travelTo("town_01")) return;
+        const hald = [...this.npcs.values()].find((n) => n.role === "daily");
+        if (!hald) return;
+        this.pendingCast = null;
+        if (Math.hypot(hald.worldX - p.worldX, hald.worldY - p.worldY) > 2.4) {
+          this.walkTo(hald.worldX + 1.2, hald.worldY + 1.2);
+        } else if (time >= a.nextTalk) {
+          this.face(p, hald.root.x - p.root.x, hald.root.y - p.root.y);
+          socket.dialogOption("daily_claim");
+          a.nextTalk = time + 1500;
+        }
+        return;
+      } else {
+        const left = d.tasks.filter((t) => !t.claimed && t.n < t.count);
+        this.stopAuto(left.length
+          ? `Caçadas do dia feitas e entregues! Falta fazer você mesmo: ${left.map((t) => t.text).join(" · ")}.`
+          : "Missões diárias concluídas! Volte amanhã para novas missões.");
+        return;
+      }
     } else if (this.mapInfo.safe) {
       this.stopAuto("Auto-Farm desligado: você entrou numa zona segura.");
       return;
@@ -1213,8 +1303,19 @@ export class GameScene extends Phaser.Scene {
     const pick = ready.find((s) => s.kind === "heal" && this.hero!.hp < this.hero!.max_hp * 0.6)
       ?? ready.find((s) => s.kind === "buff")
       ?? ready.find((s) => s.kind !== "heal" && s.kind !== "buff");
+    const basic = basicSkill(this.cls);
     if (pick) this.tryCast(pick);
+    else if (basic && (this.cdUntil.get(basic.id) ?? 0) <= time) this.tryCast(basic);
     else if (bestD > 1.6) this.walkTo(best.worldX, best.worldY);
+  }
+
+  /** The free basic attack (button / Space): silent while it recharges, so holding it down just keeps attacking. */
+  private castBasic(): void {
+    const skill = basicSkill(this.cls);
+    if (!skill || this.isDead || !this.hero || (this.cdUntil.get(skill.id) ?? 0) > this.time.now) return;
+    if (this.mapInfo?.safe) { this.say(ERRORS.safe_zone, "#ffd77a"); return; }
+    if (this.auto) this.stopAuto("Modo automático desligado (você assumiu o controle).");
+    this.tryCast(skill);
   }
 
   private castSlot(slot: number): void {
@@ -1312,6 +1413,14 @@ export class GameScene extends Phaser.Scene {
       const r = this.remotes.get(id);
       if (r) { r.guild = name; this.setGuildTag(r, name); r.label?.setColor(this.remoteColor(r)); }
     });
+    // the Hidden Wanderer: the server only sends it when the hero is close
+    socket.on("hidden_npc", (m) => {
+      const old = this.npcs.get("hidden_wanderer");
+      if (old) { old.root.destroy(); this.npcs.delete("hidden_wanderer"); }
+      if (!m.gone) this.addHiddenNpc(m.id as string, m.name as string, m.x as number, m.y as number);
+    });
+    socket.on("hq_mark", (m) => this.hqMark(m.id as number, m.x as number, m.y as number, !!m.gone, !!m.found));
+    socket.on("hq", (m) => this.events.emit("hq", m));
     socket.on("daily", (m) => {
       this.daily = m as unknown as DailyState;
       this.updateQuestMarkers();

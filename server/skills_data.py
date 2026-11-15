@@ -190,6 +190,22 @@ for _s in ACTIVES:
         _s["vfx"]["as"] = round(_s["vfx"]["as"] * 1.4, 2)
 
 SKILLS: dict[str, dict[str, Any]] = {s["id"]: s for s in ACTIVES}
+
+# basic attacks: free and quick, weaker than any skill, never in the 10 skill slots (the client gives them their own
+# button and the Space key); used also by the auto-pilot when every skill is recharging or mana runs out
+BASICS: list[dict[str, Any]] = [
+    {**A(BM, 0, "bm_basic", "Ataque Básico", "Um golpe simples de espada. Não gasta mana.", ("fist", "#d8d0c0"),
+         0, 0.7, "melee", power=6, scale=0.8, stat="str", vfx={"hit": "impacts/hit-spark", "hs": 0.55}), "basic": True},
+    {**A(GS, 0, "gs_basic", "Ataque Básico", "Um pequeno disparo mágico. Não gasta mana.", ("orbs", "#b9a6ff"),
+         0, 0.8, "projectile", range=8.0, power=6, scale=0.8, stat="int",
+         vfx={"proj": "projectiles/magic-missile", "ps": 0.4, "hit": "impacts/hit-spark", "hs": 0.45}), "basic": True},
+    {**A(NR, 0, "nr_basic", "Ataque Básico", "Uma flecha simples. Não gasta mana.", ("arrow", "#d8d0c0"),
+         0, 0.7, "projectile", range=9.0, power=5, scale=0.8, stat="agi",
+         vfx={"proj": "projectiles/arrow", "ps": 0.45, "hit": "impacts/hit-spark", "hs": 0.4}), "basic": True},
+]
+for _s in BASICS:
+    _s["splash"] = SPLASH_RADIUS  # like every single-target attack: monsters right next to the target take 60%
+SKILLS.update({s["id"]: s for s in BASICS})
 PASSIVE_BY_ID: dict[str, dict[str, Any]] = {p["id"]: p for p in PASSIVES}
 
 

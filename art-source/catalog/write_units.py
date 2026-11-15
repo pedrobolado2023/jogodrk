@@ -11,7 +11,7 @@ import cosmetic_catalog as cat  # noqa: E402
 p = pathlib.Path(sys.argv[1])
 sprites = p.parent.parent / "client" / "public" / "sprites"
 u = json.loads(p.read_text(encoding="utf-8"))
-for key, model, grade, name, *_ in cat.MOUNTS:
+for key, model, grade, name, *_ in cat.MOUNTS + cat.EXCLUSIVE_MOUNTS:
     path, anims, h, ortho, size, _saddle = cat.MOUNT_MODELS[model]
     e = {"_note": f"montaria: {name}", "source": "glb", "path": path, "height": h, "ortho": ortho, "size": size,
          "center": 0.4, "anims": anims}
@@ -28,5 +28,5 @@ for key, model, grade, name, *_ in cat.PETS:
         e["grade"] = cat.GRADES[grade]
     u[key] = e
 p.write_text(json.dumps(u, ensure_ascii=False, indent=2), encoding="utf-8")
-new = [k for k, *_ in cat.MOUNTS + cat.PETS if not (sprites / k / "idle.png").exists()]
+new = [k for k, *_ in cat.MOUNTS + cat.EXCLUSIVE_MOUNTS + cat.PETS if not (sprites / k / "idle.png").exists()]
 print(" ".join(new))

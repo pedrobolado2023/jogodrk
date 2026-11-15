@@ -12,6 +12,7 @@ GRADES = {
     "ember": {"desat": 0.5, "tint": [1.25, 0.72, 0.5], "gain": 0.9},
     "emerald": {"desat": 0.6, "tint": [0.6, 1.2, 0.75], "gain": 0.9},
     "spirit": {"desat": 0.85, "tint": [0.6, 1.15, 1.1], "gain": 1.05},
+    "phantom": {"desat": 0.95, "tint": [0.78, 0.95, 1.4], "gain": 1.25},
     "blood": {"desat": 0.5, "tint": [1.3, 0.5, 0.45], "gain": 0.8},
     "void": {"desat": 0.6, "tint": [0.72, 0.56, 1.35], "gain": 0.8},
     "ash": {"desat": 0.35, "tint": [1.12, 0.82, 0.66], "gain": 0.85},
@@ -54,6 +55,10 @@ MOUNTS = [
     ("mount_drake_ember", "drake", "ash", "Dragão de Brasa", 3500, "Um dragão das terras de cinza."),
     ("mount_drake_void", "drake", "void", "Dragão do Vazio", 3500, "Um dragão nascido no Vazio."),
     ("mount_drake_emerald", "drake", "emerald", "Dragão Esmeralda", 3500, "Um dragão verde das florestas antigas."),
+]
+# never sold: rewards only (the hidden quest, hidden_quest.py) — same fields, no price
+EXCLUSIVE_MOUNTS = [
+    ("mount_phantom", "horse_white", "phantom", "Corcel Fantasma", 0, "Só quem encontrou o Andarilho Oculto e cumpriu sua missão."),
 ]
 
 # model → framing for a mascot (height m, ortho, frame size, frame center)

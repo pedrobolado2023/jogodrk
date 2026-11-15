@@ -119,5 +119,6 @@ def all_claimed(state: dict[str, Any]) -> bool:
 
 def public(state: dict[str, Any]) -> dict[str, Any]:
     return {"day": state["day"], "bonus": state["bonus"],
-            "tasks": [{"text": task_text(t), "n": t["n"], "count": t["count"], "claimed": t["claimed"]}
+            "tasks": [{"text": task_text(t), "kind": t["kind"], "target": t["target"], "n": t["n"], "count": t["count"],
+                       "claimed": t["claimed"]}
                       for t in state["tasks"]]}

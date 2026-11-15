@@ -81,6 +81,32 @@ async function loadOverview(): Promise<void> {
   }).join("") : `<p class="muted">Nenhuma ação ainda.</p>`;
 }
 
+// ── the Hidden Wanderer ────────────────────────────────────────────────
+
+interface HiddenView {
+  npc: { map: string; map_name: string; x: number; y: number } | null;
+  holder: { name: string; desc: string; n: number; count: number; left: number } | null;
+  winners: number; next_rumor_in: number | null;
+}
+
+function showHidden(v: HiddenView): void {
+  const hm = (s: number) => `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}min`;
+  const rows: [string, string][] = v.holder
+    ? [["Situação", `Com ${v.holder.name} (escondido para os outros)`], ["Missão", v.holder.desc],
+       ["Progresso", `${v.holder.n}/${v.holder.count}`], ["Tempo restante", hm(v.holder.left)]]
+    : [["Situação", "Escondido, esperando alguém achar"],
+       ["Onde", v.npc ? `${v.npc.map_name} (x ${Math.round(v.npc.x)}, y ${Math.round(v.npc.y)})` : "–"],
+       ["Próximo boato", v.next_rumor_in != null ? `em ${hm(v.next_rumor_in)}` : "–"]];
+  rows.push(["Vencedores até hoje", String(v.winners)]);
+  $("hq-info").innerHTML = rows.map(([k, val]) => `<span>${k}</span><span>${esc(val)}</span>`).join("");
+  ($("hq-move") as HTMLButtonElement).disabled = !!v.holder;
+  ($("hq-cancel") as HTMLButtonElement).disabled = !v.holder;
+}
+
+async function loadHidden(): Promise<void> {
+  showHidden(await api<HiddenView>("/admin/hidden"));
+}
+
 // ── players ────────────────────────────────────────────────────────────
 
 async function loadPlayers(): Promise<void> {
@@ -180,7 +206,7 @@ async function start(): Promise<void> {
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
   $("logout").classList.remove("hidden");
-  await Promise.all([loadPlayers(), loadOverview()]).catch((e) => toast(e.message, true));
+  await Promise.all([loadPlayers(), loadOverview(), loadHidden()]).catch((e) => toast(e.message, true));
 }
 
 $("login-form").addEventListener("submit", async (ev) => {
@@ -221,13 +247,24 @@ $("bc-send").addEventListener("click", async () => {
   try { toast((await api<{ message: string }>("/admin/broadcast", { text })).message); ($("bc-text") as HTMLTextAreaElement).value = ""; await loadOverview(); }
   catch (e) { toast(e instanceof Error ? e.message : "Algo deu errado.", true); }
 });
+for (const [id, path, ask] of [["hq-move", "/admin/hidden/move", "Mudar o Andarilho Oculto para outro lugar?"],
+  ["hq-cancel", "/admin/hidden/cancel", "Cancelar a Missão Oculta de quem está com ela? O Andarilho volta a se esconder."]] as const) {
+  $(id).addEventListener("click", async () => {
+    if (!confirm(ask)) return;
+    try { const r = await api<HiddenView & { message: string }>(path, {}); toast(r.message); showHidden(r); await loadOverview(); }
+    catch (e) { toast(e instanceof Error ? e.message : "Algo deu errado.", true); }
+  });
+}
 let searchTimer = 0;
 $("q").addEventListener("input", () => { window.clearTimeout(searchTimer); searchTimer = window.setTimeout(() => void loadPlayers().catch((e) => toast(e.message, true)), 300); });
 $("only-online").addEventListener("change", () => void loadPlayers().catch((e) => toast(e.message, true)));
 $("refresh").addEventListener("click", () => void Promise.all([loadPlayers(), loadOverview()]).catch((e) => toast(e.message, true)));
 // keeps the numbers fresh while the page is open
 window.setInterval(() => {
-  if (!$("app").classList.contains("hidden") && document.visibilityState === "visible") void loadOverview().catch(() => {});
+  if (!$("app").classList.contains("hidden") && document.visibilityState === "visible") {
+    void loadOverview().catch(() => {});
+    void loadHidden().catch(() => {});
+  }
 }, 10000);
 
 void start();

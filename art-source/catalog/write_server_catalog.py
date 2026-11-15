@@ -14,9 +14,11 @@ root = pathlib.Path(sys.argv[1])
 s = (root / "season.py").read_text(encoding="utf-8")
 pets = "PETS: dict[str, tuple[str, str]] = {\n" + "".join(f'    "{k}": ("{n}", "{k}"),\n' for k, _m, _g, n, *_ in cat.PETS) + "}\n"
 mounts = ("MOUNTS: dict[str, tuple[str, str, float]] = {  # name, sheet, saddle height (share of the animal's height)\n"
-          + "".join(f'    "{k}": ("{n}", "{k}", {cat.MOUNT_MODELS[m][5]}),\n' for k, m, _g, n, *_ in cat.MOUNTS) + "}\n")
+          # exclusive mounts are owned (rewards) but never offered in the shop
+          + "".join(f'    "{k}": ("{n}", "{k}", {cat.MOUNT_MODELS[m][5]}),\n' for k, m, _g, n, *_ in cat.MOUNTS + cat.EXCLUSIVE_MOUNTS)
+          + "}\n")
 s, n1 = re.subn(r"PETS: dict\[str, tuple\[str, str\]\] = \{\n.*?\n\}\n", pets, s, flags=re.S)
-s, n2 = re.subn(r"MOUNTS: dict\[str, tuple\[str, str\]\] = \{\n.*?\n\}\n", mounts, s, flags=re.S)
+s, n2 = re.subn(r"MOUNTS: dict\[str, tuple\[str, str(?:, float)?\]\] = \{[^\n]*\n.*?\n\}\n", mounts, s, flags=re.S)
 assert n1 == 1 and n2 == 1, (n1, n2)
 s = s.replace('''    return [{"id": mid, "name": nm, "sheet": sheet} for mid, (nm, sheet) in MOUNTS.items()]''',
               '''    return [{"id": mid, "name": nm, "sheet": sheet, "saddle": saddle} for mid, (nm, sheet, saddle) in MOUNTS.items()]''')
@@ -24,7 +26,7 @@ s = s.replace('''    return [{"id": mid, "name": nm, "sheet": sheet} for mid, (n
 
 # shop.py: replace every pet / mount offer line pair with the generated ones
 sh = (root / "shop.py").read_text(encoding="utf-8")
-start = sh.index("    # mounts: ride a horse")
+start = sh.index("    # mounts: ride")
 end = sh.index("    # time savers")
 before, after = sh[:start], sh[end:]
 # drop the old pet block too

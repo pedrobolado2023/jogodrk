@@ -26,6 +26,8 @@ export interface SkillVfx {
 
 export interface SkillDef {
   id: string;
+  /** the free basic attack (its own button and the Space key, not one of the 10 slots) */
+  basic?: boolean;
   cls: string;
   name: string;
   desc: string;
@@ -91,7 +93,8 @@ export async function loadMeta(): Promise<Meta> {
   return META;
 }
 
-export const classSkills = (cls: string): SkillDef[] => META.skills.filter((s) => s.cls === cls);
+export const classSkills = (cls: string): SkillDef[] => META.skills.filter((s) => s.cls === cls && !s.basic);
+export const basicSkill = (cls: string): SkillDef | undefined => META.skills.find((s) => s.cls === cls && s.basic);
 export const classPassives = (cls: string): SkillDef[] => META.passives.filter((s) => s.cls === cls);
 export const skillById = (id: string): SkillDef | undefined => META.skills.find((s) => s.id === id);
 

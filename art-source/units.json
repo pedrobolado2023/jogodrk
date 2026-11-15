@@ -1737,5 +1737,28 @@
       "walk": "Walk",
       "run": "Gallop"
     }
+  },
+  "mount_phantom": {
+    "_note": "montaria: Corcel Fantasma",
+    "source": "glb",
+    "path": "sources/quaternius_animals/Horse_White.glb",
+    "height": 1.6,
+    "ortho": 3.6,
+    "size": 176,
+    "center": 0.4,
+    "anims": {
+      "idle": "Idle",
+      "walk": "Walk",
+      "run": "Gallop"
+    },
+    "grade": {
+      "desat": 0.95,
+      "tint": [
+        0.78,
+        0.95,
+        1.4
+      ],
+      "gain": 1.25
+    }
   }
 }

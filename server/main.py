@@ -95,6 +95,17 @@ async def unfriend_offline(char_id: str, other_id: str) -> None:
             await db.commit()
 
 
+async def save_hidden_quest() -> None:
+    async with async_session() as db:
+        row = await db.get(GameState, "hidden_quest")
+        data = game.hq.to_json()
+        if row:
+            row.value = data
+        else:
+            db.add(GameState(key="hidden_quest", value=data))
+        await db.commit()
+
+
 async def save_guilds() -> None:
     async with async_session() as db:
         row = await db.get(GameState, "guilds")
@@ -107,6 +118,7 @@ async def save_guilds() -> None:
 
 
 game = Game(save_hero, save_market, unfriend_offline, save_guilds)
+game.save_hq = save_hidden_quest
 
 
 async def _game_loop() -> None:
@@ -142,6 +154,9 @@ async def lifespan(app: FastAPI):
         import guild as gd
         row = await db.get(GameState, "guilds")
         game.guilds = gd.GuildManager.from_json(row.value if row else None)
+        import hidden_quest as hqm
+        row = await db.get(GameState, "hidden_quest")
+        game.hq = hqm.HiddenQuest(row.value if row else None)
     tasks = [asyncio.create_task(manager.start_broadcast_loop()), asyncio.create_task(_game_loop())]
     yield
     manager.stop_broadcast_loop()

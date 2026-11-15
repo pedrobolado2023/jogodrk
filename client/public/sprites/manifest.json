@@ -2379,5 +2379,29 @@
    }
   },
   "v": 1794675234
+ },
+ "mount_phantom": {
+  "size": 176,
+  "originY": 0.654,
+  "scale": 0.9,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 13,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794743428
  }
 }

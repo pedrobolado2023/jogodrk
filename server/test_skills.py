@@ -9,7 +9,7 @@ import asyncio
 import time
 
 from game import Game, Hero
-from skills_data import SKILLS, passives_for, skills_for
+from skills_data import BASICS, SKILLS, passives_for, skills_for
 from websocket_manager import PlayerSession, manager
 
 
@@ -67,6 +67,16 @@ async def run_all() -> None:
                 assert any(m["type"] == "cc" for m in ws.sent), f"{sk['id']}: no crowd control"
             again = await game.use_skill(hero, sk["id"], target.instance_id, target.x, target.y)
             assert again == "on_cooldown", f"{sk['id']}: cooldown not applied ({again})"
+        # the basic attack: free, quick, weaker than the first skill, not one of the 10 slots
+        basic = next(b for b in BASICS if b["cls"] == cls)
+        assert basic["id"] not in {sk["id"] for sk in skills_for(cls)} and basic["mp"] == 0 and basic["lvl"] == 1
+        assert basic["power"] < skills_for(cls)[0]["power"] and basic["cd"] <= 800
+        hero.mp, hero.cooldowns = 0, {}
+        for m in mm.mobs.values():
+            m.hp, m.is_dead, m.stun_until = m.max_hp, False, 0.0
+        ws.sent.clear()
+        assert await game.use_skill(hero, basic["id"], target.instance_id, target.x, target.y) is None
+        assert any(m["type"] == "mob_damaged" for m in ws.sent) and hero.mp == 0, f"{basic['id']}: hit nothing"
         locked = Hero(char_id="lowbie", name="l", cls=cls, level=1, exp=0, gold=0, story={}, map_id="forest_01")
         top = skills_for(cls)[-1]
         assert await game.use_skill(locked, top["id"], None, None, None) == "locked"

@@ -49,6 +49,7 @@ PASS_TITLES: list[tuple[str, str, str]] = [
 ]
 import vip as _vip  # noqa: E402
 PASS_TITLES += _vip.TITLES  # the VIP titles (worn while the account is VIP)
+PASS_TITLES += [("cacador_segredos", "Caçador de Segredos", "#7af0ff")]  # the Hidden Wanderer's reward (hidden_quest.py)
 TITLE_BY_ID = {t[0]: t for t in PASS_TITLES}
 
 # id → name, glow colour (a client GLOW_COLORS name)
@@ -112,6 +113,7 @@ MOUNTS: dict[str, tuple[str, str, float]] = {  # name, sheet, saddle height (sha
     "mount_drake_ember": ("Dragão de Brasa", "mount_drake_ember", 0.4),
     "mount_drake_void": ("Dragão do Vazio", "mount_drake_void", 0.4),
     "mount_drake_emerald": ("Dragão Esmeralda", "mount_drake_emerald", 0.4),
+    "mount_phantom": ("Corcel Fantasma", "mount_phantom", 0.72),
 }
 
 FREE_STONES = {10: ("stone_up_1", 5), 20: ("stone_up_2", 3), 30: ("stone_protect", 1), 40: ("stone_up_3", 1)}

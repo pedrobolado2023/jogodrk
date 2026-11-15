@@ -310,6 +310,30 @@ def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]
         record(admin, "iniciar Boss Global", boss["name"])
         return {"ok": True, "message": f"{boss['name']} começou."}
 
+    # ── the Hidden Wanderer (hidden_quest.py) ────────────────────────────
+
+    @router.get("/hidden")
+    async def hidden():
+        return game.hq.admin_view()
+
+    @router.post("/hidden/move")
+    async def hidden_move(admin: User = Depends(admin_user)):
+        if game.hq.holder:
+            raise HTTPException(400, "Alguém está com a Missão Oculta agora. Cancele a missão para mover o Andarilho.")
+        await game.hq._hide_from_all(game)
+        game.hq.relocate()
+        record(admin, "mover o Andarilho Oculto", game.hq.npc["map"])
+        return {"ok": True, "message": "O Andarilho foi para outro lugar.", **game.hq.admin_view()}
+
+    @router.post("/hidden/cancel")
+    async def hidden_cancel(admin: User = Depends(admin_user)):
+        if not game.hq.holder:
+            raise HTTPException(400, "Ninguém está com a Missão Oculta.")
+        name = game.hq.holder["name"]
+        await game.hq.fail(game)
+        record(admin, "cancelar a Missão Oculta", name)
+        return {"ok": True, "message": f"Missão de {name} cancelada. O Andarilho voltou a se esconder.", **game.hq.admin_view()}
+
     @router.get("/me")
     async def me(admin: User = Depends(admin_user)):
         import world_boss as wbm

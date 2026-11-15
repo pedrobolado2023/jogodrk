@@ -25,6 +25,7 @@ import forge
 import market as mk
 import mining
 import world_boss as wb
+import hidden_quest as hq
 from auto_farm import auto_farm
 from mob_manager import MobManager
 from skills_data import SKILLS, passive_effects, passives_for, skills_for
@@ -203,6 +204,8 @@ class Game:
         self.last_save = time.monotonic()
         self.parties = pt.PartyManager()
         self.wb = wb.WorldBossEvent()
+        self.hq = hq.HiddenQuest()  # replaced by the saved one at start (main.py)
+        self.save_hq = None
         self.mine = mining.Mine()
         self.market = mk.Market()
         self.save_market = save_market
@@ -260,11 +263,13 @@ class Game:
         await self.send(hero.char_id, self.wb.status())
         await self.push_daily(hero)
         await self.push_season(hero)
+        await self.hq.push(self, hero)
         await self.friends_online(hero, True)
         await self.guild_online(hero)
         if hero.map_id == wb.EVENT_MAP:
             await self.wb.on_enter(self, hero)
         await self.send_map_state(hero)
+        await self.hq.on_move(self, hero, x, y)  # standing next to the Hidden Wanderer already
 
     async def send_map_state(self, hero: Hero) -> None:
         if hero.map_id == mining.MINE_MAP:
@@ -283,6 +288,8 @@ class Game:
         self.guild_sent.pop(cid, None)
         self.guilds.invites.pop(cid, None)
         hero = self.heroes.pop(cid, None)
+        self.hq.forget(cid)
+        self.hq.offers.pop(cid, None)
         if hero:
             await self.friends_online(hero, False)
             await self.guild_online(hero)
@@ -294,6 +301,7 @@ class Game:
 
     async def change_map(self, hero: Hero, map_id: str, x: float, y: float) -> None:
         old = hero.map_id
+        self.hq.forget(hero.char_id)
         hero.map_id = map_id
         hero.shop = None
         for mob in self.mobs[old].mobs.values():
@@ -301,6 +309,7 @@ class Game:
                 mob.aggro_target = None
         await manager.change_map(hero.char_id, map_id, x, y)
         await self.send(hero.char_id, {**self.map_info(hero), "type": "map_change", "x": x, "y": y})
+        await self.hq.on_move(self, hero, x, y)
         if map_id == wb.EVENT_MAP:
             await self.wb.on_enter(self, hero)
         await self.send_map_state(hero)
@@ -326,6 +335,7 @@ class Game:
         s = manager.sessions.get(hero.char_id)
         if not s:
             return
+        await self.hq.on_move(self, hero, s.x, s.y)
         for p in MAPS[hero.map_id]["portals"]:
             if _dist(s.x, s.y, p["x"], p["y"]) < PORTAL_RADIUS:
                 if self.portal_open(hero, p):
@@ -729,6 +739,7 @@ class Game:
 
     async def quest_kill(self, hero: Hero, def_id: str) -> None:
         await self.daily_progress(hero, "kill", def_id)
+        await self.hq.on_kill(self, hero, def_id)
         await self.pass_xp(hero, ssn.BOSS_KILL_XP if MOBS.get(def_id, {}).get("boss") else ssn.KILL_XP, "kill")
         quest = self.current_quest(hero)
         if not quest or hero.story.get("st") != "active" or quest["goal"].get("mob") != def_id:
@@ -740,6 +751,9 @@ class Game:
         await self.send(hero.char_id, {"type": "story", "story": hero.story})
 
     async def talk(self, hero: Hero, npc_id: str) -> None:
+        if npc_id == hq.NPC_ID:
+            await self.hq.talk(self, hero)
+            return
         npc = next((n for n in MAPS[hero.map_id]["npcs"] if n["id"] == npc_id), None)
         s = manager.sessions.get(hero.char_id)
         if not npc or not s or _dist(s.x, s.y, npc["x"], npc["y"]) > 6.0:
@@ -814,6 +828,9 @@ class Game:
         elif option == "market":
             await self.market_open(hero)
             return
+        elif option == "hq_accept":
+            await self.hq.accept(self, hero)
+            return
         elif option == "daily_claim":
             await self.daily_claim(hero)
             await self.push_hero(hero)
@@ -877,6 +894,10 @@ class Game:
         await self.tick_mining()
         if tick % 10 == 0:
             await self.wb.tick_schedule(self)
+            await self.hq.tick(self)
+            if self.hq.dirty and self.save_hq:
+                self.hq.dirty = False
+                await self.save_hq()
         if tick % 50 == 0:  # friends' and guildmates' levels and maps change as they play
             for h in list(self.heroes.values()):
                 if h.friends:

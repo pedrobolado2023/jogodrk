@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { socket } from "../network/socket";
-import { CLASS_INFO, GEAR_SLOTS, META, type SeasonState, critText, fmtBig, type GuildState, PARTY_COLOR, PK_INFO, SLOT_NAMES, pieceName, classPassives, classSkills, type HeroState, type InventoryState, type MapInfo, type PartyMember, type ShopMsg, type SkillDef } from "../data/meta";
+import { basicSkill, CLASS_INFO, GEAR_SLOTS, META, type SeasonState, critText, fmtBig, type GuildState, PARTY_COLOR, PK_INFO, SLOT_NAMES, pieceName, classPassives, classSkills, type HeroState, type InventoryState, type MapInfo, type PartyMember, type ShopMsg, type SkillDef } from "../data/meta";
 import { ensureTextures } from "../gfx/textures";
 import { ensureSkillIcons } from "../gfx/themeProps";
 import { terrainMapTexture } from "../gfx/world";
@@ -75,6 +75,10 @@ export class HUDScene extends Phaser.Scene {
 
   private skillBar!: Phaser.GameObjects.Container;
   private slots: Slot[] = [];
+  /** the free basic attack, right after the potions (a big ATACAR button on phones) */
+  private basicSlot?: Slot;
+  private basicLabel?: Phaser.GameObjects.Text;
+  private basicHold?: Phaser.Time.TimerEvent;
   private potionSlots: PotionSlot[] = [];
   private barWidth = 0;
   private inventoryUI!: InventoryUI;
@@ -104,10 +108,25 @@ export class HUDScene extends Phaser.Scene {
   private questTitle!: Phaser.GameObjects.Text;
   private questGoal!: Phaser.GameObjects.Text;
   private questAuto!: Phaser.GameObjects.Text;
+  // the right-side boxes grow with their text; their heights stack them in layout()
+  private questBg!: Phaser.GameObjects.Graphics;
+  private questHit!: Phaser.GameObjects.Zone;
+  private dailyBg!: Phaser.GameObjects.Graphics;
+  private dailyHit!: Phaser.GameObjects.Zone;
+  private dailyAuto!: Phaser.GameObjects.Text;
+  private hqBg!: Phaser.GameObjects.Graphics;
+  private questH = 58;
+  private dailyH = 76;
+  private hqH = 76;
   private dailyBox!: Phaser.GameObjects.Container;
   private dailyText!: Phaser.GameObjects.Text;
   private dailyHead!: Phaser.GameObjects.Text;
   private dailyShown = false;
+  // the Hidden Wanderer's quest (only while this hero holds it)
+  private hqBox!: Phaser.GameObjects.Container;
+  private hqText!: Phaser.GameObjects.Text;
+  private hqTime!: Phaser.GameObjects.Text;
+  private hqEnds = 0;
   private friends: FriendRow[] = [];
   private friendsMax = 50;
   private friendsWin?: Phaser.GameObjects.Container;
@@ -222,6 +241,8 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("open_chat", () => this.chat?.openInput());
     game.events.on("party", (members: PartyMember[]) => { this.party = members; this.drawParty(); });
     game.events.on("daily", (d: DailyState) => this.drawDaily(d));
+    game.events.on("hq", (m: { active: boolean }) => this.onHq(m));
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if (this.hqEnds) this.tickHq(); } });
     game.events.on("friends", (m: { friends: FriendRow[]; max: number }) => {
       this.friends = m.friends;
       this.friendsMax = m.max;
@@ -253,7 +274,7 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("target_update", (t: TargetInfo | null) => this.showTarget(t));
     game.events.on("boss_update", (b: { name: string; hp: number; maxHp: number } | null) => this.showBoss(b));
     game.events.on("skill_cast", (id: string) => {
-      const s = this.slots.find((x) => x.skill.id === id);
+      const s = this.slots.find((x) => x.skill.id === id) ?? (this.basicSlot?.skill.id === id ? this.basicSlot : undefined);
       if (!s) return;
       s.readyAt = this.time.now + s.skill.cd;
       this.tweens.add({ targets: s.root, scale: 0.88, duration: 70, yoyo: true });
@@ -270,10 +291,12 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("toggle_book", () => this.toggleBook());
     game.events.on("toggle_char", () => this.toggleChar());
     game.events.on("escape", () => this.closeAll());
-    game.events.on("auto_state", (mode: "farm" | "quest" | null) => {
-      this.autoFarmText.setText(mode === "farm" ? "Auto-Farm: LIGADO" : mode === "quest" ? "Auto: Missão" : "Auto-Farm: DESLIGADO")
+    game.events.on("auto_state", (mode: "farm" | "quest" | "daily" | null) => {
+      this.autoFarmText.setText(mode === "farm" ? "Auto-Farm: LIGADO" : mode === "quest" ? "Auto: Missão" : mode === "daily" ? "Auto: Diárias"
+        : "Auto-Farm: DESLIGADO")
         .setColor(mode ? "#9dff8a" : "#bfa77a");
       this.questAuto.setText(mode === "quest" ? "■ parar" : "▶ automático").setColor(mode === "quest" ? "#9dff8a" : "#d8c28a");
+      this.dailyAuto.setText(mode === "daily" ? "■ parar" : "▶ automático").setColor(mode === "daily" ? "#9dff8a" : "#d8c28a");
     });
 
     this.time.addEvent({ delay: 5000, loop: true, callback: () => socket.sendPing() });
@@ -287,6 +310,13 @@ export class HUDScene extends Phaser.Scene {
     const hpPct = Phaser.Math.Clamp(this.hero.hp / this.hero.max_hp, 0, 1);
     this.trailPct = this.trailPct > hpPct ? Math.max(hpPct, this.trailPct - 0.006) : hpPct;
     this.hpTrail.setCrop(0, 0, BAR_TEX_W * this.trailPct, 16);
+    if (this.basicSlot) {
+      const b = this.basicSlot, left = b.readyAt - time;
+      b.cd.clear();
+      if (left > 0) {
+        b.cd.fillStyle(0x000000, 0.6).slice(0, 0, 30, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (left / b.skill.cd), false).fillPath();
+      }
+    }
     for (const s of this.slots) {
       const left = s.readyAt - time;
       s.cd.clear();
@@ -317,12 +347,15 @@ export class HUDScene extends Phaser.Scene {
     this.hpFill = this.add.image(98, 39, "bar_hp").setOrigin(0).setScale(sx, 11 / 16);
     this.mpFill = this.add.image(98, 57, "bar_mp").setOrigin(0).setScale(sx, 7 / 16);
     this.expFill = this.add.graphics();
-    this.hpText = this.add.text(191, 44.5, "", txt(9, "#ffffff")).setOrigin(0.5).setResolution(2);
-    this.mpText = this.add.text(191, 60.5, "", txt(8, "#dfe8ff")).setOrigin(0.5).setResolution(2);
-    this.expText = this.add.text(98, 77, "", txt(8, "#e8d49a")).setResolution(2);
+    // numbers in a compact font (Cinzel digits are too tall for the thin bars), drawn sharp
+    const num = (size: number, color: string): Phaser.Types.GameObjects.Text.TextStyle =>
+      ({ fontFamily: "Arial, Helvetica, sans-serif", fontSize: `${size}px`, fontStyle: "bold", color, stroke: "#000000", strokeThickness: 2 });
+    this.hpText = this.add.text(191, 44.5, "", num(10, "#ffffff")).setOrigin(0.5);
+    this.mpText = this.add.text(191, 60.5, "", num(9, "#dfe8ff")).setOrigin(0.5);
+    this.expText = this.add.text(98, 77, "", txt(8, "#e8d49a"));
     this.buffRow = this.add.container(98, 96);
-    this.pkText = this.add.text(12, 120, "", txt(9, "#ff4a4a", { fontStyle: "bold" })).setResolution(2);
-    this.boostText = this.add.text(12, 136, "", txt(9, "#9dff8a", { fontStyle: "bold", lineSpacing: 2 })).setResolution(2);
+    this.pkText = this.add.text(12, 120, "", txt(9, "#ff4a4a", { fontStyle: "bold" }));
+    this.boostText = this.add.text(12, 136, "", txt(9, "#9dff8a", { fontStyle: "bold", lineSpacing: 2 }));
     this.playerPanel = this.add.container(10, 8, [frame, portrait, this.nameText, bg, this.hpTrail, this.hpFill, this.mpFill,
       this.expFill, this.hpText, this.mpText, this.expText, this.buffRow, this.pkText, this.boostText]);
     // the shop boosts count down on screen (minutes), between hero updates
@@ -334,7 +367,7 @@ export class HUDScene extends Phaser.Scene {
     this.targetName = this.add.text(0, 9, "", txt(12, "#e07a6a", { fontStyle: "bold" })).setOrigin(0.5, 0);
     const bg = this.add.graphics().fillStyle(0x000000, 0.85).fillRoundedRect(-112, 30, 224, 14, 3);
     this.targetFill = this.add.image(-110, 32, "bar_enemy").setOrigin(0).setScale(220 / BAR_TEX_W, 10 / 16);
-    this.targetHp = this.add.text(0, 37, "", txt(9, "#ffffff")).setOrigin(0.5).setResolution(2);
+    this.targetHp = this.add.text(0, 37, "", txt(9, "#ffffff")).setOrigin(0.5);
     this.inviteBtn = this.add.text(0, 58, "+ Convidar para o grupo", txt(11, PARTY_COLOR, {
       backgroundColor: "#13201a", padding: { x: 8, y: 3 },
     })).setOrigin(0.5, 0).setInteractive({ useHandCursor: true }).setVisible(false);
@@ -367,7 +400,8 @@ export class HUDScene extends Phaser.Scene {
   private buildSkillBar(): void {
     const skills = classSkills(this.cls);
     const potW = POTIONS.length * (SLOT + 4) + 10;
-    const w = skills.length * (SLOT + 4) + 14 + potW;
+    const basic = basicSkill(this.cls);
+    const w = (skills.length + (basic ? 1 : 0)) * (SLOT + 4) + 14 + potW;
     this.barWidth = w;
     const g = this.add.graphics();
     panel(g, -w / 2, -SLOT - 18, w, SLOT + 16, 10);
@@ -397,7 +431,35 @@ export class HUDScene extends Phaser.Scene {
       this.potionSlots.push({ kind: pt.kind, icon, count });
       this.potionRoots.push(root);
     });
-    const x0 = -w / 2 + potW + 7 + SLOT / 2;
+    let x0 = -w / 2 + potW + 7 + SLOT / 2;
+    if (basic) {
+      const slotImg = this.add.image(0, 0, "hud_slot").setScale(SLOT / 60);
+      const icon = this.add.image(0, 0, `icon_${basic.id}`).setScale((SLOT - 6) / 48);
+      const cd = this.add.graphics();
+      const cdText = this.add.text(0, 0, "", txt(12, "#ffffff", { fontStyle: "bold" })).setOrigin(0.5);
+      const key = this.add.text(-SLOT / 2 + 4, -SLOT / 2 + 2, "ESP", txt(9, "#ffd77a", { fontStyle: "bold" })).setVisible(!this.mobile);
+      this.basicLabel = this.add.text(0, SLOT / 2 - 2, "ATACAR", txt(9, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5, 1).setVisible(this.mobile);
+      const lock = this.add.text(0, 0, "", txt(9, "#ffffff")).setVisible(false);
+      const root = this.add.container(x0, -SLOT / 2 - 10, [slotImg, icon, cd, cdText, key, this.basicLabel, lock]);
+      root.setSize(SLOT, SLOT).setInteractive({ useHandCursor: true });
+      const attack = () => this.scene.get("GameScene").events.emit("basic_attack");
+      // held down (phones): keeps attacking as soon as it recharges
+      root.on("pointerdown", () => {
+        attack();
+        this.basicHold?.remove();
+        this.basicHold = this.time.addEvent({ delay: 150, loop: true, callback: attack });
+      });
+      const release = () => { this.basicHold?.remove(); this.basicHold = undefined; };
+      root.on("pointerup", release).on("pointerout", release);
+      this.input.on("pointerup", release);
+      root.on("pointerover", () => {
+        const m = root.getWorldTransformMatrix();
+        this.showTooltip(basic, m.tx, m.ty - SLOT / 2 - 6);
+      });
+      this.skillBar.add(root);
+      this.basicSlot = { skill: basic, root, icon, cd, cdText, lock, readyAt: 0 };
+      x0 += SLOT + 4;
+    }
     skills.forEach((skill, i) => {
       const slotImg = this.add.image(0, 0, "hud_slot").setScale(SLOT / 60);
       const icon = this.add.image(0, 0, `icon_${skill.id}`).setScale((SLOT - 6) / 48);
@@ -447,12 +509,88 @@ export class HUDScene extends Phaser.Scene {
     const hit = this.add.zone(0, 0, 200, 58).setOrigin(0).setInteractive({ useHandCursor: true });
     hit.on("pointerdown", () => this.scene.get("GameScene").events.emit("auto_quest"));
     hit.on("pointerover", () => g.setAlpha(0.8)).on("pointerout", () => g.setAlpha(1));
+    this.questBg = g;
+    this.questHit = hit;
     this.questBox = this.add.container(0, 0, [g, head, this.questTitle, this.questGoal, this.questAuto, hit]);
     const dg = this.add.graphics();
     panel(dg, 0, 0, 200, 76, 6, 0.8);
-    this.dailyHead = this.add.text(10, 6, "MISSÕES DIÁRIAS", txt(9, "#a8987a"));
-    this.dailyText = this.add.text(10, 20, "", txt(10, "#e8dcc0", { lineSpacing: 3, wordWrap: { width: 184 } }));
-    this.dailyBox = this.add.container(0, 0, [dg, this.dailyHead, this.dailyText]).setVisible(false);
+    this.dailyHead = this.add.text(10, 6, "DIÁRIAS", txt(9, "#a8987a"));
+    this.dailyAuto = this.add.text(190, 5, "▶ automático", txt(9, "#d8c28a")).setOrigin(1, 0);
+    this.dailyText = this.add.text(10, 21, "", txt(10, "#e8dcc0", { lineSpacing: 3, wordWrap: { width: 182 } }));
+    const dhit = this.add.zone(0, 0, 200, 76).setOrigin(0).setInteractive({ useHandCursor: true });
+    dhit.on("pointerdown", () => this.scene.get("GameScene").events.emit("auto_daily"));
+    dhit.on("pointerover", () => dg.setAlpha(0.8)).on("pointerout", () => dg.setAlpha(1));
+    this.dailyBg = dg;
+    this.dailyHit = dhit;
+    this.dailyBox = this.add.container(0, 0, [dg, this.dailyHead, this.dailyAuto, this.dailyText, dhit]).setVisible(false);
+    const hg = this.add.graphics();
+    this.hqBg = hg;
+    const hHead = this.add.text(10, 6, "MISSÃO OCULTA", txt(9, "#c8a8ff", { fontStyle: "bold" }));
+    this.hqTime = this.add.text(190, 6, "", txt(9, "#ffd77a", { fontStyle: "bold" })).setOrigin(1, 0);
+    this.hqText = this.add.text(10, 21, "", txt(10, "#e8dcc0", { lineSpacing: 3, wordWrap: { width: 182 } }));
+    this.hqBox = this.add.container(0, 0, [hg, hHead, this.hqTime, this.hqText]).setVisible(false);
+    this.sizeBoxes();
+  }
+
+  /**
+   * The right column (story, dailies, hidden quest, Global Boss) stacked under the minimap and above the window
+   * buttons: on short windows it shrinks a little instead of running into the buttons.
+   */
+  private fitRightColumn(w: number, top: number): void {
+    type Box = Phaser.GameObjects.Container | Phaser.GameObjects.Text;
+    const boxes: [Box | undefined, number][] = [
+      [this.questBox, this.questH], [this.dailyShown ? this.dailyBox : undefined, this.dailyH],
+      [this.hqEnds ? this.hqBox : undefined, this.hqH], [this.wbStatus, this.wbStatus?.height ?? 0],
+    ];
+    const shown = boxes.filter(([c, hh]) => c && c.visible && hh > 0) as [Box, number][];
+    const need = shown.reduce((s, [, hh]) => s + hh + 6, 0);
+    // the window buttons: one column, or two side by side when the column would run into the boxes
+    this.menuItems.forEach((c) => c.setPosition(0, 0));
+    if (this.buttons.visible && this.buttons.getBounds().top - 8 - top < need) {
+      const rows = Math.ceil(this.menuItems.length / 2);
+      this.menuItems.forEach((c, i) => {
+        const y0 = c.getData("y") as number;
+        c.setPosition(i % 2 === 0 ? -160 : 0, -4 - (rows - 1 - Math.floor(i / 2)) * 32 - y0);
+      });
+    }
+    const bottom = this.buttons.visible ? this.buttons.getBounds().top - 8 : this.scale.height - 80;
+    const k = Phaser.Math.Clamp((bottom - top) / Math.max(1, need), 0.8, 1);
+    let y = top;
+    for (const [c, hh] of shown) {
+      c.setScale(k).setPosition(w - 10 - 200 * k, y);
+      y += (hh + 6) * k;
+    }
+  }
+
+  /** Each right-side box as tall as its text, so nothing spills out of its frame. */
+  private sizeBoxes(): void {
+    this.questH = Math.max(58, Math.ceil(this.questGoal.y + this.questGoal.height + 7));
+    this.questBg.clear();
+    panel(this.questBg, 0, 0, 200, this.questH, 6, 0.8);
+    this.questHit.setSize(200, this.questH);
+    this.dailyH = Math.max(44, Math.ceil(this.dailyText.y + this.dailyText.height + 8));
+    this.dailyBg.clear();
+    panel(this.dailyBg, 0, 0, 200, this.dailyH, 6, 0.8);
+    this.dailyHit.setSize(200, this.dailyH);
+    this.hqH = Math.max(52, Math.ceil(this.hqText.y + this.hqText.height + 8));
+    this.hqBg.clear();
+    panel(this.hqBg, 0, 0, 200, this.hqH, 6, 0.85);
+    this.hqBg.lineStyle(1, 0xb05cff, 0.9).strokeRoundedRect(1, 1, 198, this.hqH - 2, 6);
+  }
+
+  /** The Hidden Wanderer's quest: what to do, progress and the 24-hour countdown. */
+  private onHq(m: { active: boolean; desc?: string; n?: number; count?: number; left?: number }): void {
+    this.hqEnds = m.active ? Date.now() + (m.left ?? 0) * 1000 : 0;
+    if (m.active) this.hqText.setText(`${m.desc}\nProgresso: ${m.n ?? 0}/${m.count ?? 1}`);
+    this.tickHq();
+    this.sizeBoxes();
+    this.layout();
+  }
+
+  private tickHq(): void {
+    const left = Math.max(0, Math.floor((this.hqEnds - Date.now()) / 1000));
+    const h = Math.floor(left / 3600), mi = Math.floor((left % 3600) / 60), s = left % 60;
+    this.hqTime.setText(this.hqEnds ? `${h}h ${String(mi).padStart(2, "0")}m ${String(s).padStart(2, "0")}s` : "");
   }
 
   private drawDaily(d: DailyState): void {
@@ -462,9 +600,10 @@ export class HUDScene extends Phaser.Scene {
       return `${mark} ${short(t.text)} ${t.claimed ? "" : `${t.n}/${t.count}`}`.trim();
     }).join("\n"));
     const ready = d.tasks.some((t) => t.n >= t.count && !t.claimed);
-    this.dailyHead.setText(d.bonus ? "MISSÕES DIÁRIAS — FEITAS HOJE" : ready ? "MISSÕES DIÁRIAS — FALE COM HALD" : "MISSÕES DIÁRIAS")
-      .setColor(ready ? "#ffd77a" : "#a8987a");
+    this.dailyHead.setText(d.bonus ? "DIÁRIAS ✔ FEITAS" : ready ? "DIÁRIAS ★ ENTREGAR" : "DIÁRIAS")
+      .setColor(ready ? "#ffd77a" : d.bonus ? "#9dff8a" : "#a8987a");
     this.dailyShown = true;
+    this.sizeBoxes();
     this.layout();
   }
 
@@ -533,9 +672,12 @@ export class HUDScene extends Phaser.Scene {
     const compact = w < 760, tiny = w < 600;
     const mm = tiny ? 0.55 : compact ? 0.8 : 1;
     this.minimap.setPosition(w - 84 * mm, 84 * mm).setScale(mm);
-    this.questBox.setPosition(w - 210, compact ? 192 : 206).setVisible(!tiny);
-    const dailyH = this.dailyShown && !tiny ? 92 : 0;
-    this.dailyBox?.setPosition(w - 210, (compact ? 192 : 206) + 64).setVisible(this.dailyShown && !tiny);
+    const boxY = compact ? 192 : 206;
+    this.questBox.setPosition(w - 210, boxY).setVisible(!tiny);
+    const dailyH = this.dailyShown && !tiny ? this.dailyH + 6 : 0;
+    this.dailyBox?.setPosition(w - 210, boxY + this.questH + 6).setVisible(this.dailyShown && !tiny);
+    const hqH = this.hqEnds && !tiny ? this.hqH + 6 : 0;
+    this.hqBox?.setPosition(w - 210, boxY + this.questH + 6 + dailyH).setVisible(!!this.hqEnds && !tiny);
     this.scoreBox.setPosition(10, 128).setScale(tiny ? 0.75 : 1);
     this.wbBox?.setPosition(10, 128).setScale(tiny ? 0.75 : 1);
     const boxBelow = this.scoreBox.visible ? 150 * this.scoreBox.scaleY : this.wbBox?.visible ? 180 * this.wbBox.scaleY : 0;
@@ -545,9 +687,10 @@ export class HUDScene extends Phaser.Scene {
       this.wbBox?.setScale(this.ui * 0.85);
       this.partyBox?.setScale(this.ui * 0.85);
     }
-    this.wbStatus?.setPosition(w - 210, (compact ? 192 : 206) + (tiny ? -80 : 64 + dailyH)).setVisible(true);
+    this.wbStatus?.setPosition(w - 210, boxY + (tiny ? -80 : this.questH + 6 + dailyH + hqH)).setVisible(true);
     this.wbResultWin?.setPosition(w / 2, h / 2);
     this.buttons.setPosition(w - 92, h - 84 - (SLOT + 20) * (barScale < 1 ? 1 - barScale : 0)).setVisible(!tiny);
+    if (!tiny && !this.mobile) this.fitRightColumn(w, boxY);
     this.inventoryUI?.layout();
     this.playerPanel.setScale(tiny ? 0.72 : 1);
     // chat sits beside the skill bar when there is room, otherwise above it; the loot feed stacks on top
@@ -682,6 +825,9 @@ export class HUDScene extends Phaser.Scene {
     this.slots.forEach((s, i) => s.root.setPosition(right - (4.5 - (i % 5)) * step, bottom - (Math.floor(i / 5) + 0.5) * step).setScale(k));
     const gridLeft = right - 5 * step;
     this.potionRoots.forEach((r, i) => r.setPosition(gridLeft - step * 0.5 - 6, bottom - (i + 0.5) * step).setScale(k));
+    const bk = k * 1.45;
+    const basicX = gridLeft - step - 12 - (SLOT / 2) * bk;
+    this.basicSlot?.root.setPosition(basicX, bottom - step + 4).setScale(bk);
     const gridTop = bottom - Math.ceil(this.slots.length / 5) * step;
     this.touchBtns.forEach((b, i) => b.setPosition(right - 26 * k - i * 58 * k, gridTop - 30 * k).setScale(k));
 
@@ -692,15 +838,22 @@ export class HUDScene extends Phaser.Scene {
     const qy = 168 * mm + 6;
     this.questBox.setPosition(w - 206 * qs, qy).setScale(qs).setVisible(true);
     const showDaily = this.dailyShown && h >= 470;
-    this.dailyBox?.setPosition(w - 206 * qs, qy + 64 * qs).setScale(qs).setVisible(showDaily);
-    this.wbStatus?.setPosition(w - 210 * qs, qy + (64 + (showDaily ? 84 : 0)) * qs).setScale(qs);
+    this.dailyBox?.setPosition(w - 206 * qs, qy + (this.questH + 6) * qs).setScale(qs).setVisible(showDaily);
+    // the hidden quest matters more than the daily list: on short screens it takes the daily box's place
+    const hqY = qy + (this.questH + 6 + (showDaily ? this.dailyH + 6 : 0)) * qs;
+    this.hqBox?.setPosition(w - 206 * qs, hqY).setScale(qs).setVisible(!!this.hqEnds);
+    this.wbStatus?.setPosition(w - 210 * qs, hqY + (this.hqEnds ? this.hqH + 6 : 0) * qs).setScale(qs);
+    // never under the round buttons (Alvo, Montar): on short phones the Global Boss line steps aside (the boss is
+    // announced in the chat and on screen anyway)
+    const roundTop = gridTop - 30 * k - 26 * k - 4;
+    if (this.wbStatus) this.wbStatus.setVisible(this.wbStatus.y + this.wbStatus.height * qs <= roundTop);
     this.playerPanel.setScale(Phaser.Math.Clamp(h / 520, 0.62, 0.92));
 
     this.joyK = k;
     this.joyRoot?.setScale(k);
     this.joyHome = { x: 18 + JOY_R * k, y: h - 18 - JOY_R * k };
     if (this.joyPtr < 0) this.joyRoot?.setPosition(this.joyHome.x, this.joyHome.y);
-    this.joyZone?.setPosition(0, h).setSize(Math.max(160, Math.min(w * 0.45, gridLeft - step - 40)), h * 0.62);
+    this.joyZone?.setPosition(0, h).setSize(Math.max(160, Math.min(w * 0.45, basicX - (SLOT / 2) * bk - 16)), h * 0.62);
     const chatBottom = 18 + JOY_R * 2 * k + 8;
     this.chat?.setTouch(h < 400 ? 46 : 64);
     this.chat?.place(chatBottom, Math.min(280, w * 0.32));
