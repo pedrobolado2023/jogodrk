@@ -8,7 +8,7 @@ import { isTouch } from "../ui/device";
 import { API, META, fmtBig, type HeroState, type SeasonState, type ShopOffer } from "../data/meta";
 import { authHeaders } from "../network/session";
 import { GLOW_COLORS } from "../gfx/textures";
-import { SHEETS, animKey, hasSheet, requestGraded, requestSheet, skinKey } from "../gfx/sprites3d";
+import { SHEETS, shopThumb, type Grade } from "../gfx/sprites3d";
 import { panel, txt } from "./uiStyle";
 
 type Obj = Phaser.GameObjects.GameObject;
@@ -179,6 +179,13 @@ export class ShopUI {
     }
   }
 
+  /** Pictures arrive one by one: redraw once for a burst of them, not once per picture. */
+  private redrawTimer?: Phaser.Time.TimerEvent;
+  private redrawSoon(): void {
+    if (this.redrawTimer) return;
+    this.redrawTimer = this.scene.time.delayedCall(120, () => { this.redrawTimer = undefined; if (this.root) this.draw(); });
+  }
+
   private draw(): void {
     this.root?.destroy();
     const shop = META.shop;
@@ -270,45 +277,35 @@ export class ShopUI {
       const t = META.titles.find((tt) => tt.id === o.ref);
       objs.push(this.scene.add.image(cx, y + 30, "item_pass_title").setScale(0.75),
         this.scene.add.text(cx, y + 58, `« ${t?.name ?? ""} »`, txt(11, t?.color ?? "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5));
-    } else if (o.kind === "skin") {
-      // the player's own hero wearing it, recoloured in the browser the first time the card shows
-      const def = META.skins?.find((s) => s.id === o.ref);
-      const base = `unit_${this.hero?.cls ?? "blade_master"}`;
-      const key = def?.sheet ? `${def.sheet}_${base.replace(/^unit_/, "")}` : def ? skinKey(base, def.id) : base;
-      const stage = this.scene.add.graphics();
-      stage.fillStyle(0x2a2238, 0.6).fillEllipse(cx, y + 66, 92, 18);
-      objs.push(stage);
-      if (hasSheet(key)) {
-        const info = SHEETS[key];
-        const fig = this.scene.add.sprite(cx, y + 68, `${key}:idle`, 1 * info.anims.idle.frames).setOrigin(0.5, info.originY)
-          .setScale(Math.min(info.scale * 1.6, 62 / (info.height * (44 / info.scale))));
-        const anim = animKey(key, "idle", 1);
-        if (this.scene.anims.exists(anim)) fig.play(anim);
-        objs.push(fig);
-      } else if (def) {
-        objs.push(this.scene.add.text(cx, y + 36, "…", txt(14, "#a8987a")).setOrigin(0.5));
-        const load = def.sheet ? requestSheet(this.scene, key) : def.grade ? requestGraded(this.scene, base, def.id, def.grade) : Promise.resolve(false);
-        void load.then((ok) => { if (ok && this.root && this.tab === "skins") this.draw(); });
+    } else if (o.kind === "skin" || o.kind === "pet" || o.kind === "mount") {
+      // a still picture: one frame of the idle sheet (the player's own hero for skins, recoloured when it is a colour
+      // skin); only that image is downloaded, never the walking or fighting animations
+      const cls = (this.hero?.cls ?? "blade_master");
+      let key = "", grade: Grade | undefined, as: string | undefined, tall = 54;
+      if (o.kind === "skin") {
+        const def = META.skins?.find((s) => s.id === o.ref);
+        key = def?.sheet ? `${def.sheet}_${cls}` : `unit_${cls}`;
+        grade = def?.sheet ? undefined : def?.grade;
+        as = `${key}~${o.ref}`;
+        tall = 62;
+      } else {
+        key = (o.kind === "pet" ? META.pets : META.mounts)?.find((p) => p.id === o.ref)?.sheet ?? "";
       }
-    } else if (o.kind === "pet" || o.kind === "mount") {
-      // the mascot / horse itself, breathing in its idle pose (its 3D sheet loads the first time the card shows)
-      const def = (o.kind === "pet" ? META.pets : META.mounts)?.find((p) => p.id === o.ref);
-      const sheet = def?.sheet ?? "";
       const stage = this.scene.add.graphics();
       stage.fillStyle(0x2a2238, 0.6).fillEllipse(cx, y + 66, 92, 18);
       objs.push(stage);
-      if (sheet && hasSheet(sheet)) {
-        const info = SHEETS[sheet];
-        // three-quarter view (row 1): animals seen head-on look thin
-        const fig = this.scene.add.sprite(cx, y + 66, `${sheet}:idle`, 1 * info.anims.idle.frames).setOrigin(0.5, info.originY)
-          // about 54 px tall, but never wider than the card (the dragons have long tails)
-          .setScale(Math.min(info.scale * 1.6, 54 / (info.height * (44 / info.scale)), (CARD_W * 1.05) / info.size));
-        const anim = animKey(sheet, "idle", 1);
-        if (this.scene.anims.exists(anim)) fig.play(anim);
-        objs.push(fig);
+      const tex = `thumb:${as ?? key}`;
+      const info = SHEETS[key];
+      if (info && this.scene.textures.exists(tex)) {
+        objs.push(this.scene.add.image(cx, y + 66, tex).setOrigin(0.5, info.originY)
+          // about 54 px tall (heroes 62), but never wider than the card (the dragons have long tails)
+          .setScale(Math.min(info.scale * 1.6, tall / (info.height * (44 / info.scale)), (CARD_W * 1.05) / info.size)));
       } else {
         objs.push(this.scene.add.image(cx, y + 40, "item_paw").setScale(1));
-        if (sheet) void requestSheet(this.scene, sheet).then((ok) => { if (ok && this.root && (this.tab === "mascotes" || this.tab === "montarias")) this.draw(); });
+        if (info) {
+          const tab = this.tab;
+          void shopThumb(this.scene, key, grade, as).then((k) => { if (k && this.root && this.tab === tab) this.redrawSoon(); });
+        }
       }
     } else if (o.kind === "boost") {
       objs.push(this.scene.add.image(cx, y + 38, o.ref === "gold" ? "item_boost_gold" : "item_boost_exp").setScale(1.1));

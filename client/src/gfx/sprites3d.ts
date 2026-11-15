@@ -123,6 +123,49 @@ function gradePixels(px: Uint8ClampedArray, g: Grade): void {
   }
 }
 
+let thumbQueue: Promise<unknown> = Promise.resolve();
+
+/** A still picture for a shop card: one frame (three-quarter view, first idle frame) of a character's idle sheet,
+ *  recoloured by `g` when given. Only that one image is downloaded (never the other animations), the frame is copied
+ *  to a small texture and the sheet image is dropped right away. One at a time, cached: resolves the texture key. */
+export function shopThumb(scene: Phaser.Scene, key: string, g?: Grade, as = key): Promise<string | null> {
+  const out = `thumb:${as}`;
+  if (scene.textures.exists(out)) return Promise.resolve(out);
+  const info = SHEETS[key];
+  if (!info) return Promise.resolve(null);
+  const p = thumbQueue.then(async () => {
+    if (scene.textures.exists(out)) return out;
+    if (!scene.sys.isActive()) return null;
+    const live = scene.textures.exists(`${key}:idle`);  // already in the game (the player's own hero, say)
+    const tmp = `thumbsrc:${key}`;
+    if (!live && !scene.textures.exists(tmp)) {
+      await new Promise<void>((resolve) => {
+        const done = (): void => { scene.load.off(Phaser.Loader.Events.COMPLETE, done); resolve(); };
+        scene.load.image(tmp, `sprites/${key}/idle.png?v=${info.v ?? 0}`);
+        scene.load.once(Phaser.Loader.Events.COMPLETE, done);
+        scene.load.start();
+      });
+    }
+    const srcKey = live ? `${key}:idle` : tmp;
+    if (!scene.textures.exists(srcKey)) return null;
+    const src = scene.textures.get(srcKey).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+    const s = info.size;
+    const c = scene.textures.createCanvas(out, s, s)!;
+    // row 1 = three-quarter view (seen head-on, animals look thin); the first frame of it
+    c.context.drawImage(src, 0, s, s, s, 0, 0, s, s);
+    if (g) {
+      const img = c.context.getImageData(0, 0, s, s);
+      gradePixels(img.data, g);
+      c.context.putImageData(img, 0, 0);
+    }
+    c.refresh();
+    if (!live) scene.textures.remove(tmp);
+    return out;
+  }).catch(() => null);
+  thumbQueue = p;
+  return p;
+}
+
 /** A character recoloured by a skin: its own sheets, graded once on canvases (no extra download). Sheet by sheet,
  *  one per tick, so the game never freezes. Resolves true when `skinKey(base, skin)` is usable like any sheet. */
 export function requestGraded(scene: Phaser.Scene, base: string, skin: string, g: Grade): Promise<boolean> {
@@ -143,10 +186,17 @@ export function requestGraded(scene: Phaser.Scene, base: string, skin: string, g
         c.width = src.width;
         c.height = src.height;
         const ctx = c.getContext("2d", { willReadFrequently: true })!;
-        ctx.drawImage(src, 0, 0);
-        const img = ctx.getImageData(0, 0, c.width, c.height);
-        gradePixels(img.data, g);
-        ctx.putImageData(img, 0, 0);
+        // one direction (row of frames) at a time, with a pause between them: copying, reading and writing a whole
+        // big sheet at once stalls the game for a moment; a strip is an eighth of that
+        for (let y = 0; y < c.height; y += info.size) {
+          const h = Math.min(info.size, c.height - y);
+          ctx.drawImage(src, 0, y, c.width, h, 0, y, c.width, h);
+          const img = ctx.getImageData(0, y, c.width, h);
+          gradePixels(img.data, g);
+          ctx.putImageData(img, 0, y);
+          await new Promise((r) => setTimeout(r, 0));
+          if (!scene.sys.isActive()) return false;
+        }
         scene.textures.addSpriteSheet(tex, c as unknown as HTMLImageElement, { frameWidth: info.size, frameHeight: info.size });
         await new Promise((r) => setTimeout(r, 0));
         if (!scene.sys.isActive()) return false;
