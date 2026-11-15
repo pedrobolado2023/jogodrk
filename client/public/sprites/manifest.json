@@ -73,11 +73,6 @@
     "frames": 10,
     "fps": 12,
     "loop": false
-   },
-   "ride": {
-    "frames": 14,
-    "fps": 5,
-    "loop": true
    }
   },
   "v": 1794752531
@@ -122,11 +117,6 @@
     "frames": 10,
     "fps": 12,
     "loop": false
-   },
-   "ride": {
-    "frames": 10,
-    "fps": 5.56,
-    "loop": true
    }
   },
   "v": 1794752558
@@ -171,11 +161,6 @@
     "frames": 10,
     "fps": 12,
     "loop": false
-   },
-   "ride": {
-    "frames": 16,
-    "fps": 5,
-    "loop": true
    }
   },
   "v": 1794752764
@@ -1598,16 +1583,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794672885
@@ -1621,16 +1596,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },
@@ -1646,16 +1611,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794673338
@@ -1669,16 +1624,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },
@@ -1694,16 +1639,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674306
@@ -1717,16 +1652,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },
@@ -1766,16 +1691,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674410
@@ -1814,16 +1729,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674411
@@ -1838,16 +1743,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674516
@@ -1861,16 +1756,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },
@@ -1910,16 +1795,6 @@
     "frames": 8,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 8,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 8,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674596
@@ -1958,16 +1833,6 @@
     "frames": 16,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674628
@@ -1981,16 +1846,6 @@
    "idle": {
     "frames": 8,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 8,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 8,
-    "fps": 14,
     "loop": true
    }
   },
@@ -2030,16 +1885,6 @@
     "frames": 16,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674744
@@ -2053,16 +1898,6 @@
    "idle": {
     "frames": 8,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 8,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 8,
-    "fps": 14,
     "loop": true
    }
   },
@@ -2101,16 +1936,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },
@@ -2174,16 +1999,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794674942
@@ -2245,16 +2060,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },
@@ -2318,16 +2123,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794675149
@@ -2366,16 +2161,6 @@
     "frames": 13,
     "fps": 5,
     "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
-    "loop": true
    }
   },
   "v": 1794675234
@@ -2389,16 +2174,6 @@
    "idle": {
     "frames": 13,
     "fps": 5,
-    "loop": true
-   },
-   "walk": {
-    "frames": 10,
-    "fps": 12,
-    "loop": true
-   },
-   "run": {
-    "frames": 10,
-    "fps": 14,
     "loop": true
    }
   },

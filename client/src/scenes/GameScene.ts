@@ -558,7 +558,9 @@ export class GameScene extends Phaser.Scene {
     this.layoutTags(u);
   }
 
-  /** Puts a hero on a horse (or takes him off). The horse sheet loads first; looks only, the pace never changes. */
+  /** Puts a hero on a mount (or takes him off). Looks only, the pace never changes. The hero seated on that mount is
+   *  one 3D sheet (ride_<class>_<mount>), the only thing loaded; a mount without one (none today) falls back to the
+   *  plain animal under the hero's body. */
   private setMount(ownerId: string, mountId: string | undefined): void {
     const u = ownerId === this.charId ? this.player : this.remotes.get(ownerId);
     if (!u) return;
@@ -573,34 +575,25 @@ export class GameScene extends Phaser.Scene {
     }
     const def = META.mounts?.find((m) => m.id === want);
     if (!def) return;
+    const combined = `ride_${u.baseKey.replace(/^unit_/, "")}_${def.id}`;
+    const full = knowsSheet(combined);
+    const sheet = full ? combined : def.sheet;
     const put = () => {
       if (u.ride || !u.root.active) return;
       const want2 = ownerId === this.charId ? this.hero?.cosmetics?.mount : (this.remotes.get(ownerId) === u ? want : "");
       if (want2 !== def.id) return;
-      const info = SHEETS[def.sheet];
-      const horse = this.add.sprite(0, 0, `${def.sheet}:idle`, u.dir * info.anims.idle.frames).setOrigin(0.5, info.originY).setScale(info.scale);
+      const info = SHEETS[sheet];
+      const horse = this.add.sprite(0, 0, `${sheet}:idle`, u.dir * info.anims.idle.frames).setOrigin(0.5, info.originY).setScale(info.scale);
       u.root.addAt(horse, u.root.getIndex(u.body));  // just under the rider
-      // saddle: the animal's back, as a share of its height (horse 0.72, stag 0.52, dragon 0.40…)
-      u.ride = { id: def.id, sheet: def.sheet, horse, raise: Math.round(info.height * 44 * (def.saddle ?? 0.72)), on: false, anim: "", combat: 0 };
-      // the hero seated on this very mount, one 3D sheet: swaps in when it arrives (the pair above shows meanwhile)
-      const full = `ride_${u.baseKey.replace(/^unit_/, "")}_${def.id}`;
-      if (!knowsSheet(full)) return;
-      void requestSheet(this, full).then((ok) => {
-        const r = u.ride;
-        if (!ok || !r || r.id !== def.id || !u.root.active) return;
-        const fi = SHEETS[full];
-        r.full = full;
-        r.horse.setTexture(`${full}:idle`, u.dir * fi.anims.idle.frames).setOrigin(0.5, fi.originY).setScale(fi.scale);
-        r.anim = "";
-        // name and tags above the rider's head (about 1.45× the mount's height), not above the saddle
-        r.raise = Math.max(0, Math.round(fi.height * 44 * 1.45 - (u.height - 4)));
-        if (u.body.isCropped) u.body.setCrop();
-        u.body.setY(0).setVisible(!r.on);
-        this.layoutTags(u);
-      });
+      u.ride = full
+        // name and tags above the rider's head (about 1.45× the mount's height)
+        ? { id: def.id, sheet, full: sheet, horse, raise: Math.max(0, Math.round(info.height * 44 * 1.45 - (u.height - 4))), on: false, anim: "", combat: 0 }
+        // saddle: the animal's back, as a share of its height (horse 0.72, stag 0.52, dragon 0.40…)
+        : { id: def.id, sheet, horse, raise: Math.round(info.height * 44 * (def.saddle ?? 0.72)), on: false, anim: "", combat: 0 };
+      horse.setVisible(false);  // updateRides shows it (and hides the body) on the next frame
     };
-    if (hasSheet(def.sheet)) put();
-    else void requestSheet(this, def.sheet).then((ok) => { if (ok) put(); });
+    if (hasSheet(sheet)) put();
+    else void requestSheet(this, sheet).then((ok) => { if (ok) put(); });
   }
 
   /** Each frame: rider up on the saddle (idle pose, legs cut at the knee) and the horse walking his way;
@@ -699,7 +692,7 @@ export class GameScene extends Phaser.Scene {
   private releaseUnusedSheets(): void {
     const used = new Set<string>([this.player.baseKey]);
     for (const p of this.pets.values()) used.add(p.unit.baseKey);
-    for (const u of [this.player, ...this.remotes.values()]) if (u.ride) { used.add(u.ride.sheet); if (u.ride.full) used.add(u.ride.full); }
+    for (const u of [this.player, ...this.remotes.values()]) if (u.ride) used.add(u.ride.sheet);
     for (const group of [this.mobs, this.remotes, this.npcs] as Map<string, Unit>[]) {
       for (const u of group.values()) if (u.root.active) used.add(u.baseKey);
     }

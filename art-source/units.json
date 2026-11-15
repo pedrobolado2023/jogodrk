@@ -55,8 +55,7 @@
       "cast": "^sword and shield casting[.]fbx$",
       "hit": "^sword and shield impact[.]fbx$",
       "death": "^sword and shield death[.]fbx$"
-    },
-    "ride": true
+    }
   },
   "unit_grand_sorcerer": {
     "source": "mixamo",
@@ -75,8 +74,7 @@
       "cast": "^standing 2h magic area attack 01[.]fbx$",
       "hit": "^standing react small from front[.]fbx$",
       "death": "^standing react death backward[.]fbx$"
-    },
-    "ride": true
+    }
   },
   "unit_night_ranger": {
     "source": "mixamo",
@@ -96,7 +94,6 @@
       "hit": "^standing react small from front[.]fbx$",
       "death": "^standing death backward 01[.]fbx$"
     },
-    "ride": true,
     "ride_hide": [
       "arrow"
     ]
@@ -1093,9 +1090,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_white": {
@@ -1107,9 +1102,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_shadow": {
@@ -1121,9 +1114,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.75,
@@ -1144,9 +1135,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.5,
@@ -1167,9 +1156,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.6,
@@ -1190,9 +1177,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.9,
@@ -1213,9 +1198,7 @@
     "size": 160,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_alpaca": {
@@ -1227,9 +1210,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_alpaca_royal": {
@@ -1241,9 +1222,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.6,
@@ -1264,9 +1243,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_stag": {
@@ -1278,9 +1255,7 @@
     "size": 192,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_stag_spirit": {
@@ -1292,9 +1267,7 @@
     "size": 192,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.85,
@@ -1315,9 +1288,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_bull_infernal": {
@@ -1329,9 +1300,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.5,
@@ -1352,9 +1321,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     }
   },
   "mount_wolf_shadow": {
@@ -1366,9 +1333,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.75,
@@ -1389,9 +1354,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.9,
@@ -1412,14 +1375,10 @@
     "size": 320,
     "center": 0.4,
     "anims": {
-      "idle": "idle_loop",
-      "walk": "walk_loop",
-      "run": "walk_loop"
+      "idle": "idle_loop"
     },
     "frames": {
-      "idle": 8,
-      "walk": 8,
-      "run": 8
+      "idle": 8
     },
     "grade": {
       "desat": 0.35,
@@ -1440,14 +1399,10 @@
     "size": 320,
     "center": 0.4,
     "anims": {
-      "idle": "idle_loop",
-      "walk": "walk_loop",
-      "run": "walk_loop"
+      "idle": "idle_loop"
     },
     "frames": {
-      "idle": 8,
-      "walk": 8,
-      "run": 8
+      "idle": 8
     },
     "grade": {
       "desat": 0.6,
@@ -1468,14 +1423,10 @@
     "size": 320,
     "center": 0.4,
     "anims": {
-      "idle": "idle_loop",
-      "walk": "walk_loop",
-      "run": "walk_loop"
+      "idle": "idle_loop"
     },
     "frames": {
-      "idle": 8,
-      "walk": 8,
-      "run": 8
+      "idle": 8
     },
     "grade": {
       "desat": 0.6,
@@ -1750,9 +1701,7 @@
     "size": 176,
     "center": 0.4,
     "anims": {
-      "idle": "Idle",
-      "walk": "Walk",
-      "run": "Gallop"
+      "idle": "Idle"
     },
     "grade": {
       "desat": 0.95,
