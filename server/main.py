@@ -466,6 +466,8 @@ INVENTORY_ACTIONS = {
     "party_leave": lambda h, d: game.party_leave(h),
     "party_kick": lambda h, d: game.party_kick(h, str(d.get("name", ""))),
     "wb_join": lambda h, d: game.wb.join(game, h),
+    "world_map": lambda h, d: game.world_map(h),
+    "teleport": lambda h, d: game.teleport(h, str(d.get("map", ""))),
     "mine": lambda h, d: game.mine_start(h, str(d.get("vein", ""))),
     "market_query": lambda h, d: game.market_view(h, d.get("cat"), d.get("sort"),
                                                   None if d.get("page") is None else max(0, _int(d.get("page")))),
@@ -478,6 +480,8 @@ INVENTORY_ACTIONS = {
     "forge_upgrade": lambda h, d: game.forge_upgrade(h, str(d.get("where", "bag")), d.get("ref"), str(d.get("item", "")),
                                                     bool(d.get("protect"))),
     "forge_refine": lambda h, d: game.forge_refine(h, str(d.get("where", "bag")), d.get("ref"), str(d.get("item", ""))),
+    "forge_enchant": lambda h, d: game.forge_enchant(h, str(d.get("where", "bag")), d.get("ref"), str(d.get("item", "")),
+                                                    str(d.get("element", ""))),
     "wb_dev_start": lambda h, d: _dev_start_boss(_int(d.get("boss"), 1)),
 }
 

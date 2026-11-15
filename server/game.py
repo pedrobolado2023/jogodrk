@@ -46,6 +46,9 @@ SPLASH_DAMAGE = 0.6    # damage share of the splash around single-target attacks
 MAX_FRIENDS = 50
 FRIEND_REQ_TTL = 60.0  # seconds a friend request waits for an answer
 SAVE_EVERY = 30.0
+TELEPORT_MIN_COST = 20     # world map teleport: gold, by the map's lowest monster level
+TELEPORT_PER_LEVEL = 15
+TELEPORT_COOLDOWN = 5.0
 
 
 @dataclass
@@ -205,6 +208,7 @@ class Game:
         self.parties = pt.PartyManager()
         self.wb = wb.WorldBossEvent()
         self.hq = hq.HiddenQuest()  # replaced by the saved one at start (main.py)
+        self.tp_last: dict[str, float] = {}  # world map teleport cooldown
         self.save_hq = None
         self.mine = mining.Mine()
         self.market = mk.Market()
@@ -316,6 +320,59 @@ class Game:
         if MAPS[old]["pvp"]:
             await self.broadcast_scores(old)
         await self.save_hero(hero)
+
+    # ── world map teleport ───────────────────────────────────────────────
+
+    def teleport_cost(self, map_id: str) -> int:
+        """A little gold, more for higher maps (the town is cheap)."""
+        levels = [MOBS[s["mob"]]["level"] for s in SPAWNS if s["map"] == map_id]
+        return max(TELEPORT_MIN_COST, min(levels) * TELEPORT_PER_LEVEL) if levels else TELEPORT_MIN_COST
+
+    def unlocked_maps(self, hero: Hero) -> set[str]:
+        """Maps reachable on foot from town through open portals (the story unlocks them); never the event room."""
+        seen, todo = {"town_01"}, ["town_01"]
+        while todo:
+            for p in MAPS[todo.pop()]["portals"]:
+                if p["to"] not in seen and not p.get("event") and self.portal_open(hero, p):
+                    seen.add(p["to"])
+                    todo.append(p["to"])
+        return seen
+
+    async def world_map(self, hero: Hero) -> str | None:
+        open_ = self.unlocked_maps(hero)
+        maps = [{"id": k, "name": m["name"], "theme": m["theme"], "level": m["level"], "unlocked": k in open_,
+                 "cost": self.teleport_cost(k)} for k, m in MAPS.items() if not m.get("event")]
+        links = sorted({tuple(sorted((k, p["to"]))) for k, m in MAPS.items() for p in m["portals"] if not p.get("event")})
+        await self.send(hero.char_id, {"type": "world_map", "current": hero.map_id, "gold": hero.gold, "maps": maps,
+                                       "links": [list(l) for l in links]})
+        return None
+
+    async def teleport(self, hero: Hero, map_id: str) -> str | None:
+        if map_id not in MAPS or MAPS[map_id].get("event"):
+            return "Esse lugar não existe no mapa."
+        if hero.is_dead:
+            return "Você não pode se teleportar morto."
+        if map_id == hero.map_id:
+            return "Você já está aqui."
+        if hero.map_id == wb.EVENT_MAP and self.wb.state == "active":
+            return "Não dá para se teleportar no meio da luta contra o Boss Global. Saia pelo portal."
+        if map_id not in self.unlocked_maps(hero):
+            return "Esse lugar ainda está selado. Avance na história com o Ancião Aldric para liberá-lo."
+        now = time.monotonic()
+        if now - self.tp_last.get(hero.char_id, -999) < TELEPORT_COOLDOWN:
+            return "Espere um pouco antes de se teleportar de novo."
+        cost = self.teleport_cost(map_id)
+        if hero.gold < cost:
+            return f"Ouro insuficiente: o teleporte custa {cost}."
+        hero.gold -= cost
+        self.tp_last[hero.char_id] = now
+        x, y = MAPS[map_id]["spawn"]
+        await self.change_map(hero, map_id, x, y)
+        await self.push_inventory(hero)
+        await self.push_hero(hero)
+        await self.notice(hero.char_id, f"Teleportado para {MAPS[map_id]['name']} (-{cost} ouro).", "info")
+        await self.save_hero(hero)
+        return None
 
     def portal_open(self, hero: Hero, portal: dict[str, Any]) -> bool:
         if portal.get("event"):
@@ -480,15 +537,18 @@ class Game:
             event["hits"] = [h[1] for h in hits[:40]]
         await self.to_map(hero.map_id, event)
         stat = hero.stat(sk.get("stat", "str")) if sk.get("stat") else 0
+        ench = self.weapon_enchant(hero)
         for e in hits:
-            weak = SPLASH_DAMAGE if e[1] in splash else 1.0
+            weak = (SPLASH_DAMAGE if e[1] in splash else 1.0) * (1 + ench["dmg"] if ench else 1.0)
+            last_hit = 0
             for _ in range(sk["hits"]):
                 if e[0] == "mob":
                     mob = self.mobs[hero.map_id].mobs.get(e[1])
                     if not mob or mob.is_dead:
                         break
                     dmg, crit = self.roll_damage(hero, sk, stat, mob.def_, mob.hp / mob.max_hp)
-                    await self.hurt_mob(hero, e[1], max(1, int(dmg * weak)), crit)
+                    last_hit = max(1, int(dmg * weak))
+                    await self.hurt_mob(hero, e[1], last_hit, crit)
                 else:
                     victim = self.heroes.get(e[1])
                     if not victim or victim.is_dead:
@@ -498,6 +558,8 @@ class Game:
                     await self.hurt_hero(victim, max(1, int(dmg * PVP_DAMAGE * weak)), hero, crit)
             if e[1] not in splash:  # stuns, slows and poisons stay on the real targets
                 await self.apply_effects(hero, sk, e)
+                if ench and last_hit and e[0] == "mob" and random.random() < ench["proc"]:
+                    await self.enchant_proc(hero, ench, e[1], last_hit)
         await self.push_hero(hero)
         return None
 
@@ -2002,6 +2064,56 @@ class Game:
         await self.daily_progress(hero, "forge")
         return None
 
+    def weapon_enchant(self, hero: Hero) -> dict[str, Any] | None:
+        w = hero.gear.get("weapon")
+        return forge.ENCHANTS.get(w.get("ench", "")) if isinstance(w, dict) else None
+
+    async def enchant_proc(self, hero: Hero, ench: dict[str, Any], mob_id: str, hit: int) -> None:
+        """The weapon's element on a direct hit: burn, slow, an extra shock or poison."""
+        mob = self.mobs[hero.map_id].mobs.get(mob_id)
+        if not mob or mob.is_dead:
+            return
+        now = time.monotonic()
+        kind = ench["effect"]
+        if kind in ("burn", "poison"):
+            ticks = 3 if kind == "burn" else 4
+            share = forge.BURN_SHARE if kind == "burn" else forge.POISON_SHARE
+            per = max(1, int(hit * share / ticks))
+            self.dots.append(Dot(hero.char_id, mob_id, hero.map_id, per, 1.0, ticks, now + 1.0, kind))
+        elif kind == "slow":
+            self.mobs[hero.map_id].apply_cc(mob_id, "slow", forge.SLOW_SECONDS)
+            await self.to_map(hero.map_id, {"type": "cc", "target": mob_id, "kind": "slow", "dur": forge.SLOW_SECONDS})
+        elif kind == "shock":
+            await self.hurt_mob(hero, mob_id, max(1, int(hit * forge.SHOCK_SHARE)))
+        await self.to_map(hero.map_id, {"type": "enchant_proc", "target": mob_id, "kind": kind})
+
+    async def forge_enchant(self, hero: Hero, where: str, ref: Any, item_id: str, element: str) -> str | None:
+        if not self.at_forge(hero):
+            return "Fale com o ferreiro para usar a forja."
+        if element not in forge.ENCHANTS:
+            return "Escolha um elemento."
+        p = self.find_piece(hero, where, ref, item_id)
+        if p is None:
+            return "Esse item não está mais aí."
+        if inv.ITEMS[item_id].get("slot") != "weapon":
+            return "Só armas podem ser encantadas."
+        if p.get("ench") == element:
+            return f"Essa arma já está encantada com {forge.ENCHANTS[element]['name']}."
+        tier = int(inv.ITEMS[item_id].get("tier", 1))
+        fee = forge.enchant_fee(tier)
+        if inv.count(hero.bag, "stone_enchant") < 1:
+            return "Você precisa de 1× Pedra de Encantamento."
+        if hero.gold < fee:
+            return "Ouro insuficiente."
+        hero.gold -= fee
+        self.take_stack(hero, "stone_enchant", 1)
+        p["ench"] = element
+        e = forge.ENCHANTS[element]
+        await self.send(hero.char_id, {"type": "forge_result", "ok": True, "ench": element,
+                                       "text": f"{inv.ITEMS[item_id]['name']} encantada com {e['name']}: {e['desc']}."})
+        await self.after_inventory(hero, stats=where == "gear")
+        return None
+
     async def forge_refine(self, hero: Hero, where: str, ref: Any, item_id: str) -> str | None:
         if not self.at_forge(hero):
             return "Fale com o ferreiro para usar a forja."
@@ -2081,7 +2193,7 @@ class Game:
         if not (0 <= index < len(hero.bag)) or hero.bag[index]["id"] != item_id:
             return "Esse item não está mais na bolsa."
         qty = 1 if inv.ITEMS[item_id]["type"] == "gear" else max(1, min(qty, hero.bag[index]["qty"]))
-        item = {k: v for k, v in hero.bag[index].items() if k in ("id", "plus", "ref")}
+        item = {k: v for k, v in hero.bag[index].items() if k in ("id", "plus", "ref", "ench")}
         item["qty"] = qty
         err = self.market.check_listing(hero.char_id, item, price)
         if err:

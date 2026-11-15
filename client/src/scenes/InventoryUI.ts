@@ -15,9 +15,9 @@ import { panel, txt } from "./uiStyle";
 
 type Action = Record<string, unknown>;
 type Obj = Phaser.GameObjects.GameObject;
-type Piece = { id: string; qty?: number; plus?: number; ref?: Record<string, number> };
+type Piece = { id: string; qty?: number; plus?: number; ref?: Record<string, number>; ench?: string };
 type Sel = { where: "bag"; ref: number; id: string } | { where: "gear"; ref: GearSlot; id: string };
-type ForgeTab = "stones" | "upgrade" | "refine";
+type ForgeTab = "stones" | "upgrade" | "refine" | "enchant";
 interface MenuOption { label: string; color?: string; run: () => void; keepOpen?: boolean }
 interface MarketRow { id: number; seller: string; item: Piece & { qty: number }; price: number; left: number }
 export interface MarketMsg {
@@ -58,7 +58,7 @@ const KIND: Record<string, { weapon: string; cloth: string; glow: number }> = {
 };
 const RARITY_ORDER = ["comum", "incomum", "raro", "epico", "lendario"];
 const TYPE_NAMES: Record<string, string> = { potion: "Poção", material: "Material", tool: "Ferramenta" };
-const STONES = ["stone_up_1", "stone_up_2", "stone_up_3", "stone_protect", "stone_refine"];
+const STONES = ["stone_up_1", "stone_up_2", "stone_up_3", "stone_protect", "stone_refine", "stone_enchant"];
 
 const hexOf = (c: string): number => parseInt(c.slice(1), 16);
 // same rules as server/forge.py (the server decides; these only explain the costs on screen)
@@ -83,6 +83,8 @@ export class InventoryUI {
   /** which page of the bag is shown (BAG_PAGE slots each) */
   private bagPage = 0;
   private protect = false;
+  /** element picked in the forge's Encantar tab */
+  private enchantEl = "fire";
   private lastResult: { ok: boolean; text: string } | null = null;
   private visible = false;
   private heroSig = "";
@@ -457,11 +459,11 @@ export class InventoryUI {
 
   private drawForge(objs: Obj[], px: number, py: number, f: { name: string }): void {
     this.frame(objs, px, py, FORGE_W, H, `FORJA — ${f.name.split(",")[0].toUpperCase()}`, () => this.close());
-    const tabs: [ForgeTab, string][] = [["stones", "Pedras"], ["upgrade", "Aprimorar"], ["refine", "Refinar"]];
+    const tabs: [ForgeTab, string][] = [["stones", "Pedras"], ["upgrade", "Aprimorar"], ["refine", "Refinar"], ["enchant", "Encantar"]];
     tabs.forEach(([id, label], i) => {
       const on = this.forgeTab === id;
-      const t = this.scene.add.text(px + 18 + i * 96, py + 38, label, txt(11, on ? "#ffd77a" : "#a8987a", {
-        backgroundColor: on ? "#2e2414" : "#15110c", padding: { x: 10, y: 4 }, fontStyle: on ? "bold" : "normal", fixedWidth: 88, align: "center",
+      const t = this.scene.add.text(px + 14 + i * 74, py + 38, label, txt(10, on ? "#ffd77a" : "#a8987a", {
+        backgroundColor: on ? "#2e2414" : "#15110c", padding: { x: 4, y: 4 }, fontStyle: on ? "bold" : "normal", fixedWidth: 70, align: "center",
       })).setInteractive({ useHandCursor: true });
       t.on("pointerdown", () => { this.forgeTab = id; this.lastResult = null; this.redraw(); });
       objs.push(t);
@@ -481,7 +483,7 @@ export class InventoryUI {
     STONES.forEach((stone, i) => {
       const r = META.forge?.recipes[stone];
       if (!r) return;
-      const y = top + i * 50;
+      const y = top + i * 44;
       this.cell(objs, px + 14, y, { id: stone }, () => undefined, () => [], false, 40);
       objs.push(this.scene.add.text(px + 62, y, META.items[stone].name.replace(/^Pedra de /, ""),
         txt(10, META.rarity[META.items[stone].rarity].color, { fontStyle: "bold" })));
@@ -498,11 +500,12 @@ export class InventoryUI {
     });
   }
 
-  private drawWork(objs: Obj[], px: number, top: number, mode: "upgrade" | "refine"): void {
+  private drawWork(objs: Obj[], px: number, top: number, mode: "upgrade" | "refine" | "enchant"): void {
     const p = this.selected();
     if (!p || !this.sel) {
       objs.push(this.scene.add.text(px + FORGE_W / 2, top + 60, mode === "upgrade"
         ? "Escolha um equipamento\n(na bolsa ou equipado)\npara aprimorar de +0 até +15."
+        : mode === "enchant" ? "Escolha uma arma\n(na bolsa ou equipada)\npara encantar com um elemento."
         : "Escolha um equipamento\n(na bolsa ou equipado)\npara receber bônus de refino.",
       txt(11, "#a8987a", { align: "center", lineSpacing: 6 })).setOrigin(0.5, 0));
       return;
@@ -540,6 +543,31 @@ export class InventoryUI {
         const sel = this.sel;
         run = () => this.send({ type: "forge_upgrade", where: sel.where, ref: sel.ref, item: p.id, protect: this.protect && target > 5 });
       }
+    } else if (mode === "enchant") {
+      const enchants = META.forge?.enchants ?? {};
+      if (def.slot !== "weapon") {
+        lines.push(["Só armas podem ser encantadas. Escolha uma arma.", "#ff9a7a"]);
+      } else {
+        const cur = p.ench ? enchants[p.ench] : undefined;
+        lines.push([cur ? `Encantamento atual: ${cur.name} — ${cur.desc}.` : "Esta arma ainda não tem encantamento.", cur?.color ?? "#c8bca0"]);
+        // the four elements
+        Object.entries(enchants).forEach(([el, e], i) => {
+          const on = this.enchantEl === el;
+          const b = this.scene.add.text(px + 16 + (i % 2) * 150, top + 92 + Math.floor(i / 2) * 30, `${on ? "◉" : "○"} ${e.name}`, txt(11, e.color, {
+            fontStyle: "bold", backgroundColor: on ? "#2e2414" : "#15110c", padding: { x: 8, y: 4 }, fixedWidth: 140,
+          })).setInteractive({ useHandCursor: true });
+          b.on("pointerdown", () => { this.enchantEl = el; this.redraw(); });
+          objs.push(b);
+        });
+        const pick = enchants[this.enchantEl];
+        const fee = 600 * Math.max(1, def.tier ?? 1), have = this.count("stone_enchant");
+        lines.push([`${pick?.name ?? ""}: ${pick?.desc ?? ""}.`, pick?.color ?? "#ffd77a"]);
+        can = gold >= fee && have > 0 && p.ench !== this.enchantEl;
+        lines.push([`Custo: ${fee} ouro + 1× Pedra de Encantamento (tem ${have})`, gold >= fee && have > 0 ? "#e8dcc0" : "#ff7a6a"]);
+        label = p.ench ? "TROCAR ENCANTAMENTO" : "ENCANTAR";
+        const sel = this.sel, el = this.enchantEl;
+        run = () => this.send({ type: "forge_enchant", where: sel.where, ref: sel.ref, item: p.id, element: el });
+      }
     } else {
       const fee = refineFee(def.tier ?? 1), have = this.count("stone_refine");
       const current = refLines(p.ref);
@@ -553,12 +581,20 @@ export class InventoryUI {
       run = () => this.send({ type: "forge_refine", where: sel.where, ref: sel.ref, item: p.id });
     }
     let ly = top + 58; // stack by real height: long lines wrap
+    if (mode === "enchant" && lines.length > 1) {
+      // current enchantment above the element buttons, the rest below them
+      const first = this.scene.add.text(px + 16, ly, lines[0][0], txt(10, lines[0][1], { wordWrap: { width: FORGE_W - 32 } }));
+      objs.push(first);
+      lines.shift();
+      ly = top + 158;
+    }
     for (const [t, c] of lines) {
       const line = this.scene.add.text(px + 16, ly, t, txt(10, c, { wordWrap: { width: FORGE_W - 32 } }));
       objs.push(line);
       ly += line.height + 6;
     }
-    if (label) this.button(objs, px + FORGE_W / 2 - 60, top + 190, label, can, run, mode === "upgrade" ? "#ffd77a" : "#c08cff");
+    if (label) this.button(objs, px + FORGE_W / 2 - 60, mode === "enchant" ? Math.max(top + 230, ly + 4) : top + 190, label, can, run,
+      mode === "upgrade" ? "#ffd77a" : mode === "enchant" ? "#ffb070" : "#c08cff");
   }
 
   // ── player market ────────────────────────────────────────────────────
@@ -762,6 +798,8 @@ export class InventoryUI {
     const lines: { t: string; c: string }[] = [{ t: `${rarity.name} · ${kind}`, c: "#a8987a" }];
     for (const s of statLines(def.type === "gear" ? pieceStats(p) : def.stats)) lines.push({ t: s, c: "#9dff8a" });
     for (const s of refLines(p.ref)) lines.push({ t: `✦ ${s}`, c: "#c08cff" });
+    const ench = p.ench ? META.forge?.enchants?.[p.ench] : undefined;
+    if (ench) lines.push({ t: `✶ Encantamento: ${ench.name} — ${ench.desc}`, c: ench.color });
     if (def.desc) lines.push({ t: def.desc, c: "#d8ccb0" });
     if (def.type === "gear") {
       const lvl = this.hero?.level ?? 1;

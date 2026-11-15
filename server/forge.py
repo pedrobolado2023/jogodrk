@@ -8,6 +8,9 @@ Upgrade (+N): each attempt uses one upgrade stone of the right tier and a gold f
 as the item climbs. On failure:  +1…+5 nothing is lost but the stone;  +6…+10 the item drops one level;
 +11…+15 it falls back to +10. A Protection Stone used on the attempt keeps the level on failure.
 
+Enchantment (weapons only): one element — fire, ice, lightning or poison — with extra damage and a chance, on each
+direct hit, of its effect (burn, slow, an extra shock, poison). Enchanting again changes the element.
+
 Refinement: adds a random bonus line (damage %, crit chance, crit damage, evasion, defense %, life %, life steal), up to
 REFINE_MAX_LINES. Refining a full item rerolls all its lines. Values scale with the item's tier.
 """
@@ -25,7 +28,22 @@ RECIPES: dict[str, dict[str, Any]] = {
     "stone_up_3": {"mats": {"ore_gold": 3, "ore_arcane": 1}, "gold": 1000},
     "stone_protect": {"mats": {"ore_arcane": 1, "ore_silver": 2}, "gold": 1500},
     "stone_refine": {"mats": {"ore_arcane": 2, "ore_gold": 2}, "gold": 2000},
+    "stone_enchant": {"mats": {"ore_arcane": 2, "ore_silver": 3}, "gold": 1500},
 }
+
+# element → name, extra damage, chance of the effect on a direct hit, effect, what it does (Portuguese)
+ENCHANTS: dict[str, dict[str, Any]] = {
+    "fire": {"name": "Fogo", "dmg": 0.08, "proc": 0.20, "effect": "burn", "color": "#ff8a3a",
+             "desc": "+8% de dano e 20% de chance de queimar o alvo"},
+    "ice": {"name": "Gelo", "dmg": 0.06, "proc": 0.25, "effect": "slow", "color": "#8fd8ff",
+            "desc": "+6% de dano e 25% de chance de deixar o alvo lento"},
+    "lightning": {"name": "Raio", "dmg": 0.10, "proc": 0.15, "effect": "shock", "color": "#ffe36a",
+                  "desc": "+10% de dano e 15% de chance de um choque extra"},
+    "poison": {"name": "Veneno", "dmg": 0.06, "proc": 0.25, "effect": "poison", "color": "#9dff6a",
+               "desc": "+6% de dano e 25% de chance de envenenar o alvo"},
+}
+BURN_SHARE, POISON_SHARE, SHOCK_SHARE = 0.30, 0.36, 0.40  # of the hit: burn/poison spread over their ticks, shock at once
+SLOW_SECONDS = 2.5
 
 # chance of success for reaching each level
 UP_CHANCE = {1: 1.0, 2: 1.0, 3: 1.0, 4: 0.9, 5: 0.8, 6: 0.7, 7: 0.6, 8: 0.5, 9: 0.45, 10: 0.4,
@@ -59,6 +77,10 @@ def after_failure(plus: int, target: int) -> int:
     return 10
 
 
+def enchant_fee(tier: int) -> int:
+    return 600 * max(1, tier)
+
+
 def refine_fee(tier: int) -> int:
     return 400 * max(1, tier)
 
@@ -82,4 +104,5 @@ def refine(ref: dict[str, float], tier: int) -> dict[str, float]:
 def info() -> dict[str, Any]:
     """Forge tables for the client (sent with /meta)."""
     return {"recipes": RECIPES, "up_chance": UP_CHANCE, "max_plus": MAX_PLUS,
-            "refine_lines": {k: v["name"] for k, v in REFINE_LINES.items()}, "refine_max": REFINE_MAX_LINES}
+            "refine_lines": {k: v["name"] for k, v in REFINE_LINES.items()}, "refine_max": REFINE_MAX_LINES,
+            "enchants": {k: {"name": v["name"], "desc": v["desc"], "color": v["color"]} for k, v in ENCHANTS.items()}}

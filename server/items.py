@@ -79,6 +79,8 @@ ITEMS: dict[str, dict[str, Any]] = {
                       "sell": 400, "desc": "Se o aprimoramento falhar, o item não perde nível."},
     "stone_refine": {"name": "Pedra de Refino", "type": "material", "icon": "stone_refine", "rarity": "lendario",
                      "sell": 520, "desc": "Dá ao equipamento um bônus extra (dano, crítico, evasão…)."},
+    "stone_enchant": {"name": "Pedra de Encantamento", "type": "material", "icon": "stone_enchant", "rarity": "lendario",
+                      "sell": 480, "desc": "Encanta uma arma com Fogo, Gelo, Raio ou Veneno (na forja)."},
 
     # ── materials (monster drops, only for selling) ────────────────────
     "wolf_pelt": {"name": "Pele de Lobo", "type": "material", "icon": "mat_pelt", "rarity": "comum", "sell": 6,
@@ -340,7 +342,10 @@ def piece(v: Any) -> dict[str, Any]:
     """A gear piece as {"id", "plus", "ref"} (older saves stored just the id)."""
     if isinstance(v, str):
         return {"id": v, "plus": 0, "ref": {}}
-    return {"id": v["id"], "plus": int(v.get("plus", 0)), "ref": dict(v.get("ref") or {})}
+    p = {"id": v["id"], "plus": int(v.get("plus", 0)), "ref": dict(v.get("ref") or {})}
+    if v.get("ench"):  # weapon enchantment element (forge.ENCHANTS)
+        p["ench"] = v["ench"]
+    return p
 
 
 def item_id(v: Any) -> str:
@@ -444,6 +449,8 @@ def add_piece(bag: list[dict[str, Any]], v: Any, index: int | None = None) -> bo
         entry["plus"] = p["plus"]
     if p["ref"]:
         entry["ref"] = p["ref"]
+    if p.get("ench"):
+        entry["ench"] = p["ench"]
     if index is None:
         bag.append(entry)
     else:
@@ -454,7 +461,10 @@ def add_piece(bag: list[dict[str, Any]], v: Any, index: int | None = None) -> bo
 def strip(v: Any) -> dict[str, Any]:
     """The gear-slot form of a piece: {"id", "plus", "ref"} without qty."""
     p = piece(v)
-    return {"id": p["id"], "plus": p["plus"], "ref": p["ref"]}
+    out = {"id": p["id"], "plus": p["plus"], "ref": p["ref"]}
+    if p.get("ench"):
+        out["ench"] = p["ench"]
+    return out
 
 
 def count(bag: list[dict[str, Any]], item_id: str) -> int:
@@ -475,6 +485,8 @@ def clean(bag: Any, gear: Any) -> tuple[list[dict[str, Any]], dict[str, dict[str
                 entry["plus"] = max(0, min(15, int(e["plus"])))
             if e.get("ref"):
                 entry["ref"] = dict(e["ref"])
+            if e.get("ench"):
+                entry["ench"] = e["ench"]
         b.append(entry)
     g: dict[str, dict[str, Any]] = {}
     for s, v in (gear or {}).items():

@@ -11,6 +11,7 @@ import { TextPrompt } from "./TextPrompt";
 import { QUALITY_NAMES, cycleQuality, quality } from "../gfx/quality";
 import { InventoryUI, type MarketMsg } from "./InventoryUI";
 import { PassUI } from "./PassUI";
+import { WorldMapUI, type WorldMapMsg } from "./WorldMapUI";
 import { ShopUI } from "./ShopUI";
 import { ChatUI, type ChatMsg } from "./ChatUI";
 import { panel, txt } from "./uiStyle";
@@ -83,6 +84,7 @@ export class HUDScene extends Phaser.Scene {
   private barWidth = 0;
   private inventoryUI!: InventoryUI;
   private passUI!: PassUI;
+  private worldMap!: WorldMapUI;
   private shopUI!: ShopUI;
   private chat?: ChatUI;
   private partyBox!: Phaser.GameObjects.Container;
@@ -194,6 +196,7 @@ export class HUDScene extends Phaser.Scene {
     ensureItemIcons(this);
     this.inventoryUI = new InventoryUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), this.cls);
     this.passUI = new PassUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), () => this.toggleShop("destaques"));
+    this.worldMap = new WorldMapUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
     this.shopUI = new ShopUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
     this.mobile = isTouch();
     this.chat = new ChatUI((m) => this.scene.get("GameScene").events.emit("inv_action", m));
@@ -254,6 +257,8 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("hero", (h: HeroState) => this.shopUI.setHero(h));
     game.events.on("toggle_shop", () => this.toggleShop());
     game.events.on("toggle_pass", () => this.togglePass());
+    game.events.on("toggle_map", () => this.toggleMap());
+    game.events.on("world_map", (m: WorldMapMsg) => this.worldMap.set(m));
     game.events.on("guild", (st: GuildState) => {
       this.guild = st;
       if (this.guildWin) this.drawGuild();
@@ -265,7 +270,7 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("wb_result", (r: WbResult) => this.showWbResult(r));
     const early = (game as GameScene).inventory;
     if (early) this.onInventory(early);
-    game.events.on("map_info", (m: MapInfo) => this.onMap(m));
+    game.events.on("map_info", (m: MapInfo) => { this.onMap(m); this.worldMap.mapChanged(); });
     game.events.on("portals_update", (m: MapInfo) => {
       this.textures.remove(`terrain_${m.map_id}`);
       this.terrain = this.textures.get(terrainMapTexture(this, m)).getSourceImage() as HTMLCanvasElement;
@@ -638,6 +643,7 @@ export class HUDScene extends Phaser.Scene {
     });
     mk("◆ Loja (L)", -292, () => this.toggleShop());
     mk("★ Passe (P)", -260, () => this.togglePass());
+    mk("Mapa do mundo (N)", -324, () => this.toggleMap());
     mk("Guilda (G)", -196, () => this.toggleGuild());
     mk("Amigos (F)", -164, () => this.toggleFriends());
     mk("Chat (Enter)", -132, () => this.chat?.openInput());
@@ -771,7 +777,7 @@ export class HUDScene extends Phaser.Scene {
   /** While a window or the menu is open, the joystick, the round buttons and the chat step aside. */
   private coverTouch(): void {
     const open = this.menuOpen || !!(this.book || this.charPanel || this.friendsWin || this.guildWin || this.dialog)
-      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen;
+      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen || !!this.worldMap?.isOpen;
     if (open === this.covered) return;
     this.covered = open;
     if (open) this.releaseJoy();
@@ -1191,6 +1197,7 @@ export class HUDScene extends Phaser.Scene {
     this.guildWin?.destroy(); this.guildWin = undefined;
     if (this.inventoryUI?.isOpen) this.inventoryUI.close();
     if (this.passUI?.isOpen) this.passUI.close();
+    if (this.worldMap?.isOpen) this.worldMap.close();
     if (this.shopUI?.isOpen) this.shopUI.close();
   }
 
@@ -1198,6 +1205,12 @@ export class HUDScene extends Phaser.Scene {
     const open = this.shopUI.isOpen;
     this.closeWindows();
     if (!open || tab) this.shopUI.toggle(tab);
+  }
+
+  private toggleMap(): void {
+    const open = this.worldMap.isOpen;
+    this.closeWindows();
+    if (!open) this.worldMap.toggle();
   }
 
   private togglePass(): void {

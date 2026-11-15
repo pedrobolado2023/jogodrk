@@ -260,6 +260,17 @@ const PAINTERS: Record<string, Painter> = {
     c.fillStyle = radial(c, 20, 20, 18, [[0, "#ffffff"], [0.35, "#ffb347"], [0.75, "#c0400a"], [1, "#3a0a02"]]); c.fill();
     for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; line(c, 1.5, "rgba(255,240,200,0.8)", [24 + Math.cos(a) * 17, 26 + Math.sin(a) * 17, 24 + Math.cos(a) * 21, 26 + Math.sin(a) * 21]); }
   },
+  stone_enchant: (c) => {
+    // a gem split into the four elements: fire, ice, lightning, poison
+    const parts: [number, string, string][] = [[0, "#ff8a3a", "#7a2008"], [1, "#8fd8ff", "#14467a"], [2, "#ffe36a", "#8a6a08"], [3, "#9dff6a", "#2a6a10"]];
+    for (const [i, light, dark] of parts) {
+      const a0 = (i / 4) * Math.PI * 2 - Math.PI / 2, a1 = a0 + Math.PI / 2;
+      c.beginPath(); c.moveTo(24, 26); c.arc(24, 26, 15, a0, a1); c.closePath();
+      c.fillStyle = radial(c, 24 + Math.cos(a0 + 0.8) * 7, 26 + Math.sin(a0 + 0.8) * 7, 12, [[0, light], [1, dark]]); c.fill();
+    }
+    c.beginPath(); c.arc(24, 26, 15, 0, Math.PI * 2); c.strokeStyle = "#2a1a08"; c.lineWidth = 1.5; c.stroke();
+    c.beginPath(); c.arc(24, 26, 5, 0, Math.PI * 2); c.fillStyle = radial(c, 23, 25, 6, [[0, "#ffffff"], [1, "#d8c0ff"]]); c.fill();
+  },
   mat_slime: (c) => {
     c.beginPath(); c.moveTo(8, 38); c.bezierCurveTo(6, 24, 16, 18, 22, 22); c.bezierCurveTo(26, 10, 40, 14, 38, 26);
     c.bezierCurveTo(44, 32, 42, 40, 34, 40); c.closePath();

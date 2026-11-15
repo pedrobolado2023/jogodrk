@@ -937,6 +937,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on("keydown-ESC", () => { this.setTarget(null); this.events.emit("escape"); });
     this.input.keyboard!.on("keydown-TAB", (e: KeyboardEvent) => { e.preventDefault(); this.cycleTarget(); });
     this.input.keyboard!.on("keydown-K", () => this.events.emit("toggle_book"));
+    this.input.keyboard!.on("keydown-N", () => this.events.emit("toggle_map"));
     this.input.keyboard!.on("keydown-C", () => this.events.emit("toggle_char"));
     this.input.keyboard!.on("keydown-I", () => this.events.emit("toggle_inv"));
     this.input.keyboard!.on("keydown-F", () => this.events.emit("toggle_friends"));
@@ -1421,6 +1422,15 @@ export class GameScene extends Phaser.Scene {
     });
     socket.on("hq_mark", (m) => this.hqMark(m.id as number, m.x as number, m.y as number, !!m.gone, !!m.found));
     socket.on("hq", (m) => this.events.emit("hq", m));
+    // the weapon's element triggered on a hit: a burst in its colour on the monster
+    socket.on("enchant_proc", (m) => {
+      const u = this.mobs.get(m.target as string);
+      if (!u) return;
+      const color = ({ burn: "orange", slow: "ice", shock: "gold", poison: "green" } as Record<string, string>)[m.kind as string] ?? "white";
+      this.fx.burst("sparks", color, u.root.x, u.root.y - u.height * 0.5, 14);
+      this.fx.flash(u.root.x, u.root.y - u.height * 0.5, color, 0.9, 260, 0.6);
+    });
+    socket.on("world_map", (m) => this.events.emit("world_map", m));
     socket.on("daily", (m) => {
       this.daily = m as unknown as DailyState;
       this.updateQuestMarkers();

@@ -178,10 +178,10 @@ export interface ItemDef {
 }
 
 /** A bag slot. Gear pieces may carry an upgrade level (`plus`) and refinement lines (`ref`). */
-export interface BagEntry { id: string; qty: number; plus?: number; ref?: Record<string, number> }
+export interface BagEntry { id: string; qty: number; plus?: number; ref?: Record<string, number>; ench?: string }
 
 /** An equipped gear piece. */
-export interface GearPiece { id: string; plus?: number; ref?: Record<string, number> }
+export interface GearPiece { id: string; plus?: number; ref?: Record<string, number>; ench?: string }
 
 export interface ForgeInfo {
   recipes: Record<string, { mats: Record<string, number>; gold: number }>;
@@ -189,6 +189,8 @@ export interface ForgeInfo {
   max_plus: number;
   refine_lines: Record<string, string>;
   refine_max: number;
+  /** weapon enchantments: element → name, what it does, colour */
+  enchants?: Record<string, { name: string; desc: string; color: string }>;
 }
 
 /** Stats of a piece after its upgrade level (server: items.piece_stats). */
