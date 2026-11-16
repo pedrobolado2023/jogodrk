@@ -181,6 +181,8 @@ async def lifespan(app: FastAPI):
         import hidden_quest as hqm
         row = await db.get(GameState, "hidden_quest")
         game.hq = hqm.HiddenQuest(row.value if row else None)
+        row = await db.get(GameState, "settings")
+        game.apply_settings(row.value if row else None)
     tasks = [asyncio.create_task(manager.start_broadcast_loop()), asyncio.create_task(_game_loop())]
     yield
     manager.stop_broadcast_loop()

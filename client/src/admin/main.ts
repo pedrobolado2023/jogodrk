@@ -107,6 +107,30 @@ async function loadHidden(): Promise<void> {
   showHidden(await api<HiddenView>("/admin/hidden"));
 }
 
+// ── game settings ──────────────────────────────────────────────────────
+
+interface Settings { pvp_percent: number; pvp_default: number; pvp_min: number; pvp_max: number }
+
+function showSettings(s: Settings): void {
+  const input = $("pvp-pct") as HTMLInputElement;
+  input.min = String(s.pvp_min);
+  input.max = String(s.pvp_max);
+  if (document.activeElement !== input) input.value = String(s.pvp_percent);
+  $("pvp-now").textContent = `Agora: ${s.pvp_percent}% · padrão do jogo: ${s.pvp_default}% · de ${s.pvp_min}% a ${s.pvp_max}%`;
+}
+
+async function loadSettings(): Promise<void> {
+  showSettings(await api<Settings>("/admin/settings"));
+}
+
+$("pvp-save").addEventListener("click", async () => {
+  const percent = Math.round(Number(($("pvp-pct") as HTMLInputElement).value));
+  if (!Number.isFinite(percent) || percent <= 0) { toast("Digite um número.", true); return; }
+  if (!confirm(`Mudar o dano no PvP para ${percent}% do dano normal?`)) return;
+  try { const r = await api<Settings & { message: string }>("/admin/settings/pvp", { percent }); toast(r.message); showSettings(r); await loadOverview(); }
+  catch (e) { toast(e instanceof Error ? e.message : "Algo deu errado.", true); }
+});
+
 // ── players ────────────────────────────────────────────────────────────
 
 async function loadPlayers(): Promise<void> {
@@ -206,7 +230,7 @@ async function start(): Promise<void> {
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
   $("logout").classList.remove("hidden");
-  await Promise.all([loadPlayers(), loadOverview(), loadHidden()]).catch((e) => toast(e.message, true));
+  await Promise.all([loadPlayers(), loadOverview(), loadHidden(), loadSettings()]).catch((e) => toast(e.message, true));
 }
 
 $("login-form").addEventListener("submit", async (ev) => {

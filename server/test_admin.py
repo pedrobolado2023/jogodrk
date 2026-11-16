@@ -123,6 +123,29 @@ async def run_all():
             code, body = await call("GET", "/admin/overview", boss_t)
             assert body["log"][0]["action"] == "aviso para todos" and len(body["log"]) >= 8
             print("ok broadcast and log")
+
+            # PvP damage: admins only, kept in range, saved and loaded back after a restart
+            import game as gm
+            from models import GameState
+            assert (await call("POST", "/admin/settings/pvp", player_t, {"percent": 150}))[0] == 403
+            code, body = await call("GET", "/admin/settings", boss_t)
+            assert code == 200 and body["pvp_percent"] == round(gm.PVP_DAMAGE * 100), body
+            for bad in (0, 5, 501, 10000):
+                assert (await call("POST", "/admin/settings/pvp", boss_t, {"percent": bad}))[0] == 400
+            code, body = await call("POST", "/admin/settings/pvp", boss_t, {"percent": 150})
+            assert code == 200 and body["pvp_percent"] == 150 and main.game.pvp_damage == 1.5, body
+            async with main.async_session() as db:
+                saved = (await db.get(GameState, "settings")).value
+            main.game.apply_settings(None)
+            assert main.game.pvp_damage == gm.PVP_DAMAGE
+            main.game.apply_settings(saved)  # what lifespan does on start
+            assert main.game.pvp_damage == 1.5
+            main.game.apply_settings({"pvp_damage": "x"})
+            assert main.game.pvp_damage == gm.PVP_DAMAGE
+            main.game.apply_settings({"pvp_damage": 99})
+            assert main.game.pvp_damage == gm.PVP_DAMAGE_MAX
+            main.game.apply_settings(None)
+            print("ok pvp damage setting")
         finally:
             main.async_session, main.engine = original_factory, original_engine
             await engine.dispose()

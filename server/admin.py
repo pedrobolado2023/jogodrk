@@ -19,7 +19,7 @@ from sqlalchemy import func, or_, select
 import items as inv
 from auth import current_user
 from config import ADMIN_USERS
-from models import Character, User
+from models import Character, GameState, User
 from websocket_manager import manager
 from world_data import MAPS, START_MAP
 
@@ -57,6 +57,10 @@ class Ban(BaseModel):
 
 class BossStart(BaseModel):
     boss: int
+
+
+class PvpDamage(BaseModel):
+    percent: int  # 100 = the same damage as against monsters
 
 
 def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]) -> APIRouter:
@@ -333,6 +337,38 @@ def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]
         await game.hq.fail(game)
         record(admin, "cancelar a Missão Oculta", name)
         return {"ok": True, "message": f"Missão de {name} cancelada. O Andarilho voltou a se esconder.", **game.hq.admin_view()}
+
+    # ── game settings ───────────────────────────────────────────────────
+
+    async def save_settings() -> None:
+        async with async_session() as db:
+            row = await db.get(GameState, "settings")
+            if row:
+                row.value = game.settings()
+            else:
+                db.add(GameState(key="settings", value=game.settings()))
+            await db.commit()
+
+    def settings_view() -> dict[str, Any]:
+        import game as gm
+        return {"pvp_percent": round(game.pvp_damage * 100), "pvp_default": round(gm.PVP_DAMAGE * 100),
+                "pvp_min": round(gm.PVP_DAMAGE_MIN * 100), "pvp_max": round(gm.PVP_DAMAGE_MAX * 100)}
+
+    @router.get("/settings")
+    async def get_settings():
+        return settings_view()
+
+    @router.post("/settings/pvp")
+    async def set_pvp(req: PvpDamage, admin: User = Depends(admin_user)):
+        import game as gm
+        lo, hi = round(gm.PVP_DAMAGE_MIN * 100), round(gm.PVP_DAMAGE_MAX * 100)
+        if not lo <= req.percent <= hi:
+            raise HTTPException(400, f"Escolha um valor entre {lo}% e {hi}%.")
+        old = round(game.pvp_damage * 100)
+        game.apply_settings({"pvp_damage": req.percent / 100})
+        await save_settings()
+        record(admin, "dano no PvP", f"{old}% → {req.percent}%")
+        return {"ok": True, "message": f"Dano no PvP agora é {req.percent}% do dano normal (antes: {old}%).", **settings_view()}
 
     @router.get("/me")
     async def me(admin: User = Depends(admin_user)):

@@ -34,7 +34,8 @@ from world_data import power
 from world_data import (CHAPTER_ENDS, CLASS_BASE, CLASS_GROWTH, DODGE_CAP, LEVEL_DODGE, LEVEL_HP, LEVEL_MP, MAPS, MAX_LEVEL, MOBS, NPC_LINES, QUESTS, SPAWNS,
                         exp_to_next, fmt_big)
 
-PVP_DAMAGE = 0.6
+PVP_DAMAGE = 0.6  # default share of the normal damage a hero deals to another hero (the admin panel changes it)
+PVP_DAMAGE_MIN, PVP_DAMAGE_MAX = 0.1, 5.0
 CHAT_MAX_LEN = 160
 CHAT_BURST = 5          # at most this many messages…
 CHAT_WINDOW = 6.0       # …in this many seconds
@@ -195,6 +196,7 @@ class Game:
                  unfriend_offline: Callable[[str, str], Awaitable[None]] | None = None,
                  save_guilds: Callable[[], Awaitable[None]] | None = None):
         self.heroes: dict[str, Hero] = {}
+        self.pvp_damage = PVP_DAMAGE  # saved in GameState "settings"; changed on the admin panel
         self.guilds = gd.GuildManager()
         self.save_guilds = save_guilds
         self.guild_sent: dict[str, str] = {}  # last guild window state sent to each hero
@@ -383,6 +385,17 @@ class Game:
         q, st = hero.story.get("q", 0), hero.story.get("st", "offer")
         return q > need or (q == need and st != "offer")
 
+    def apply_settings(self, data: dict[str, Any] | None) -> None:
+        """Game settings the admin panel changes (saved in GameState "settings")."""
+        try:
+            pvp = float((data or {}).get("pvp_damage", PVP_DAMAGE))
+        except (TypeError, ValueError):
+            pvp = PVP_DAMAGE
+        self.pvp_damage = max(PVP_DAMAGE_MIN, min(PVP_DAMAGE_MAX, pvp)) if math.isfinite(pvp) else PVP_DAMAGE
+
+    def settings(self) -> dict[str, Any]:
+        return {"pvp_damage": self.pvp_damage}
+
     async def on_move(self, hero: Hero, x: float, y: float) -> None:
         if hero.is_dead or time.monotonic() < hero.stun_until:
             return
@@ -555,7 +568,7 @@ class Game:
                         break
                     await self.flag_attack(hero, victim)
                     dmg, crit = self.roll_damage(hero, sk, stat, victim.defense, victim.hp / victim.max_hp)
-                    await self.hurt_hero(victim, max(1, int(dmg * PVP_DAMAGE * weak)), hero, crit)
+                    await self.hurt_hero(victim, max(1, int(dmg * self.pvp_damage * weak)), hero, crit)
             if e[1] not in splash:  # stuns, slows and poisons stay on the real targets
                 await self.apply_effects(hero, sk, e)
                 if ench and last_hit and e[0] == "mob" and random.random() < ench["proc"]:
@@ -1030,7 +1043,7 @@ class Game:
                 if d.target in self.heroes:
                     victim = self.heroes[d.target]
                     if victim.map_id == d.map_id and not victim.is_dead:
-                        await self.hurt_hero(victim, int(d.damage * PVP_DAMAGE), src, dot=d.kind)
+                        await self.hurt_hero(victim, int(d.damage * self.pvp_damage), src, dot=d.kind)
                 elif src and src.map_id == d.map_id:
                     await self.hurt_mob(src, d.target, d.damage, dot=d.kind)
             if d.ticks > 0:

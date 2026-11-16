@@ -143,6 +143,17 @@
     </div>
 
     <div class="card" style="margin-bottom:14px">
+      <h2>Dano no PvP (jogador contra jogador)</h2>
+      <p class="muted" style="margin-bottom:10px">Quanto do dano normal um jogador causa em outro jogador, na Arena e no mundo aberto.
+        100% = o mesmo dano que causa nos monstros. Vale na hora para todos, sem reiniciar o servidor.</p>
+      <div class="row">
+        <input id="pvp-pct" type="number" min="10" max="500" step="5" style="width:100px"> <span>%</span>
+        <button id="pvp-save" class="btn small">Salvar</button>
+        <span id="pvp-now" class="muted" style="font-size:12px">–</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
       <h2>Jogadores</h2>
       <div class="row" style="margin-bottom:10px">
         <input id="q" placeholder="Buscar por herói ou conta…" style="flex:1; min-width:180px" />
