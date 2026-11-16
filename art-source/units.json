@@ -3118,7 +3118,8 @@
       "death": "^sword and shield death[.]fbx$"
     },
     "_note": "skin presidente com as animações de unit_blade_master",
-    "body_path": "skins/politico1/model.fbx"
+    "body_path": "skins/politico1/model.fbx",
+    "align_rest": true
   },
   "skin_presidente_grand_sorcerer": {
     "source": "mixamo",
@@ -3139,7 +3140,8 @@
       "death": "^standing react death backward[.]fbx$"
     },
     "_note": "skin presidente com as animações de unit_grand_sorcerer",
-    "body_path": "skins/politico1/model.fbx"
+    "body_path": "skins/politico1/model.fbx",
+    "align_rest": true
   },
   "skin_presidente_night_ranger": {
     "source": "mixamo",
@@ -3160,7 +3162,8 @@
       "death": "^standing death backward 01[.]fbx$"
     },
     "_note": "skin presidente com as animações de unit_night_ranger",
-    "body_path": "skins/politico1/model.fbx"
+    "body_path": "skins/politico1/model.fbx",
+    "align_rest": true
   },
   "skin_politico_blade_master": {
     "source": "mixamo",
@@ -3181,7 +3184,8 @@
       "death": "^sword and shield death[.]fbx$"
     },
     "_note": "skin politico com as animações de unit_blade_master",
-    "body_path": "skins/politico2/model.fbx"
+    "body_path": "skins/politico2/model.fbx",
+    "align_rest": true
   },
   "skin_politico_grand_sorcerer": {
     "source": "mixamo",
@@ -3202,7 +3206,8 @@
       "death": "^standing react death backward[.]fbx$"
     },
     "_note": "skin politico com as animações de unit_grand_sorcerer",
-    "body_path": "skins/politico2/model.fbx"
+    "body_path": "skins/politico2/model.fbx",
+    "align_rest": true
   },
   "skin_politico_night_ranger": {
     "source": "mixamo",
@@ -3223,7 +3228,8 @@
       "death": "^standing death backward 01[.]fbx$"
     },
     "_note": "skin politico com as animações de unit_night_ranger",
-    "body_path": "skins/politico2/model.fbx"
+    "body_path": "skins/politico2/model.fbx",
+    "align_rest": true
   },
   "skin_brutamontes_blade_master": {
     "source": "mixamo",
@@ -3307,7 +3313,8 @@
       "death": "^sword and shield death[.]fbx$"
     },
     "_note": "skin lutador com as animações de unit_blade_master",
-    "body_path": "skins/toguro/model.fbx"
+    "body_path": "skins/toguro/model.fbx",
+    "align_rest": true
   },
   "skin_lutador_grand_sorcerer": {
     "source": "mixamo",
@@ -3328,7 +3335,8 @@
       "death": "^standing react death backward[.]fbx$"
     },
     "_note": "skin lutador com as animações de unit_grand_sorcerer",
-    "body_path": "skins/toguro/model.fbx"
+    "body_path": "skins/toguro/model.fbx",
+    "align_rest": true
   },
   "skin_lutador_night_ranger": {
     "source": "mixamo",
@@ -3349,6 +3357,7 @@
       "death": "^standing death backward 01[.]fbx$"
     },
     "_note": "skin lutador com as animações de unit_night_ranger",
-    "body_path": "skins/toguro/model.fbx"
+    "body_path": "skins/toguro/model.fbx",
+    "align_rest": true
   }
 }

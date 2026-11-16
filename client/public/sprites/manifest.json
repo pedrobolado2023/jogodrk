@@ -3865,7 +3865,7 @@
     "loop": false
    }
   },
-  "v": 1794793840
+  "v": 1794821335
  },
  "skin_lutador_blade_master": {
   "size": 224,
@@ -3909,7 +3909,7 @@
     "loop": false
    }
   },
-  "v": 1794793843
+  "v": 1794821337
  },
  "skin_brutamontes_blade_master": {
   "size": 224,
@@ -3997,7 +3997,7 @@
     "loop": false
    }
   },
-  "v": 1794793846
+  "v": 1794821336
  },
  "skin_presidente_grand_sorcerer": {
   "size": 224,
@@ -4041,7 +4041,7 @@
     "loop": false
    }
   },
-  "v": 1794794103
+  "v": 1794821573
  },
  "skin_politico_grand_sorcerer": {
   "size": 224,
@@ -4085,7 +4085,7 @@
     "loop": false
    }
   },
-  "v": 1794794111
+  "v": 1794821582
  },
  "skin_brutamontes_grand_sorcerer": {
   "size": 224,
@@ -4173,7 +4173,7 @@
     "loop": false
    }
   },
-  "v": 1794794114
+  "v": 1794821583
  },
  "skin_presidente_night_ranger": {
   "size": 224,
@@ -4217,7 +4217,7 @@
     "loop": false
    }
   },
-  "v": 1794794375
+  "v": 1794821822
  },
  "skin_politico_night_ranger": {
   "size": 224,
@@ -4261,7 +4261,7 @@
     "loop": false
    }
   },
-  "v": 1794794389
+  "v": 1794821833
  },
  "skin_brutamontes_night_ranger": {
   "size": 224,
@@ -4349,6 +4349,6 @@
     "loop": false
    }
   },
-  "v": 1794794395
+  "v": 1794821838
  }
 }

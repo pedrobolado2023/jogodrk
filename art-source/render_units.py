@@ -239,7 +239,7 @@ def load_unit(key, u):
                 actions[name] = act
             delete(extra)
         if src:
-            actions = {name: retarget(src, arm, act, f"{key}_{name}_rt") for name, act in actions.items()}
+            actions = {name: retarget(src, arm, act, f"{key}_{name}_rt", u.get("align_rest", False)) for name, act in actions.items()}
             bpy.data.objects.remove(src, do_unlink=True)
         if "idle" not in actions and arm.animation_data and arm.animation_data.action:
             actions["idle"] = arm.animation_data.action
@@ -251,10 +251,12 @@ def load_unit(key, u):
     return arm, meshes, actions
 
 
-def retarget(src, dst, act, name):
+def retarget(src, dst, act, name, align_rest=False):
     """Bakes `act` (made for the Mixamo rig `src`) onto another Mixamo rig `dst` whose bones rest differently:
     each bone gets the same change of world orientation from its rest as the source bone, and the hips the same
-    movement scaled by the height of the two rigs. Bones are matched by name (after the "mixamorig:" prefix)."""
+    movement scaled by the height of the two rigs. Bones are matched by name (after the "mixamorig:" prefix).
+    align_rest: the model rests in another pose than the source (arms down in an A-pose instead of a T): each bone's
+    rest is first turned to point where the source bone points at rest, or the arms end up glued to the waist."""
     short = lambda n: n.split(":")[-1]
     sp = {short(pb.name): pb for pb in src.pose.bones}
     order = sorted(dst.pose.bones, key=lambda pb: len(list(pb.parent_recursive)))
@@ -275,6 +277,15 @@ def retarget(src, dst, act, name):
     fd, hdz = frame(dst)
     C = fs @ fd.inverted()
     ratio = hdz / max(1e-6, hs)
+    align = {}  # bone → world turn that makes dst's rest direction match src's
+    if align_rest:
+        for pb in dst.pose.bones:
+            s = sp.get(short(pb.name))
+            if s:
+                d = C @ dw @ (pb.bone.tail_local - pb.bone.head_local)
+                v = sw @ (s.bone.tail_local - s.bone.head_local)
+                if d.length > 1e-6 and v.length > 1e-6:
+                    align[pb.name] = d.normalized().rotation_difference(v.normalized()).to_matrix()
     set_action(src, act)
     if dst.animation_data:
         dst.animation_data.action = None
@@ -291,6 +302,8 @@ def retarget(src, dst, act, name):
         for pb in order:
             s = sp.get(short(pb.name))
             rest_w = C @ dw @ pb.bone.matrix_local.to_3x3()
+            if pb.name in align:
+                rest_w = align[pb.name] @ rest_w
             if s:
                 delta = (sw @ s.matrix.to_3x3()) @ (sw @ s.bone.matrix_local.to_3x3()).inverted()
                 rot_w = delta @ rest_w
