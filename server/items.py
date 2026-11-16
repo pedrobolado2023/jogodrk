@@ -50,9 +50,9 @@ def _gear(name: str, slot: str, icon: str, rarity: str, lvl: int, tier: int, sta
 ITEMS: dict[str, dict[str, Any]] = {
     # ── potions ────────────────────────────────────────────────────────
     "pot_hp_s": {"name": "Poção de Vida Pequena", "type": "potion", "icon": "potion_hp_s", "rarity": "comum",
-                 "kind": "hp", "amount": 0.30, "price": 15, "sell": 3, "desc": "Recupera 30% da vida."},
+                 "kind": "hp", "amount": 0.10, "price": 15, "sell": 3, "desc": "Recupera 10% da vida."},
     "pot_hp_l": {"name": "Poção de Vida Grande", "type": "potion", "icon": "potion_hp_l", "rarity": "incomum",
-                 "kind": "hp", "amount": 0.60, "price": 45, "sell": 10, "desc": "Recupera 60% da vida."},
+                 "kind": "hp", "amount": 0.20, "price": 45, "sell": 10, "desc": "Recupera 20% da vida."},
     "pot_mp_s": {"name": "Poção de Mana Pequena", "type": "potion", "icon": "potion_mp_s", "rarity": "comum",
                  "kind": "mp", "amount": 0.35, "price": 15, "sell": 3, "desc": "Recupera 35% da mana."},
     "pot_mp_l": {"name": "Poção de Mana Grande", "type": "potion", "icon": "potion_mp_l", "rarity": "incomum",
@@ -402,6 +402,19 @@ def gear_bonus(gear: dict[str, Any], key: str) -> float:
 def gear_mod(gear: dict[str, Any], key: str) -> float:
     """Percent-style bonus (atk_pct, dodge, …) from the refinement lines of equipped gear."""
     return sum(piece(v)["ref"].get(key, 0.0) for v in gear.values() if item_id(v) in ITEMS)
+
+
+# how much each potion heals, as first written above (the admin panel can change it while the game runs)
+POTION_DEFAULTS: dict[str, float] = {k: v["amount"] for k, v in ITEMS.items() if v["type"] == "potion"}
+POTION_MIN, POTION_MAX = 0.01, 1.0
+
+
+def set_potion_amount(item_id: str, amount: float) -> None:
+    """Changes how much a potion heals (share of the max life/mana) and its description."""
+    it = ITEMS[item_id]
+    it["amount"] = max(POTION_MIN, min(POTION_MAX, amount))
+    pct = round(it["amount"] * 100)
+    it["desc"] = f"Recupera {pct}% da {'vida' if it['kind'] == 'hp' else 'mana'}."
 
 
 def sell_price(entry: dict[str, Any]) -> int:

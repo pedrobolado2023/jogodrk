@@ -146,6 +146,33 @@ async def run_all():
             assert main.game.pvp_damage == gm.PVP_DAMAGE_MAX
             main.game.apply_settings(None)
             print("ok pvp damage setting")
+
+            # potion healing: admins only, kept in range, used by the potion and saved like the PvP damage
+            import items as inv
+            assert inv.ITEMS["pot_hp_s"]["amount"] == 0.10
+            assert (await call("POST", "/admin/settings/potion", player_t, {"item": "pot_hp_s", "percent": 25}))[0] == 403
+            assert (await call("POST", "/admin/settings/potion", boss_t, {"item": "sword_t1", "percent": 25}))[0] == 400
+            for bad in (0, 101):
+                assert (await call("POST", "/admin/settings/potion", boss_t, {"item": "pot_hp_s", "percent": bad}))[0] == 400
+            code, body = await call("POST", "/admin/settings/potion", boss_t, {"item": "pot_hp_s", "percent": 25})
+            assert code == 200 and inv.ITEMS["pot_hp_s"]["amount"] == 0.25, body
+            assert inv.ITEMS["pot_hp_s"]["desc"] == "Recupera 25% da vida."
+            assert next(p for p in body["potions"] if p["id"] == "pot_hp_s")["percent"] == 25
+            from test_skills import _hero
+            hero, _ = _hero(main.game, "blade_master", "forest_01", 20.0, 20.0)
+            hero.bag = inv.Bag([{"id": "pot_hp_s", "qty": 1}])
+            hero.hp = 1
+            await main.game.use_potion(hero, "hp")
+            assert hero.hp == 1 + int(hero.max_hp * 0.25), (hero.hp, hero.max_hp)
+            main.game.heroes.pop(hero.char_id, None)
+            async with main.async_session() as db:
+                saved = (await db.get(GameState, "settings")).value
+            main.game.apply_settings(None)
+            assert inv.ITEMS["pot_hp_s"]["amount"] == 0.10
+            main.game.apply_settings(saved)
+            assert inv.ITEMS["pot_hp_s"]["amount"] == 0.25 and main.game.pvp_damage == gm.PVP_DAMAGE
+            main.game.apply_settings(None)
+            print("ok potion setting")
         finally:
             main.async_session, main.engine = original_factory, original_engine
             await engine.dispose()

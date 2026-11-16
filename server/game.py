@@ -392,9 +392,18 @@ class Game:
         except (TypeError, ValueError):
             pvp = PVP_DAMAGE
         self.pvp_damage = max(PVP_DAMAGE_MIN, min(PVP_DAMAGE_MAX, pvp)) if math.isfinite(pvp) else PVP_DAMAGE
+        saved = (data or {}).get("potions")
+        saved = saved if isinstance(saved, dict) else {}
+        for pid, default in inv.POTION_DEFAULTS.items():
+            try:
+                amount = float(saved.get(pid, default))
+            except (TypeError, ValueError):
+                amount = default
+            inv.set_potion_amount(pid, amount if math.isfinite(amount) else default)
 
     def settings(self) -> dict[str, Any]:
-        return {"pvp_damage": self.pvp_damage}
+        return {"pvp_damage": self.pvp_damage,
+                "potions": {pid: inv.ITEMS[pid]["amount"] for pid in inv.POTION_DEFAULTS}}
 
     async def on_move(self, hero: Hero, x: float, y: float) -> None:
         if hero.is_dead or time.monotonic() < hero.stun_until:

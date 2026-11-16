@@ -109,7 +109,11 @@ async function loadHidden(): Promise<void> {
 
 // ── game settings ──────────────────────────────────────────────────────
 
-interface Settings { pvp_percent: number; pvp_default: number; pvp_min: number; pvp_max: number }
+interface PotionSetting { id: string; name: string; kind: "hp" | "mp"; percent: number; default: number }
+interface Settings {
+  pvp_percent: number; pvp_default: number; pvp_min: number; pvp_max: number;
+  potions: PotionSetting[]; potion_min: number; potion_max: number;
+}
 
 function showSettings(s: Settings): void {
   const input = $("pvp-pct") as HTMLInputElement;
@@ -117,7 +121,33 @@ function showSettings(s: Settings): void {
   input.max = String(s.pvp_max);
   if (document.activeElement !== input) input.value = String(s.pvp_percent);
   $("pvp-now").textContent = `Agora: ${s.pvp_percent}% · padrão do jogo: ${s.pvp_default}% · de ${s.pvp_min}% a ${s.pvp_max}%`;
+  // one row per potion (life first); rebuilt only when nobody is typing in it
+  const box = $("potions");
+  if (box.contains(document.activeElement)) return;
+  const rows = [...s.potions].sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "hp" ? -1 : 1));
+  box.innerHTML = rows.map((p) => `<div class="row">
+      <span style="min-width:190px;color:${p.kind === "hp" ? "#ff9a8a" : "#8fc8ff"}">${esc(p.name)}</span>
+      <input data-pot="${esc(p.id)}" type="number" min="${s.potion_min}" max="${s.potion_max}" step="1" value="${p.percent}" style="width:90px"> <span>%</span>
+      <button class="btn small" data-pot-save="${esc(p.id)}">Salvar</button>
+      <span class="muted" style="font-size:12px">agora: ${p.percent}% · padrão: ${p.default}%</span>
+    </div>`).join("");
 }
+
+$("potions").addEventListener("click", async (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLButtonElement>("[data-pot-save]");
+  if (!b) return;
+  const item = b.dataset.potSave!;
+  const input = document.querySelector<HTMLInputElement>(`[data-pot="${CSS.escape(item)}"]`);
+  const percent = Math.round(Number(input?.value));
+  if (!Number.isFinite(percent) || percent <= 0) { toast("Digite um número.", true); return; }
+  const name = b.closest(".row")?.querySelector("span")?.textContent ?? item;
+  if (!confirm(`${name}: recuperar ${percent}%?`)) return;
+  try {
+    const r = await api<Settings & { message: string }>("/admin/settings/potion", { item, percent });
+    (document.activeElement as HTMLElement | null)?.blur();
+    toast(r.message); showSettings(r); await loadOverview();
+  } catch (e) { toast(e instanceof Error ? e.message : "Algo deu errado.", true); }
+});
 
 async function loadSettings(): Promise<void> {
   showSettings(await api<Settings>("/admin/settings"));

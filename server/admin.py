@@ -63,6 +63,11 @@ class PvpDamage(BaseModel):
     percent: int  # 100 = the same damage as against monsters
 
 
+class PotionHeal(BaseModel):
+    item: str
+    percent: int  # of the max life / mana
+
+
 def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]) -> APIRouter:
     router = APIRouter(prefix="/admin", dependencies=[Depends(admin_user)])
     log: deque[dict[str, Any]] = deque(maxlen=100)
@@ -352,7 +357,11 @@ def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]
     def settings_view() -> dict[str, Any]:
         import game as gm
         return {"pvp_percent": round(game.pvp_damage * 100), "pvp_default": round(gm.PVP_DAMAGE * 100),
-                "pvp_min": round(gm.PVP_DAMAGE_MIN * 100), "pvp_max": round(gm.PVP_DAMAGE_MAX * 100)}
+                "pvp_min": round(gm.PVP_DAMAGE_MIN * 100), "pvp_max": round(gm.PVP_DAMAGE_MAX * 100),
+                "potions": [{"id": pid, "name": inv.ITEMS[pid]["name"], "kind": inv.ITEMS[pid]["kind"],
+                             "percent": round(inv.ITEMS[pid]["amount"] * 100), "default": round(d * 100)}
+                            for pid, d in inv.POTION_DEFAULTS.items()],
+                "potion_min": round(inv.POTION_MIN * 100), "potion_max": round(inv.POTION_MAX * 100)}
 
     @router.get("/settings")
     async def get_settings():
@@ -369,6 +378,22 @@ def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]
         await save_settings()
         record(admin, "dano no PvP", f"{old}% → {req.percent}%")
         return {"ok": True, "message": f"Dano no PvP agora é {req.percent}% do dano normal (antes: {old}%).", **settings_view()}
+
+    @router.post("/settings/potion")
+    async def set_potion(req: PotionHeal, admin: User = Depends(admin_user)):
+        if req.item not in inv.POTION_DEFAULTS:
+            raise HTTPException(400, "Poção desconhecida.")
+        lo, hi = round(inv.POTION_MIN * 100), round(inv.POTION_MAX * 100)
+        if not lo <= req.percent <= hi:
+            raise HTTPException(400, f"Escolha um valor entre {lo}% e {hi}%.")
+        it = inv.ITEMS[req.item]
+        old = round(it["amount"] * 100)
+        inv.set_potion_amount(req.item, req.percent / 100)
+        await save_settings()
+        what = "vida" if it["kind"] == "hp" else "mana"
+        record(admin, f"cura da {it['name']}", f"{old}% → {req.percent}%")
+        return {"ok": True, "message": f"{it['name']} agora recupera {req.percent}% da {what} (antes: {old}%). "
+                                       "Quem já está jogando vê o texto novo ao recarregar a página.", **settings_view()}
 
     @router.get("/me")
     async def me(admin: User = Depends(admin_user)):
