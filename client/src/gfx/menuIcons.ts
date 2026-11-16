@@ -21,6 +21,7 @@ const TINT: Record<string, [string, string]> = {
   chat: ["#3a8ac0", "#0a2234"],
   graficos: ["#7a7a7a", "#1c1c20"],
   montaria: ["#a8642a", "#2e1608"],
+  boss: ["#d0201a", "#2a0404"],
 };
 
 const EMBLEM: Record<string, (c: Ctx) => void> = {
@@ -36,6 +37,7 @@ const EMBLEM: Record<string, (c: Ctx) => void> = {
   chat: drawBubble,
   graficos: drawGear,
   montaria: drawHorseshoe,
+  boss: drawSkull,
 };
 
 export function ensureMenuIcons(scene: Phaser.Scene): void {
@@ -338,4 +340,32 @@ function drawHorseshoe(c: Ctx): void {
     const a = Math.PI * (0.95 + (i / 5) * 1.1);
     ellipse(c, 64 + Math.cos(a) * 28, 60 + Math.sin(a) * 28, 2.5, 2.5, "#3a2006");
   }
+}
+
+function drawSkull(c: Ctx): void {
+  // fire behind
+  c.fillStyle = radial(c, 64, 70, 46, [[0, "rgba(255,190,60,0.95)"], [0.5, "rgba(230,70,20,0.6)"], [1, "rgba(200,20,10,0)"]]);
+  c.fillRect(14, 20, 100, 100);
+  // horns
+  const horn = (s: number) => {
+    c.beginPath();
+    c.moveTo(64 + s * 18, 46); c.quadraticCurveTo(64 + s * 44, 40, 64 + s * 42, 14);
+    c.quadraticCurveTo(64 + s * 34, 34, 64 + s * 12, 36); c.closePath();
+    c.fillStyle = linear(c, 0, 14, 0, 46, [[0, "#fff4d8"], [1, "#8a6a40"]]); c.fill();
+  };
+  horn(-1); horn(1);
+  // skull
+  c.beginPath();
+  c.moveTo(64, 30); c.bezierCurveTo(90, 30, 96, 52, 92, 70); c.lineTo(84, 80); c.lineTo(82, 96); c.lineTo(46, 96);
+  c.lineTo(44, 80); c.lineTo(36, 70); c.bezierCurveTo(32, 52, 38, 30, 64, 30); c.closePath();
+  c.fillStyle = linear(c, 0, 30, 0, 96, [[0, "#ffffff"], [0.6, "#d8ccb8"], [1, "#8a7a62"]]); c.fill();
+  // glowing eyes and nose
+  for (const x of [52, 76]) {
+    ellipse(c, x, 62, 9, 8, "#1a0404");
+    ellipse(c, x, 63, 4, 3.5, radial(c, x, 63, 5, [[0, "#ffffa0"], [1, "#ff3010"]]));
+  }
+  poly(c, [64, 70, 69, 79, 59, 79], "#1a0404");
+  // teeth
+  c.fillStyle = "#1a0404";
+  for (let i = 0; i < 5; i++) c.fillRect(50 + i * 6.5, 84, 2, 11);
 }

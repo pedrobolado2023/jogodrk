@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 EVENT_MAP = "worldboss_01"
 EVENT_TIMES: list[tuple[int, int]] = [(10, 0), (16, 0), (22, 0)]  # local server time; slot i → BOSSES[i] (Gorgath, Ignaroth, Krovak)
-ANNOUNCE_LEADS = (600, 60)        # warn everyone this many seconds before the start
+ANNOUNCE_LEADS = (600, 300, 60)       # warn everyone this many seconds before the start
 EVENT_DURATION = 30 * 60          # the boss leaves if not defeated in time
 AFTER_KILL_STAY = 60              # seconds to read the results before going back to town
 KILL_CHANCE = 0.20
@@ -131,7 +131,9 @@ class WorldBossEvent:
     def status(self) -> dict[str, Any]:
         start, slot = next_slot(datetime.now())
         msg: dict[str, Any] = {"type": "wb_status", "state": self.state,
-                               "next_boss": BOSSES[slot]["name"], "next_at": start.strftime("%H:%M")}
+                               "next_boss": BOSSES[slot]["name"], "next_at": start.strftime("%H:%M"),
+                               # seconds to the next start, so the client can count down (its clock may differ)
+                               "starts_in": max(0, int((start - datetime.now()).total_seconds()))}
         if self.state != "idle" and self.boss:
             msg["boss"] = self.boss["name"]
             msg["ends_in"] = max(0, int(self.ends_at - time.monotonic()))
@@ -158,6 +160,7 @@ class WorldBossEvent:
                 mins = max(1, round(lead / 60))
                 await self.announce(game, f"Boss Global: {BOSSES[slot]['name']} surge em {mins} minuto{'s' if mins > 1 else ''}! "
                                           "Entre pelo portal ao sul da Vila de Ravencrest.")
+                await self.push_status(game)   # fresh countdown for the on-screen alert
         # the minute a slot starts (and the minute after, in case of a slow tick)
         for i, (h, m) in enumerate(EVENT_TIMES):
             at = now.replace(hour=h, minute=m, second=0, microsecond=0)

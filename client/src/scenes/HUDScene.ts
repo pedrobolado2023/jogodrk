@@ -17,6 +17,7 @@ import { ChatUI, type ChatMsg } from "./ChatUI";
 import { panel, txt } from "./uiStyle";
 import { isTouch } from "../ui/device";
 import { ensureMenuIcons, MENU_ICON } from "../gfx/menuIcons";
+import { EventAlertUI } from "./EventAlertUI";
 
 /** Size of the window icons at the top (on screen), their spacing and the height of a row with its name. */
 const MENU_D = 50;
@@ -103,6 +104,10 @@ export class HUDScene extends Phaser.Scene {
   private wbText!: Phaser.GameObjects.Text;
   private wbStatus!: Phaser.GameObjects.Text;
   private wbState: WbStatus | null = null;
+  /** Date.now() when the next Global Boss starts (from the server's starts_in, so clocks don't matter) */
+  private wbAt = 0;
+  private wbEnds = 0;
+  private alerts!: EventAlertUI;
   private wbResultWin?: Phaser.GameObjects.Container;
   private tooltip!: Phaser.GameObjects.Text;
 
@@ -222,6 +227,7 @@ export class HUDScene extends Phaser.Scene {
     this.partyBox = this.add.container(10, 150);
     this.buildWorldBoss();
     this.buildButtons();
+    this.alerts = new EventAlertUI(this);
     if (this.mobile) { this.buildTouch(); this.chat.setTouch(64); }
     this.buildDeath();
     this.tooltip = this.add.text(0, 0, "", txt(11, "#f3e3b8", {
@@ -272,7 +278,13 @@ export class HUDScene extends Phaser.Scene {
       if (this.targetInfo) this.showTarget(this.targetInfo);
     });
     game.events.on("toggle_guild", () => this.toggleGuild());
-    game.events.on("wb_status", (s: WbStatus) => { this.wbState = s; this.drawWbStatus(); });
+    game.events.on("wb_status", (s: WbStatus) => {
+      this.wbState = s;
+      if (s.starts_in !== undefined) this.wbAt = Date.now() + s.starts_in * 1000;
+      this.wbEnds = Date.now() + (s.ends_in ?? 0) * 1000;
+      this.drawWbStatus();
+    });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => this.refreshEventAlerts() });
     game.events.on("wb_scores", (s: WbScores) => this.drawWbScores(s));
     game.events.on("wb_result", (r: WbResult) => this.showWbResult(r));
     const early = (game as GameScene).inventory;
@@ -733,6 +745,7 @@ export class HUDScene extends Phaser.Scene {
     const targetY = over ? iconsBottom + 2 : 10;
     this.targetPanel.setPosition(w / 2, targetY).setScale(this.ui);
     this.bossPanel.setPosition(this.mobile || over ? w / 2 : w / 2 - 70, targetY + 60 * this.ui).setScale(this.ui);
+    this.alerts?.place(this.mobile || over ? w / 2 : w / 2 - 70, targetY + (this.bossPanel.visible ? 112 : 60) * this.ui, this.ui);
     this.questBox.setPosition(w - 210, boxY).setVisible(!tiny);
     const dailyH = this.dailyShown && !tiny ? this.dailyH + 6 : 0;
     this.dailyBox?.setPosition(w - 210, boxY + this.questH + 6).setVisible(this.dailyShown && !tiny);
@@ -1005,9 +1018,35 @@ export class HUDScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * The boxes at the top that warn about events: the Global Boss 5 minutes before it starts (with a countdown) and
+   * while it is up (with a button to join). Other events can add their own with this.alerts.show(...).
+   */
+  private refreshEventAlerts(): void {
+    const s = this.wbState;
+    if (!s || !this.alerts) return;
+    const inRoom = this.map?.map_id === "worldboss_01";
+    const soon = s.state === "idle" && this.wbAt > 0 && this.wbAt - Date.now() <= 5 * 60_000 && this.wbAt - Date.now() > -90_000;
+    if (soon && !inRoom) {
+      this.alerts.show("wb_soon", {
+        icon: "boss", title: "BOSS GLOBAL",
+        text: `${s.next_boss}\nSurge em {t}`, endsAt: this.wbAt, doneText: `${s.next_boss}\nEstá surgindo...`,
+        button: { label: "IR", onClick: () => this.toast("Vá até o portal ao sul da Vila de Ravencrest. Ele abre quando o boss surgir.", "#ffd77a") },
+      });
+    } else this.alerts.hide("wb_soon");
+    if (s.state === "active" && !inRoom) {
+      this.alerts.show("wb_active", {
+        icon: "boss", title: "BOSS GLOBAL COMEÇOU!",
+        text: `${s.boss ?? ""}\nAcaba em {t} · venha lutar!`, endsAt: this.wbEnds,
+        button: { label: "ENTRAR", onClick: () => this.scene.get("GameScene").events.emit("inv_action", { type: "wb_join" }) },
+      });
+    } else this.alerts.hide("wb_active");
+  }
+
   private drawWbStatus(): void {
     const s = this.wbState;
     if (!s) return;
+    this.refreshEventAlerts();
     if (s.state === "active" && this.map?.map_id !== "worldboss_01") {
       this.wbStatus.setText(`⚔ BOSS GLOBAL ATIVO: ${s.boss}\nClique aqui para entrar`).setColor("#ffd77a");
       this.tweens.killTweensOf(this.wbStatus);
@@ -1706,7 +1745,7 @@ export class HUDScene extends Phaser.Scene {
   }
 }
 
-interface WbStatus { state: "idle" | "active" | "over"; next_boss: string; next_at: string; boss?: string; ends_in?: number }
+interface WbStatus { state: "idle" | "active" | "over"; next_boss: string; next_at: string; starts_in?: number; boss?: string; ends_in?: number }
 
 interface WbScores {
   boss: string;
