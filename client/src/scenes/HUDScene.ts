@@ -99,6 +99,9 @@ export class HUDScene extends Phaser.Scene {
   private inviteBtn!: Phaser.GameObjects.Text;
   private friendBtn!: Phaser.GameObjects.Text;
   private guildBtn!: Phaser.GameObjects.Text;
+  /** automatic PvP on the marked player */
+  private pvpBtn!: Phaser.GameObjects.Text;
+  private autoMode: string | null = null;
   private targetInfo: TargetInfo | null = null;
   private wbBox!: Phaser.GameObjects.Container;
   private wbText!: Phaser.GameObjects.Text;
@@ -315,9 +318,11 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("toggle_book", () => this.toggleBook());
     game.events.on("toggle_char", () => this.toggleChar());
     game.events.on("escape", () => this.closeAll());
-    game.events.on("auto_state", (mode: "farm" | "quest" | "daily" | null) => {
+    game.events.on("auto_state", (mode: "farm" | "quest" | "daily" | "pvp" | null) => {
+      this.autoMode = mode;
+      if (this.targetInfo) this.showTarget(this.targetInfo);
       this.autoFarmText.setText(mode === "farm" ? "Auto: Ligado" : mode === "quest" ? "Auto: Missão" : mode === "daily" ? "Auto: Diárias"
-        : "Auto-Farm")
+        : mode === "pvp" ? "Auto: PvP" : "Auto-Farm")
         .setColor(mode ? "#9dff8a" : "#ffe6a0");
       this.autoGlow?.setVisible(!!mode).parentContainer?.setData("on", !!mode);
       this.questAuto.setText(mode === "quest" ? "■ parar" : "▶ automático").setColor(mode === "quest" ? "#9dff8a" : "#d8c28a");
@@ -411,8 +416,13 @@ export class HUDScene extends Phaser.Scene {
     this.guildBtn.on("pointerdown", () => {
       if (this.targetInfo?.hero) this.scene.get("GameScene").events.emit("inv_action", { type: "guild_invite", name: this.targetInfo.name });
     });
-    this.targetPanel = this.add.container(0, 10, [frame, this.targetName, bg, this.targetFill, this.targetHp, this.inviteBtn,
-      this.friendBtn, this.guildBtn]).setVisible(false);
+    this.pvpBtn = this.add.text(0, 58, "", txt(11, "#ffe0d0", {
+      backgroundColor: "#5a1410", padding: { x: 10, y: 4 }, fontStyle: "bold",
+    })).setOrigin(0.5, 0).setInteractive({ useHandCursor: true }).setVisible(false);
+    this.pvpBtn.on("pointerdown", () => this.scene.get("GameScene").events.emit("auto_pvp"));
+    this.pvpBtn.on("pointerover", () => this.pvpBtn.setAlpha(0.8)).on("pointerout", () => this.pvpBtn.setAlpha(1));
+    this.targetPanel = this.add.container(0, 10, [frame, this.targetName, bg, this.targetFill, this.targetHp, this.pvpBtn,
+      this.inviteBtn, this.friendBtn, this.guildBtn]).setVisible(false);
 
     const g = this.add.graphics();
     panel(g, -190, 0, 380, 44, 6);
@@ -1168,14 +1178,21 @@ export class HUDScene extends Phaser.Scene {
     if (!t || t.boss) { this.targetPanel.setVisible(false); return; }
     const myId = this.hero?.char_id;
     const leader = this.party.find((m) => m.leader)?.id;
+    // buttons stacked under the bar: automatic attack (when this player may be attacked here), invite, friend, guild
+    let y = 58;
+    const fighting = this.autoMode === "pvp";
+    this.pvpBtn.setVisible(!!t.fight || fighting).setY(y)
+      .setText(fighting ? "■ Parar ataque automático" : "⚔ Ataque automático");
+    if (this.pvpBtn.visible) y += 28;
     const canInvite = !!t.hero && (!this.party.length || leader === myId);
-    this.inviteBtn.setVisible(canInvite);
+    this.inviteBtn.setVisible(canInvite).setY(y);
+    if (canInvite) y += 26;
     const isFriend = this.friends.some((f) => f.name === t.name);
-    this.friendBtn.setVisible(!!t.hero && !isFriend).setY(canInvite ? 84 : 58);
+    this.friendBtn.setVisible(!!t.hero && !isFriend).setY(y);
+    if (this.friendBtn.visible) y += 26;
     const rank = this.guild.guild?.my_rank;
     const canGuild = !!t.hero && !t.guild && (rank === "leader" || rank === "officer");
-    const gy = 58 + (canInvite ? 26 : 0) + (this.friendBtn.visible ? 26 : 0);
-    this.guildBtn.setVisible(canGuild).setY(gy);
+    this.guildBtn.setVisible(canGuild).setY(y);
     this.targetPanel.setVisible(true);
     const pk = t.pk ? PK_INFO[t.pk] : undefined;
     const war = !!t.guild && !!this.guild.guild?.enemies.includes(t.guild);
@@ -1776,6 +1793,8 @@ interface TargetInfo {
   hero?: boolean;
   pk?: "white" | "aggressor" | "red";
   guild?: string;
+  /** a player this hero may attack here (shows the automatic attack button) */
+  fight?: boolean;
 }
 
 interface DialogMsg {

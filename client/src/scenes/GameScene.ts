@@ -21,8 +21,12 @@ export interface DailyState {
   tasks: { text: string; kind?: string; target?: string; n: number; count: number; claimed: boolean }[];
 }
 
+type AutoMode = "farm" | "quest" | "daily" | "pvp";
+
 interface AutoState {
-  mode: "farm" | "quest" | "daily";
+  mode: AutoMode;
+  /** "pvp": the player being hunted */
+  victim?: string;
   ax: number;
   ay: number;
   map: string;
@@ -1107,6 +1111,24 @@ export class GameScene extends Phaser.Scene {
       if (this.auto?.mode === "daily") { this.stopAuto(); return; }
       this.startAuto("daily");
     });
+    // automatic PvP: keeps attacking the player marked as target until one of the two falls
+    this.events.on("auto_pvp", () => {
+      if (this.auto?.mode === "pvp") { this.stopAuto("Ataque automático desligado."); return; }
+      const r = this.target?.kind === "hero" ? this.remotes.get(this.target.id) : undefined;
+      if (!r || r.dead) {
+        this.events.emit("notice", { text: "Marque primeiro o jogador que você quer atacar (clique nele).", kind: "warn" });
+        return;
+      }
+      if (!this.canFightPlayers()) {
+        this.events.emit("notice", { text: "Aqui não dá para lutar contra jogadores.", kind: "warn" });
+        return;
+      }
+      if (this.inParty(r.id) || (r.guild && r.guild === this.myGuild)) {
+        this.events.emit("notice", { text: "Esse jogador é do seu grupo ou da sua guilda.", kind: "warn" });
+        return;
+      }
+      this.startAuto("pvp", r.id);
+    });
   }
 
   private pick(p: Phaser.Input.Pointer): Target {
@@ -1149,6 +1171,7 @@ export class GameScene extends Phaser.Scene {
     this.events.emit("target_update", {
       name: m ? m.name : r!.name, level: m ? m.level : r!.level, hp: u.hp, maxHp: u.maxHp, boss: !!m?.boss, hero: !!r,
       pk: r && this.canFightPlayers() && !this.mapInfo?.pvp ? r.pk : undefined, guild: r?.guild ?? "",
+      fight: !!r && this.canFightPlayers() && !this.inParty(r.id) && !(r.guild && r.guild === this.myGuild),
     });
   }
 
@@ -1232,12 +1255,14 @@ export class GameScene extends Phaser.Scene {
 
   // ── Auto-pilot ───────────────────────────────────────────────────────
 
-  private startAuto(mode: "farm" | "quest" | "daily"): void {
+  private startAuto(mode: AutoMode, victim?: string): void {
     const p = this.player;
-    this.auto = { mode, ax: p.worldX, ay: p.worldY, map: this.mapInfo?.map_id ?? "", nextThink: 0, nextPot: 0, nextTalk: 0, deaths: [], dead: false };
+    this.auto = { mode, victim, ax: p.worldX, ay: p.worldY, map: this.mapInfo?.map_id ?? "", nextThink: 0, nextPot: 0, nextTalk: 0, deaths: [], dead: false };
     this.events.emit("auto_state", mode);
+    const victimName = victim ? this.remotes.get(victim)?.name ?? "o alvo" : "";
     this.events.emit("notice", {
-      text: mode === "farm" ? "Auto-Farm ligado: caçando os monstros por perto."
+      text: mode === "pvp" ? `Ataque automático ligado: atacando ${victimName} até alguém cair.`
+        : mode === "farm" ? "Auto-Farm ligado: caçando os monstros por perto."
         : mode === "daily" ? "Diárias automáticas ligadas: vou fazer as caçadas do dia e entregar ao Sargento Hald."
         : "Missão automática ligada: vou cumprir, entregar e pegar as próximas missões sozinho.",
       kind: "quest",
@@ -1287,6 +1312,7 @@ export class GameScene extends Phaser.Scene {
     const a = this.auto!;
     if (!this.mapInfo || !this.hero || time < a.nextThink) return;
     if (this.isDead) {
+      if (a.mode === "pvp") { this.stopAuto("Ataque automático desligado: você foi derrotado."); return; }
       if (!a.dead) {
         a.dead = true;
         a.deaths = [...a.deaths.filter((t) => time - t < AUTO_DEATH_WINDOW), time];
@@ -1329,6 +1355,16 @@ export class GameScene extends Phaser.Scene {
     if (time >= a.nextPot) {
       if (this.hero.hp < this.hero.max_hp * 0.5) { socket.send({ type: "use_potion", kind: "hp" }); a.nextPot = time + 3000; }
       else if (this.hero.mp < this.hero.max_mp * 0.3) { socket.send({ type: "use_potion", kind: "mp" }); a.nextPot = time + 3000; }
+    }
+
+    if (a.mode === "pvp") {
+      const r = this.remotes.get(a.victim ?? "");
+      if (!r) { this.stopAuto("Ataque automático desligado: o alvo saiu do seu alcance."); return; }
+      if (r.dead) { this.stopAuto(`${r.name} caiu! Ataque automático desligado.`); return; }
+      if (!this.canFightPlayers()) { this.stopAuto("Ataque automático desligado: aqui não dá para lutar contra jogadores."); return; }
+      if (this.target?.id !== r.id) this.setTarget({ kind: "hero", id: r.id });
+      if (!this.pendingCast) this.autoFight(time, r, Math.hypot(r.worldX - p.worldX, r.worldY - p.worldY));
+      return;
     }
 
     let prey: string | null = null; // which monster to hunt ("" = any)
@@ -1427,8 +1463,12 @@ export class GameScene extends Phaser.Scene {
     }
     if (this.target?.id !== best.id) this.setTarget({ kind: "mob", id: best.id });
     if (this.pendingCast) return; // already walking into range for a skill
+    this.autoFight(time, best, bestD);
+  }
 
-    // strongest skill that is ready; heal when hurt, buffs whenever they are up
+  /** Auto-pilot's attack on the current target: the strongest ready skill (heal when hurt, buffs whenever they are
+   *  up), else the basic attack, else walk closer. */
+  private autoFight(time: number, foe: Unit, dist: number): void {
     const skills = classSkills(this.cls).filter((s) => s.lvl <= this.hero!.level && s.kind !== "blink").reverse();
     const ready = skills.filter((s) => (this.cdUntil.get(s.id) ?? 0) <= time && this.hero!.mp >= s.mp);
     const pick = ready.find((s) => s.kind === "heal" && this.hero!.hp < this.hero!.max_hp * 0.6)
@@ -1437,7 +1477,7 @@ export class GameScene extends Phaser.Scene {
     const basic = basicSkill(this.cls);
     if (pick) this.tryCast(pick);
     else if (basic && (this.cdUntil.get(basic.id) ?? 0) <= time) this.tryCast(basic);
-    else if (bestD > 1.6) this.walkTo(best.worldX, best.worldY);
+    else if (dist > 1.6) this.walkTo(foe.worldX, foe.worldY);
   }
 
   /** The free basic attack (button / Space): silent while it recharges, so holding it down just keeps attacking. */
