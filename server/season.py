@@ -106,6 +106,14 @@ SKINS: dict[str, dict[str, Any]] = {
                   "desc": "Dourado como a guarda do rei."},
     "skin_praieiro": {"name": "Praieiro", "sheet": "skin_praieiro",
                       "desc": "Camisa florida, bermuda e chinelo: o herói de férias, pronto para a luta."},
+    "skin_presidente": {"name": "Bolzo", "sheet": "skin_presidente",
+                        "desc": "Terno azul e faixa verde e amarela: governa o campo de batalha."},
+    "skin_politico": {"name": "Lule", "sheet": "skin_politico",
+                      "desc": "Terno escuro e gravata vermelha: discursa com os punhos."},
+    "skin_brutamontes": {"name": "Brutamontes", "sheet": "skin_brutamontes",
+                         "desc": "Sem camisa e cheio de músculos: dispensa armadura."},
+    "skin_lutador": {"name": "Colosso de Ferro", "sheet": "skin_lutador",
+                     "desc": "Um gigante de músculos e placas de metal escuro."},
 }
 
 # id → name, 3D sprite sheet — horses the hero rides, looks only (no speed: the same pace on foot or mounted)

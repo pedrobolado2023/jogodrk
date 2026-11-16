@@ -3822,5 +3822,533 @@
    }
   },
   "v": 1794770341
+ },
+ "skin_presidente_blade_master": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794793840
+ },
+ "skin_lutador_blade_master": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794793843
+ },
+ "skin_brutamontes_blade_master": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794793845
+ },
+ "skin_politico_blade_master": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794793846
+ },
+ "skin_presidente_grand_sorcerer": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794103
+ },
+ "skin_politico_grand_sorcerer": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794111
+ },
+ "skin_brutamontes_grand_sorcerer": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794113
+ },
+ "skin_lutador_grand_sorcerer": {
+  "size": 224,
+  "originY": 0.7403,
+  "scale": 0.5893,
+  "height": 1.85,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794114
+ },
+ "skin_presidente_night_ranger": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794375
+ },
+ "skin_politico_night_ranger": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794389
+ },
+ "skin_brutamontes_night_ranger": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794391
+ },
+ "skin_lutador_night_ranger": {
+  "size": 224,
+  "originY": 0.7338,
+  "scale": 0.5893,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   },
+   "attack": {
+    "frames": 10,
+    "fps": 16,
+    "loop": false
+   },
+   "cast": {
+    "frames": 10,
+    "fps": 14,
+    "loop": false
+   },
+   "hit": {
+    "frames": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "death": {
+    "frames": 10,
+    "fps": 12,
+    "loop": false
+   }
+  },
+  "v": 1794794395
  }
 }

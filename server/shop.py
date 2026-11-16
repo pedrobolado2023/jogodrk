@@ -63,6 +63,10 @@ OFFERS: list[dict[str, Any]] = [
     {"id": "skin_vazio", "kind": "skin", "ref": "skin_vazio", "price": 1800, "tab": "skins", "desc": ssn.SKINS["skin_vazio"]["desc"]},
     {"id": "skin_real", "kind": "skin", "ref": "skin_real", "price": 2200, "tab": "skins", "desc": ssn.SKINS["skin_real"]["desc"]},
     {"id": "skin_praieiro", "kind": "skin", "ref": "skin_praieiro", "price": 2800, "tab": "skins", "desc": ssn.SKINS["skin_praieiro"]["desc"]},
+    {"id": "skin_presidente", "kind": "skin", "ref": "skin_presidente", "price": 3500, "tab": "skins", "desc": ssn.SKINS["skin_presidente"]["desc"]},
+    {"id": "skin_politico", "kind": "skin", "ref": "skin_politico", "price": 3500, "tab": "skins", "desc": ssn.SKINS["skin_politico"]["desc"]},
+    {"id": "skin_brutamontes", "kind": "skin", "ref": "skin_brutamontes", "price": 3500, "tab": "skins", "desc": ssn.SKINS["skin_brutamontes"]["desc"]},
+    {"id": "skin_lutador", "kind": "skin", "ref": "skin_lutador", "price": 3500, "tab": "skins", "desc": ssn.SKINS["skin_lutador"]["desc"]},
     # mounts: ride them, looks only (no speed)
     {"id": "mount_horse", "kind": "mount", "ref": "mount_horse", "price": 1200, "tab": "montarias", "desc": "Um cavalo baio, firme e tranquilo."},
     {"id": "mount_white", "kind": "mount", "ref": "mount_white", "price": 1600, "tab": "montarias", "desc": "Um corcel branco digno de um herói."},
