@@ -437,7 +437,9 @@ export class InventoryUI {
   }
 
   private sellPrice(e: Piece): number {
-    return Math.floor(META.items[e.id].sell * (1 + 0.25 * (e.plus ?? 0)));
+    // same rule as the server (items.sell_price): +5% per +1, at most half of the forge fees paid
+    const base = META.items[e.id].sell, plus = Math.max(0, e.plus ?? 0);
+    return base + Math.min(Math.floor(base * 0.05 * plus), 25 * plus * (plus + 1));
   }
 
   private drawShop(objs: Obj[], px: number, py: number, shop: ShopMsg): void {

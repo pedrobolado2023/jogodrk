@@ -6,6 +6,7 @@ and spatial partitioning per map.
 from __future__ import annotations
 
 import asyncio
+import math
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -16,6 +17,7 @@ from spatial import CELL_SIZE, SpatialGrid
 
 # Movement speed cap — tiles per second (server-side cheat prevention)
 MAX_SPEED = 8.0
+MAX_MOVE_GAP = 1.0  # seconds
 # Tick rate for batched broadcasts (ms)
 BROADCAST_INTERVAL = 0.05  # 50ms = 20 ticks/sec
 
@@ -98,11 +100,13 @@ class WebSocketManager:
 
     async def handle_move(self, char_id: str, target_x: float, target_y: float, force: bool = False) -> dict[str, Any] | None:
         session = self.sessions.get(char_id)
-        if not session:
+        if not session or not (math.isfinite(target_x) and math.isfinite(target_y)):
             return None
 
         now = time.monotonic()
-        dt = now - session.last_move_ts if session.last_move_ts else 0.1
+        # at most MAX_MOVE_GAP seconds of walking count for one move: standing still for a while must not allow a
+        # single long jump (a teleport) on the next move
+        dt = min(now - session.last_move_ts, MAX_MOVE_GAP) if session.last_move_ts else 0.1
 
         # validate speed
         dx = target_x - session.x

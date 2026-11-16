@@ -405,9 +405,12 @@ def gear_mod(gear: dict[str, Any], key: str) -> float:
 
 
 def sell_price(entry: dict[str, Any]) -> int:
-    """Upgraded gear is worth more to the merchant: +25% of its value per +1."""
+    """Upgraded gear is worth a little more to the merchant: +5% of its value per +1, but never more than half of the
+    gold fees paid to reach that level (100 × N for each +N). The forge must stay a gold sink: upgrading something
+    only to sell it is always a loss."""
     base = ITEMS[entry["id"]]["sell"]
-    return int(base * (1 + 0.25 * int(entry.get("plus", 0))))
+    plus = max(0, int(entry.get("plus", 0)))
+    return base + min(int(base * 0.05 * plus), 25 * plus * (plus + 1))
 
 
 def free_slots(bag: list[dict[str, Any]]) -> int:

@@ -10,6 +10,8 @@ Flow:
   3. Approved (and the right amount in BRL) → the purchase is delivered once: gems or the Premium pass to the hero,
      VIP to the whole account. GET /pay/check/{ref} does the same on demand (the player is back from the checkout
      before the webhook arrived, or the webhook was lost).
+  4. Refunded or charged back after delivery → what is left of the purchase is taken back once (spent gems cannot
+     be, and the log says how many were missing).
 Player-facing text is in Portuguese.
 """
 
@@ -177,6 +179,57 @@ def make_router(game, session_factory: Callable[[], Any], save_hero: Callable[[A
                 await save_hero(h)
         return f"VIP {level} ativo por {vip.DAYS} dias"
 
+    async def take_back(pay: Payment) -> str:
+        """Refund or chargeback of a delivered purchase: takes back what is left of it. Gems already spent cannot be
+        taken (the shortfall goes to the log for the admin to review); the Premium pass is switched off; VIP loses
+        its 30 days."""
+        prod = PRODUCTS[pay.product]
+        hero = game.heroes.get(pay.character_id)
+        if prod["kind"] == "gems":
+            want = prod["gems"]
+            if hero:
+                took = min(want, max(0, hero.gems))
+                hero.gems -= took
+                await game.push_hero(hero)
+                await save_hero(hero)
+            else:
+                took = 0
+                async with session_factory() as db:
+                    char = await db.get(Character, pay.character_id)
+                    if char:
+                        took = min(want, max(0, int(char.gems or 0)))
+                        char.gems = int(char.gems or 0) - took
+                        await db.commit()
+            return f"-{took} gemas" + (f" (faltaram {want - took}, já gastas)" if took < want else "")
+        if prod["kind"] == "pass":
+            if hero:
+                game.season_state(hero)["premium"] = False
+                await game.push_season(hero)
+                await save_hero(hero)
+            else:
+                async with session_factory() as db:
+                    char = await db.get(Character, pay.character_id)
+                    if char:
+                        state = dict(ssn.fresh(char.season))
+                        state["premium"] = False
+                        char.season = state
+                        await db.commit()
+            return "Passe Premium removido"
+        async with session_factory() as db:
+            row = await db.get(VipStatus, pay.user_id)
+            if not row:
+                return "VIP já não existia"
+            row.until = max(0.0, (row.until or 0.0) - vip.DAYS * 86400)
+            level, until = row.level or 0, row.until
+            ids = (await db.scalars(select(Character.id).where(Character.user_id == pay.user_id))).all()
+            await db.commit()
+        for cid in ids:
+            h = game.heroes.get(cid)
+            if h:
+                await apply_vip(game, h, level, until)
+                await save_hero(h)
+        return f"VIP perdeu {vip.DAYS} dias"
+
     async def sync(mp_payment: dict[str, Any]) -> Payment | None:
         """Brings our Payment up to date with Mercado Pago's payment, and delivers it when approved."""
         ref = str(mp_payment.get("external_reference") or "")
@@ -199,14 +252,21 @@ def make_router(game, session_factory: Callable[[], Any], save_hero: Callable[[A
                 give = pay.status == "approved" and not pay.delivered
                 if give:
                     pay.delivered = True
+                undo = pay.status in ("refunded", "charged_back") and pay.delivered
+                if undo:
+                    pay.delivered = False  # taken back once
                 await db.commit()
+            if undo:
+                what = await take_back(pay)
+                print(f"[pay] {pay.id} {pay.status}: {pay.product} taken back → {what}", flush=True)
+                if pay.character_id in game.heroes:
+                    await game.notice(pay.character_id, f"Uma compra foi estornada no Mercado Pago, então ela foi retirada: {what}.", "warn")
+                return pay
             if give:
                 what = await deliver(pay)
                 print(f"[pay] {pay.id} approved: {pay.product} → {what}", flush=True)
                 if pay.character_id in game.heroes:
                     await game.notice(pay.character_id, f"Pagamento aprovado! {what}. Obrigado pelo apoio!", "quest")
-            elif status in ("refunded", "charged_back"):
-                print(f"[pay] {pay.id} {status}: {pay.product} (review in the admin panel)", flush=True)
             return pay
 
     @router.get("/catalog")

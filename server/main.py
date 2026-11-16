@@ -6,6 +6,7 @@ All game rules live in game.py; this file only wires transport and persistence.
 from __future__ import annotations
 
 import asyncio
+import math
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -381,6 +382,20 @@ async def get_character(character_id: str, user: User = Depends(current_user), d
             "map": MAPS.get(char.map_id, {}).get("name", "")}
 
 
+def _num(v) -> float | None:
+    """A normal number from the client, or None (text, NaN and infinity are refused)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return None
+    v = float(v)
+    return v if math.isfinite(v) else None
+
+
+# messages one connection may send: a burst of WS_BURST, refilled at WS_RATE per second; the rest is ignored
+# (the game sends a few per second; a cheat flooding the server with thousands would slow everyone down)
+WS_RATE, WS_BURST = 25.0, 60.0
+WS_KICK_DROPS = 500  # ignored messages within a minute that close the connection
+
+
 def _int(v, default: int = 0) -> int:
     try:
         return int(v)
@@ -577,15 +592,37 @@ async def game_ws(ws: WebSocket, character_id: str):
         await game.notice(hero.char_id, f"VIP {vip.active_level(vlevel, vuntil)}: +{daily} gemas do dia!", "quest")
         await game.save_hero(hero)
 
+    tokens, last_refill, drops, drops_since = WS_BURST, time.monotonic(), 0, time.monotonic()
     try:
         while True:
             data = await ws.receive_json()
+            now = time.monotonic()
+            tokens = min(WS_BURST, tokens + (now - last_refill) * WS_RATE)
+            last_refill = now
+            if tokens < 1:
+                if now - drops_since > 60:
+                    drops, drops_since = 0, now
+                drops += 1
+                if drops >= WS_KICK_DROPS:
+                    print(f"[ws] {hero.name} ({hero.char_id}) sent too many messages: disconnected", flush=True)
+                    await ws.close(code=status.WS_1008_POLICY_VIOLATION)
+                    break
+                continue
+            tokens -= 1
+            if not isinstance(data, dict):
+                continue
             t = data.get("type")
             if t == "move":
-                await game.on_move(hero, float(data["x"]), float(data["y"]))
+                x, y = _num(data.get("x")), _num(data.get("y"))
+                if x is not None and y is not None:
+                    await game.on_move(hero, x, y)
             elif t == "skill":
-                err = await game.use_skill(hero, str(data.get("skill_id", "")), data.get("target_id"),
-                                           data.get("tx"), data.get("ty"))
+                tx, ty = _num(data.get("tx")), _num(data.get("ty"))
+                if tx is None or ty is None:
+                    tx = ty = None
+                tid = data.get("target_id")
+                err = await game.use_skill(hero, str(data.get("skill_id", "")), tid if isinstance(tid, str) else None,
+                                           tx, ty)
                 if err:
                     await ws.send_json({"type": "skill_error", "skill_id": data.get("skill_id"), "error": err})
             elif t == "talk":

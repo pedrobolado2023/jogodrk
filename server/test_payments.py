@@ -180,12 +180,34 @@ async def run_all():
                 _, body = await call("POST", "/pay/checkout", tok, {"product": product, "character_id": cid})
                 fake.pay(str(400 + n), body["ref"], amount)
                 await call("POST", f"/pay/webhook?data.id={400 + n}&type=payment", headers=signed(str(400 + n), "segredo"))
+                body_vip_ref = body["ref"]
             async with main.async_session() as db:
                 row = await db.get(VipStatus, uid)
                 assert row.level == 4 and 59 * 86400 < row.until - time.time() <= 60 * 86400, (row.level, row.until)
             code, body = await call("GET", "/pay/vip", tok)
             assert body["level"] == 4 and body["bonus_pct"] == 20 and body["daily_gems"] == 40 and body["bag_extra"] == 40
             print("ok vip purchase")
+
+            # refund / chargeback: what is left is taken back, once (Mercado Pago retries the notification)
+            async with main.async_session() as db:
+                (await db.get(Character, cid)).gems = 600  # 500 of the 1100 gems were already spent
+                await db.commit()
+            fake.pay("111", ref, 10.0, status="refunded")
+            for _ in range(2):
+                await call("POST", "/pay/webhook?data.id=111&type=payment", headers=signed("111", "segredo"))
+            async with main.async_session() as db:
+                assert (await db.get(Character, cid)).gems == 0
+                pay = await db.get(Payment, ref)
+                assert pay.status == "refunded" and not pay.delivered
+            fake.pay("333", pref_ref, 19.9, status="charged_back")
+            await call("POST", "/pay/webhook?data.id=333&type=payment", headers=signed("333", "segredo"))
+            fake.pay("401", body_vip_ref, 10.0, status="refunded")
+            await call("POST", "/pay/webhook?data.id=401&type=payment", headers=signed("401", "segredo"))
+            async with main.async_session() as db:
+                assert (await db.get(Character, cid)).season["premium"] is False
+                row = await db.get(VipStatus, uid)
+                assert 29 * 86400 < row.until - time.time() <= 30 * 86400, row.until
+            print("ok refund and chargeback taken back")
         finally:
             main.async_session, main.engine, payments.mp, payments.MP_ACCESS_TOKEN, payments.MP_WEBHOOK_SECRET = saved
             await engine.dispose()

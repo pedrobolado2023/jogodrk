@@ -121,7 +121,14 @@ async def run_all() -> None:
     hero.gear["weapon"]["plus"] = 10
     atk10 = hero.atk
     assert base_atk < atk0 < atk10
-    assert inv.sell_price({"id": "sword_t2", "plus": 4}) == 2 * inv.ITEMS["sword_t2"]["sell"]
+    assert inv.sell_price({"id": "sword_t2", "plus": 4}) > inv.sell_price({"id": "sword_t2", "plus": 0})
+    # ...but never enough to pay for the upgrade: forging only to sell is always a loss (the forge is a gold sink)
+    for gid, it in inv.ITEMS.items():
+        if it["type"] != "gear":
+            continue
+        for plus in range(1, forge.MAX_PLUS + 1):
+            fees = sum(forge.up_fee(t) for t in range(1, plus + 1))
+            assert inv.sell_price({"id": gid, "plus": plus}) - it["sell"] < fees, (gid, plus)
     print("ok  item aprimorado dá mais atributo e vende mais caro")
 
     # refinement: up to 3 lines, then rerolls; equipped lines count in the hero's stats
