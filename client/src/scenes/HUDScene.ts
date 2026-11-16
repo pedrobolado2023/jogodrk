@@ -8,7 +8,7 @@ import { portraitFromSheet } from "../gfx/sprites3d";
 import { ensureItemIcons } from "../gfx/itemIcons";
 import type { DailyState, GameScene } from "./GameScene";
 import { TextPrompt } from "./TextPrompt";
-import { QUALITY_NAMES, cycleQuality, quality } from "../gfx/quality";
+import { cycleQuality } from "../gfx/quality";
 import { InventoryUI, type MarketMsg } from "./InventoryUI";
 import { PassUI } from "./PassUI";
 import { WorldMapUI, type WorldMapMsg } from "./WorldMapUI";
@@ -16,6 +16,12 @@ import { ShopUI } from "./ShopUI";
 import { ChatUI, type ChatMsg } from "./ChatUI";
 import { panel, txt } from "./uiStyle";
 import { isTouch } from "../ui/device";
+import { ensureMenuIcons, MENU_ICON } from "../gfx/menuIcons";
+
+/** Size of the window icons at the top (on screen), their spacing and the height of a row with its name. */
+const MENU_D = 50;
+const MENU_STEP = 57;
+const MENU_ROW = 74;
 
 const BAR_TEX_W = 220;
 const SLOT = 46;
@@ -142,6 +148,7 @@ export class HUDScene extends Phaser.Scene {
 
   private buttons!: Phaser.GameObjects.Container;
   private autoFarmText!: Phaser.GameObjects.Text;
+  private autoGlow?: Phaser.GameObjects.Image;
   private feed: Phaser.GameObjects.Text[] = [];
   private book?: Phaser.GameObjects.Container;
   private charPanel?: Phaser.GameObjects.Container;
@@ -297,9 +304,10 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("toggle_char", () => this.toggleChar());
     game.events.on("escape", () => this.closeAll());
     game.events.on("auto_state", (mode: "farm" | "quest" | "daily" | null) => {
-      this.autoFarmText.setText(mode === "farm" ? "Auto-Farm: LIGADO" : mode === "quest" ? "Auto: Missão" : mode === "daily" ? "Auto: Diárias"
-        : "Auto-Farm: DESLIGADO")
-        .setColor(mode ? "#9dff8a" : "#bfa77a");
+      this.autoFarmText.setText(mode === "farm" ? "Auto: Ligado" : mode === "quest" ? "Auto: Missão" : mode === "daily" ? "Auto: Diárias"
+        : "Auto-Farm")
+        .setColor(mode ? "#9dff8a" : "#ffe6a0");
+      this.autoGlow?.setVisible(!!mode).parentContainer?.setData("on", !!mode);
       this.questAuto.setText(mode === "quest" ? "■ parar" : "▶ automático").setColor(mode === "quest" ? "#9dff8a" : "#d8c28a");
       this.dailyAuto.setText(mode === "daily" ? "■ parar" : "▶ automático").setColor(mode === "daily" ? "#9dff8a" : "#d8c28a");
     });
@@ -549,16 +557,7 @@ export class HUDScene extends Phaser.Scene {
     ];
     const shown = boxes.filter(([c, hh]) => c && c.visible && hh > 0) as [Box, number][];
     const need = shown.reduce((s, [, hh]) => s + hh + 6, 0);
-    // the window buttons: one column, or two side by side when the column would run into the boxes
-    this.menuItems.forEach((c) => c.setPosition(0, 0));
-    if (this.buttons.visible && this.buttons.getBounds().top - 8 - top < need) {
-      const rows = Math.ceil(this.menuItems.length / 2);
-      this.menuItems.forEach((c, i) => {
-        const y0 = c.getData("y") as number;
-        c.setPosition(i % 2 === 0 ? -160 : 0, -4 - (rows - 1 - Math.floor(i / 2)) * 32 - y0);
-      });
-    }
-    const bottom = this.buttons.visible ? this.buttons.getBounds().top - 8 : this.scale.height - 80;
+    const bottom = this.scale.height - 80;
     const k = Phaser.Math.Clamp((bottom - top) / Math.max(1, need), 0.8, 1);
     let y = top;
     for (const [c, hh] of shown) {
@@ -620,38 +619,87 @@ export class HUDScene extends Phaser.Scene {
     this.scoreBox = this.add.container(0, 0, [g, head, this.scoreText]).setVisible(false);
   }
 
+  /**
+   * The window buttons: a row of big framed icons with the name under each (Loja, Passe, Mapa...). On computers
+   * they sit at the top right, left of the minimap; on phones they open as a grid from the MENU button.
+   */
   private buildButtons(): void {
-    const mk = (label: string, y: number, onClick: () => void): Phaser.GameObjects.Text => {
-      const bg = this.add.image(0, y, "hud_button").setScale(0.78, 0.7);
-      // phones have no keyboard: no shortcut hints on the buttons
-      const t = this.add.text(0, y, this.mobile ? label.replace(/ \([^)]*\)$/, "") : label, txt(11, "#bfa77a")).setOrigin(0.5);
-      const c = this.add.container(0, 0, [bg, t]);
-      c.setData("y", y);
+    ensureMenuIcons(this);
+    const mk = (icon: string, label: string, tip: string, onClick: () => void): { label: Phaser.GameObjects.Text; glow: Phaser.GameObjects.Image } => {
+      const glow = this.add.image(0, 0, "menu_icon_glow").setScale(MENU_D / MENU_ICON).setVisible(false);
+      const img = this.add.image(0, 0, `menu_icon_${icon}`).setScale(MENU_D / MENU_ICON);
+      const t = this.add.text(0, MENU_D / 2 - 4, label, txt(10, "#ffe6a0", { fontStyle: "bold", strokeThickness: 4 })).setOrigin(0.5, 0);
+      const c = this.add.container(0, 0, [glow, img, t]);
+      c.setData("glow", glow);
       this.menuItems.push(c);
-      bg.setInteractive({ useHandCursor: true }).on("pointerdown", () => { onClick(); if (this.mobile) this.setMenu(false); })
-        .on("pointerover", () => bg.setAlpha(0.8)).on("pointerout", () => bg.setAlpha(1));
+      img.setInteractive({ useHandCursor: true })
+        .on("pointerdown", () => {
+          this.tooltip.setVisible(false);
+          this.tweens.add({ targets: img, scale: { from: (MENU_D / MENU_ICON) * 0.88, to: MENU_D / MENU_ICON }, duration: 120 });
+          onClick();
+          if (this.mobile) this.setMenu(false);
+        })
+        .on("pointerover", () => {
+          glow.setVisible(true);
+          img.setScale((MENU_D / MENU_ICON) * 1.08);
+          // phones have no keyboard and no mouse: no hover hints there
+          if (this.mobile) return;
+          const b = img.getBounds();
+          this.tooltip.setText(tip).setOrigin(0.5, 0).setVisible(true)
+            .setPosition(Phaser.Math.Clamp(b.centerX, 130, this.scale.width - 130), b.bottom + 18);
+        })
+        .on("pointerout", () => {
+          glow.setVisible(!!c.getData("on"));
+          img.setScale(MENU_D / MENU_ICON);
+          this.tooltip.setVisible(false).setOrigin(0.5, 1);
+        });
       this.buttons.add(c);
-      return t;
+      return { label: t, glow };
     };
     this.buttons = this.add.container(0, 0);
-    const q = mk(`Gráficos: ${QUALITY_NAMES[quality()]}`, -228, () => {
+    mk("loja", "Loja", "LOJA (L)\nSkins, montarias, mascotes e mais com gemas.", () => this.toggleShop());
+    mk("passe", "Passe", "PASSE DA TEMPORADA (P)\nPrêmios por nível do passe.", () => this.togglePass());
+    mk("mapa", "Mapa", "MAPA DO MUNDO (N)\nVeja as regiões e viaje.", () => this.toggleMap());
+    mk("guilda", "Guilda", "GUILDA (G)\nCrie ou entre numa guilda.", () => this.toggleGuild());
+    mk("amigos", "Amigos", "AMIGOS (F)\nQuem está online e onde.", () => this.toggleFriends());
+    mk("inventario", "Inventário", "INVENTÁRIO (I)\nSua bolsa e seus equipamentos.", () => this.toggleInv());
+    mk("personagem", "Herói", "PERSONAGEM (C)\nAtributos, título, montaria e mascote.", () => this.toggleChar());
+    mk("skills", "Skills", "LIVRO DE SKILLS (K)\nTodas as suas habilidades.", () => this.toggleBook());
+    const auto = mk("auto", "Auto-Farm", "AUTO-FARM\nO herói caça sozinho por perto. Clique para ligar ou desligar.",
+      () => this.scene.get("GameScene").events.emit("toggle_autofarm"));
+    this.autoFarmText = auto.label;
+    this.autoGlow = auto.glow;
+    mk("chat", "Chat", "CHAT (Enter)\nEscrever uma mensagem.", () => this.chat?.openInput());
+    mk("graficos", "Gráficos", "GRÁFICOS\nTroca entre Alta, Média e Baixa (mais leve).", () => {
       const next = cycleQuality();
-      q.setText(`Gráficos: ${QUALITY_NAMES[next]}`);
       (this.scene.get("GameScene") as GameScene).applyQuality();
       this.toast(next === "baixa" ? "Gráficos: Baixa — sem neblina, sombras e balanço das árvores (mais leve)."
         : next === "media" ? "Gráficos: Média — sem os raios de luz." : "Gráficos: Alta — todos os efeitos ligados.", "#e8dcc0");
     });
-    mk("◆ Loja (L)", -292, () => this.toggleShop());
-    mk("★ Passe (P)", -260, () => this.togglePass());
-    mk("Mapa do mundo (N)", -324, () => this.toggleMap());
-    mk("Guilda (G)", -196, () => this.toggleGuild());
-    mk("Amigos (F)", -164, () => this.toggleFriends());
-    mk("Chat (Enter)", -132, () => this.chat?.openInput());
-    mk("Inventário (I)", -100, () => this.toggleInv());
-    mk("Livro de Skills (K)", -68, () => this.toggleBook());
-    mk("Personagem (C)", -36, () => this.toggleChar());
-    this.autoFarmText = mk("Auto-Farm: DESLIGADO", -4, () => this.scene.get("GameScene").events.emit("toggle_autofarm"));
-    if (this.mobile) mk("Montaria", 28, () => this.scene.get("GameScene").events.emit("toggle_mount"));
+    if (this.mobile) mk("montaria", "Montaria", "", () => this.scene.get("GameScene").events.emit("toggle_mount"));
+  }
+
+  /**
+   * Computers: the icons fill two rows from the right, left of the minimap. On wide screens they stay clear of the
+   * target box in the middle; on narrow ones they take the whole top (shrinking if needed) and `iconsOverCenter`
+   * tells layout() to drop the target and boss bars below them.
+   */
+  private iconsOverCenter = false;
+
+  private layoutButtons(w: number, mm: number): number {
+    const n = this.menuItems.length;
+    const cols = Math.ceil(n / 2);
+    const edge = w - 168 * mm - 4;
+    const need = cols * MENU_STEP;
+    this.iconsOverCenter = edge - (w / 2 + 118) < need;
+    const k = this.iconsOverCenter ? Math.min(1, (edge - 300) / need) : 1;
+    const right = edge - (MENU_STEP / 2) * k;
+    this.menuItems.forEach((c, i) => {
+      const row = Math.floor(i / cols), inRow = Math.min(cols, n - row * cols);
+      c.setPosition(right - (inRow - 1 - (i % cols)) * MENU_STEP * k, (14 + MENU_D / 2 + row * MENU_ROW) * k).setScale(k);
+    });
+    this.buttons.setPosition(0, 0).setScale(1);
+    return (14 + 2 * MENU_ROW) * k;
   }
 
   private buildDeath(): void {
@@ -670,15 +718,21 @@ export class HUDScene extends Phaser.Scene {
     this.ui = this.mobile ? Phaser.Math.Clamp(Math.min(h / 470, w / 900), 0.6, 1.1) : 1;
     this.vignette.setDisplaySize(w, h);
     this.hurt.setDisplaySize(w, h);
-    this.targetPanel.setPosition(w / 2, 10).setScale(this.ui);
-    this.bossPanel.setPosition(w / 2, 70 * this.ui).setScale(this.ui);
     const barW = this.barWidth;
     const barScale = Math.min(1, (w - 12) / barW);
     this.skillBar.setPosition(w / 2, h - 6).setScale(barScale);
     const compact = w < 760, tiny = w < 600;
     const mm = tiny ? 0.55 : compact ? 0.8 : 1;
     this.minimap.setPosition(w - 84 * mm, 84 * mm).setScale(mm);
-    const boxY = compact ? 192 : 206;
+    // the window icons sit left of the minimap; when they need more than two rows the boxes below start under them
+    const iconsBottom = !tiny && !this.mobile ? this.layoutButtons(w, mm) : 0;
+    const boxY = Math.max(compact ? 192 : 206, iconsBottom + 4);
+    // the target box sits top centre; on narrow screens the icons take the top, so it drops below them. The boss bar
+    // steps a little left on wide screens so it never runs under the icons.
+    const over = iconsBottom > 0 && this.iconsOverCenter;
+    const targetY = over ? iconsBottom + 2 : 10;
+    this.targetPanel.setPosition(w / 2, targetY).setScale(this.ui);
+    this.bossPanel.setPosition(this.mobile || over ? w / 2 : w / 2 - 70, targetY + 60 * this.ui).setScale(this.ui);
     this.questBox.setPosition(w - 210, boxY).setVisible(!tiny);
     const dailyH = this.dailyShown && !tiny ? this.dailyH + 6 : 0;
     this.dailyBox?.setPosition(w - 210, boxY + this.questH + 6).setVisible(this.dailyShown && !tiny);
@@ -695,7 +749,7 @@ export class HUDScene extends Phaser.Scene {
     }
     this.wbStatus?.setPosition(w - 210, boxY + (tiny ? -80 : this.questH + 6 + dailyH + hqH)).setVisible(true);
     this.wbResultWin?.setPosition(w / 2, h / 2);
-    this.buttons.setPosition(w - 92, h - 84 - (SLOT + 20) * (barScale < 1 ? 1 - barScale : 0)).setVisible(!tiny);
+    this.buttons.setVisible(!tiny);
     if (!tiny && !this.mobile) this.fitRightColumn(w, boxY);
     this.inventoryUI?.layout();
     this.playerPanel.setScale(tiny ? 0.72 : 1);
@@ -866,14 +920,14 @@ export class HUDScene extends Phaser.Scene {
     const feedBase = h - chatBottom - (this.chat?.height() ?? 70) - 8;
     this.feed.forEach((t, i) => t.setPosition(12, feedBase - i * 18));
 
-    // the menu: every window button in two columns, in the middle of the screen
+    // the menu: every window icon in a grid, in the middle of the screen
     this.menuShade?.setSize(w, h);
-    const rows = Math.ceil(this.menuItems.length / 2);
+    const cols = 4, rows = Math.ceil(this.menuItems.length / cols);
     this.menuItems.forEach((c, i) => {
-      const y0 = c.getData("y") as number;
-      c.setPosition(((i % 2) - 0.5) * 200, (Math.floor(i / 2) - (rows - 1) / 2) * 46 - y0 * 1.2).setScale(1.2);
+      c.setPosition(((i % cols) - (cols - 1) / 2) * MENU_STEP * 1.5, (Math.floor(i / cols) - (rows - 1) / 2) * MENU_ROW * 1.25).setScale(1.25);
     });
-    this.buttons.setPosition(w / 2, h / 2).setScale(Math.min(1, (h - 24) / (rows * 46), (w - 20) / 410)).setVisible(this.menuOpen);
+    this.buttons.setPosition(w / 2, h / 2).setScale(Math.min(1.2, (h - 24) / (rows * MENU_ROW * 1.25), (w - 20) / (cols * MENU_STEP * 1.5)))
+      .setVisible(this.menuOpen);
   }
 
   private dialogY(): number {
