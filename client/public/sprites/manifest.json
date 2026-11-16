@@ -73,9 +73,14 @@
     "frames": 10,
     "fps": 12,
     "loop": false
+   },
+   "ride": {
+    "frames": 14,
+    "fps": 5,
+    "loop": true
    }
   },
-  "v": 1794752531
+  "v": 1794822641
  },
  "unit_grand_sorcerer": {
   "size": 224,
@@ -117,9 +122,14 @@
     "frames": 10,
     "fps": 12,
     "loop": false
+   },
+   "ride": {
+    "frames": 10,
+    "fps": 5.56,
+    "loop": true
    }
   },
-  "v": 1794752558
+  "v": 1794822632
  },
  "unit_night_ranger": {
   "size": 224,
@@ -161,9 +171,14 @@
     "frames": 10,
     "fps": 12,
     "loop": false
+   },
+   "ride": {
+    "frames": 16,
+    "fps": 5,
+    "loop": true
    }
   },
-  "v": 1794752764
+  "v": 1794822652
  },
  "mob_skeleton": {
   "size": 224,
@@ -3733,7 +3748,7 @@
     "loop": false
    }
   },
-  "v": 1794770321
+  "v": 1794822670
  },
  "skin_praieiro_blade_master": {
   "size": 224,
@@ -3777,7 +3792,7 @@
     "loop": false
    }
   },
-  "v": 1794770330
+  "v": 1794822694
  },
  "skin_praieiro_night_ranger": {
   "size": 224,
@@ -3821,7 +3836,7 @@
     "loop": false
    }
   },
-  "v": 1794770341
+  "v": 1794822717
  },
  "skin_presidente_blade_master": {
   "size": 224,
@@ -3865,7 +3880,7 @@
     "loop": false
    }
   },
-  "v": 1794821335
+  "v": 1794822747
  },
  "skin_lutador_blade_master": {
   "size": 224,
@@ -3909,7 +3924,7 @@
     "loop": false
    }
   },
-  "v": 1794821337
+  "v": 1794822900
  },
  "skin_brutamontes_blade_master": {
   "size": 224,
@@ -3953,7 +3968,7 @@
     "loop": false
    }
   },
-  "v": 1794793845
+  "v": 1794822850
  },
  "skin_politico_blade_master": {
   "size": 224,
@@ -3997,7 +4012,7 @@
     "loop": false
    }
   },
-  "v": 1794821336
+  "v": 1794822799
  },
  "skin_presidente_grand_sorcerer": {
   "size": 224,
@@ -4041,7 +4056,7 @@
     "loop": false
    }
   },
-  "v": 1794821573
+  "v": 1794822713
  },
  "skin_politico_grand_sorcerer": {
   "size": 224,
@@ -4085,7 +4100,7 @@
     "loop": false
    }
   },
-  "v": 1794821582
+  "v": 1794822755
  },
  "skin_brutamontes_grand_sorcerer": {
   "size": 224,
@@ -4129,7 +4144,7 @@
     "loop": false
    }
   },
-  "v": 1794794113
+  "v": 1794822796
  },
  "skin_lutador_grand_sorcerer": {
   "size": 224,
@@ -4173,7 +4188,7 @@
     "loop": false
    }
   },
-  "v": 1794821583
+  "v": 1794822836
  },
  "skin_presidente_night_ranger": {
   "size": 224,
@@ -4217,7 +4232,7 @@
     "loop": false
    }
   },
-  "v": 1794821822
+  "v": 1794822782
  },
  "skin_politico_night_ranger": {
   "size": 224,
@@ -4261,7 +4276,7 @@
     "loop": false
    }
   },
-  "v": 1794821833
+  "v": 1794822843
  },
  "skin_brutamontes_night_ranger": {
   "size": 224,
@@ -4305,7 +4320,7 @@
     "loop": false
    }
   },
-  "v": 1794794391
+  "v": 1794822901
  },
  "skin_lutador_night_ranger": {
   "size": 224,
@@ -4349,6 +4364,2526 @@
     "loop": false
    }
   },
-  "v": 1794821838
+  "v": 1794822950
+ },
+ "ride_skin_presidente_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823706
+ },
+ "ride_skin_presidente_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823713
+ },
+ "ride_skin_presidente_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823714
+ },
+ "ride_skin_presidente_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823715
+ },
+ "ride_skin_presidente_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823843
+ },
+ "ride_skin_presidente_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823851
+ },
+ "ride_skin_presidente_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823851
+ },
+ "ride_skin_presidente_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823853
+ },
+ "ride_skin_presidente_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823971
+ },
+ "ride_skin_presidente_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823979
+ },
+ "ride_skin_presidente_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823979
+ },
+ "ride_skin_presidente_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794823984
+ },
+ "ride_skin_presidente_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824079
+ },
+ "ride_skin_presidente_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824089
+ },
+ "ride_skin_presidente_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824096
+ },
+ "ride_skin_presidente_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824112
+ },
+ "ride_skin_presidente_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824216
+ },
+ "ride_skin_presidente_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824229
+ },
+ "ride_skin_presidente_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824236
+ },
+ "ride_skin_presidente_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824248
+ },
+ "ride_skin_brutamontes_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824351
+ },
+ "ride_skin_brutamontes_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824364
+ },
+ "ride_skin_brutamontes_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824372
+ },
+ "ride_skin_presidente_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824384
+ },
+ "ride_skin_brutamontes_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824482
+ },
+ "ride_skin_brutamontes_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824495
+ },
+ "ride_skin_brutamontes_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824504
+ },
+ "ride_skin_brutamontes_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824516
+ },
+ "ride_skin_brutamontes_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824615
+ },
+ "ride_skin_brutamontes_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824630
+ },
+ "ride_skin_brutamontes_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824639
+ },
+ "ride_skin_brutamontes_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824650
+ },
+ "ride_skin_brutamontes_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824745
+ },
+ "ride_skin_brutamontes_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824755
+ },
+ "ride_skin_brutamontes_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824755
+ },
+ "ride_skin_brutamontes_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824788
+ },
+ "ride_skin_brutamontes_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824881
+ },
+ "ride_skin_brutamontes_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824890
+ },
+ "ride_skin_brutamontes_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824894
+ },
+ "ride_skin_brutamontes_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794824899
+ },
+ "ride_skin_lutador_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825020
+ },
+ "ride_skin_brutamontes_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825029
+ },
+ "ride_skin_lutador_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825035
+ },
+ "ride_skin_brutamontes_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825037
+ },
+ "ride_skin_lutador_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825158
+ },
+ "ride_skin_lutador_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825165
+ },
+ "ride_skin_lutador_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825172
+ },
+ "ride_skin_lutador_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825173
+ },
+ "ride_skin_lutador_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825302
+ },
+ "ride_skin_lutador_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825311
+ },
+ "ride_skin_lutador_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825315
+ },
+ "ride_skin_lutador_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825318
+ },
+ "ride_skin_lutador_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825431
+ },
+ "ride_skin_lutador_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825440
+ },
+ "ride_skin_lutador_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825449
+ },
+ "ride_skin_lutador_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825453
+ },
+ "ride_skin_lutador_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825555
+ },
+ "ride_skin_lutador_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825559
+ },
+ "ride_skin_lutador_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825565
+ },
+ "ride_skin_lutador_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825572
+ },
+ "ride_skin_lutador_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825695
+ },
+ "ride_skin_lutador_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825700
+ },
+ "ride_skin_politico_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825706
+ },
+ "ride_skin_lutador_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825715
+ },
+ "ride_skin_politico_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825832
+ },
+ "ride_skin_politico_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825836
+ },
+ "ride_skin_politico_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825847
+ },
+ "ride_skin_politico_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825853
+ },
+ "ride_skin_politico_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825970
+ },
+ "ride_skin_politico_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825975
+ },
+ "ride_skin_politico_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825986
+ },
+ "ride_skin_politico_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794825990
+ },
+ "ride_skin_politico_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826108
+ },
+ "ride_skin_politico_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826112
+ },
+ "ride_skin_politico_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826124
+ },
+ "ride_skin_politico_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826128
+ },
+ "ride_skin_politico_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826217
+ },
+ "ride_skin_politico_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826221
+ },
+ "ride_skin_politico_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826238
+ },
+ "ride_skin_politico_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826260
+ },
+ "ride_skin_politico_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826353
+ },
+ "ride_skin_politico_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826356
+ },
+ "ride_skin_politico_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826375
+ },
+ "ride_skin_politico_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826399
+ },
+ "ride_skin_praieiro_mount_alpaca_royal": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826489
+ },
+ "ride_skin_praieiro_mount_alpaca": {
+  "size": 208,
+  "originY": 0.7204,
+  "scale": 0.8229,
+  "height": 1.8,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826491
+ },
+ "ride_skin_praieiro_mount_donkey": {
+  "size": 192,
+  "originY": 0.6858,
+  "scale": 0.7929,
+  "height": 1.35,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826508
+ },
+ "ride_skin_praieiro_mount_horse": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826535
+ },
+ "ride_skin_praieiro_mount_stag": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826625
+ },
+ "ride_skin_praieiro_mount_stag_spirit": {
+  "size": 232,
+  "originY": 0.7205,
+  "scale": 0.8193,
+  "height": 2.0,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826627
+ },
+ "ride_skin_praieiro_mount_deer": {
+  "size": 208,
+  "originY": 0.6947,
+  "scale": 0.7763,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826644
+ },
+ "ride_skin_praieiro_mount_white": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826674
+ },
+ "ride_skin_praieiro_mount_gold": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826761
+ },
+ "ride_skin_praieiro_mount_ember": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826762
+ },
+ "ride_skin_praieiro_mount_phantom": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826782
+ },
+ "ride_skin_praieiro_mount_frost": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826814
+ },
+ "ride_skin_praieiro_mount_drake_ember": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826874
+ },
+ "ride_skin_praieiro_mount_drake_void": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826897
+ },
+ "ride_skin_praieiro_mount_shadow": {
+  "size": 208,
+  "originY": 0.6959,
+  "scale": 0.8229,
+  "height": 1.6,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826901
+ },
+ "ride_skin_praieiro_mount_drake_emerald": {
+  "size": 336,
+  "originY": 0.5714,
+  "scale": 1.5714,
+  "height": 2.2,
+  "anims": {
+   "idle": {
+    "frames": 8,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 8,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 8,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794826928
+ },
+ "ride_skin_praieiro_mount_wolf_frost": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794827010
+ },
+ "ride_skin_praieiro_mount_wolf_shadow": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794827034
+ },
+ "ride_skin_praieiro_mount_wolf": {
+  "size": 208,
+  "originY": 0.6817,
+  "scale": 0.7763,
+  "height": 1.4,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794827035
+ },
+ "ride_skin_praieiro_mount_bull": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794827052
+ },
+ "ride_skin_praieiro_mount_bull_infernal": {
+  "size": 208,
+  "originY": 0.6837,
+  "scale": 0.8229,
+  "height": 1.5,
+  "anims": {
+   "idle": {
+    "frames": 10,
+    "fps": 5,
+    "loop": true
+   },
+   "walk": {
+    "frames": 10,
+    "fps": 12,
+    "loop": true
+   },
+   "run": {
+    "frames": 10,
+    "fps": 14,
+    "loop": true
+   }
+  },
+  "v": 1794827191
  }
 }

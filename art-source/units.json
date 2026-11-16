@@ -55,7 +55,8 @@
       "cast": "^sword and shield casting[.]fbx$",
       "hit": "^sword and shield impact[.]fbx$",
       "death": "^sword and shield death[.]fbx$"
-    }
+    },
+    "ride": true
   },
   "unit_grand_sorcerer": {
     "source": "mixamo",
@@ -74,7 +75,8 @@
       "cast": "^standing 2h magic area attack 01[.]fbx$",
       "hit": "^standing react small from front[.]fbx$",
       "death": "^standing react death backward[.]fbx$"
-    }
+    },
+    "ride": true
   },
   "unit_night_ranger": {
     "source": "mixamo",
@@ -96,7 +98,8 @@
     },
     "ride_hide": [
       "arrow"
-    ]
+    ],
+    "ride": true
   },
   "mob_skeleton": {
     "source": "mixamo",
@@ -3359,5 +3362,2210 @@
     "_note": "skin lutador com as animações de unit_night_ranger",
     "body_path": "skins/toguro/model.fbx",
     "align_rest": true
+  },
+  "ride_skin_presidente_mount_alpaca": {
+    "_note": "montado: Bolzo em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_alpaca_royal": {
+    "_note": "montado: Bolzo em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_donkey": {
+    "_note": "montado: Bolzo em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_horse": {
+    "_note": "montado: Bolzo em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_stag_spirit": {
+    "_note": "montado: Bolzo em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_stag": {
+    "_note": "montado: Bolzo em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_deer": {
+    "_note": "montado: Bolzo em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_white": {
+    "_note": "montado: Bolzo em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_ember": {
+    "_note": "montado: Bolzo em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_gold": {
+    "_note": "montado: Bolzo em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_phantom": {
+    "_note": "montado: Bolzo em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_frost": {
+    "_note": "montado: Bolzo em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_shadow": {
+    "_note": "montado: Bolzo em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_drake_ember": {
+    "_note": "montado: Bolzo em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_presidente_mount_drake_void": {
+    "_note": "montado: Bolzo em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_presidente_mount_drake_emerald": {
+    "_note": "montado: Bolzo em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_presidente_mount_wolf": {
+    "_note": "montado: Bolzo em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_wolf_frost": {
+    "_note": "montado: Bolzo em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_wolf_shadow": {
+    "_note": "montado: Bolzo em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_bull": {
+    "_note": "montado: Bolzo em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_presidente_mount_bull_infernal": {
+    "_note": "montado: Bolzo em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/bolzo/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_alpaca": {
+    "_note": "montado: Brutamontes em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_alpaca_royal": {
+    "_note": "montado: Brutamontes em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_donkey": {
+    "_note": "montado: Brutamontes em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_horse": {
+    "_note": "montado: Brutamontes em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_stag_spirit": {
+    "_note": "montado: Brutamontes em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_stag": {
+    "_note": "montado: Brutamontes em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_deer": {
+    "_note": "montado: Brutamontes em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_white": {
+    "_note": "montado: Brutamontes em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_ember": {
+    "_note": "montado: Brutamontes em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_gold": {
+    "_note": "montado: Brutamontes em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_phantom": {
+    "_note": "montado: Brutamontes em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_frost": {
+    "_note": "montado: Brutamontes em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_shadow": {
+    "_note": "montado: Brutamontes em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_drake_ember": {
+    "_note": "montado: Brutamontes em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_brutamontes_mount_drake_void": {
+    "_note": "montado: Brutamontes em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_brutamontes_mount_drake_emerald": {
+    "_note": "montado: Brutamontes em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_brutamontes_mount_wolf": {
+    "_note": "montado: Brutamontes em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_wolf_frost": {
+    "_note": "montado: Brutamontes em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_wolf_shadow": {
+    "_note": "montado: Brutamontes em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_bull": {
+    "_note": "montado: Brutamontes em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_brutamontes_mount_bull_infernal": {
+    "_note": "montado: Brutamontes em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/brutamontes/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_alpaca": {
+    "_note": "montado: Colosso de Ferro em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_alpaca_royal": {
+    "_note": "montado: Colosso de Ferro em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_donkey": {
+    "_note": "montado: Colosso de Ferro em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_horse": {
+    "_note": "montado: Colosso de Ferro em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_stag_spirit": {
+    "_note": "montado: Colosso de Ferro em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_stag": {
+    "_note": "montado: Colosso de Ferro em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_deer": {
+    "_note": "montado: Colosso de Ferro em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_white": {
+    "_note": "montado: Colosso de Ferro em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_ember": {
+    "_note": "montado: Colosso de Ferro em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_gold": {
+    "_note": "montado: Colosso de Ferro em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_phantom": {
+    "_note": "montado: Colosso de Ferro em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_frost": {
+    "_note": "montado: Colosso de Ferro em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_shadow": {
+    "_note": "montado: Colosso de Ferro em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_drake_ember": {
+    "_note": "montado: Colosso de Ferro em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_lutador_mount_drake_void": {
+    "_note": "montado: Colosso de Ferro em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_lutador_mount_drake_emerald": {
+    "_note": "montado: Colosso de Ferro em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_lutador_mount_wolf": {
+    "_note": "montado: Colosso de Ferro em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_wolf_frost": {
+    "_note": "montado: Colosso de Ferro em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_wolf_shadow": {
+    "_note": "montado: Colosso de Ferro em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_bull": {
+    "_note": "montado: Colosso de Ferro em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_lutador_mount_bull_infernal": {
+    "_note": "montado: Colosso de Ferro em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/colosso-de-ferro/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_alpaca": {
+    "_note": "montado: Lule em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_alpaca_royal": {
+    "_note": "montado: Lule em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_donkey": {
+    "_note": "montado: Lule em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_horse": {
+    "_note": "montado: Lule em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_stag_spirit": {
+    "_note": "montado: Lule em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_stag": {
+    "_note": "montado: Lule em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_deer": {
+    "_note": "montado: Lule em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_white": {
+    "_note": "montado: Lule em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_ember": {
+    "_note": "montado: Lule em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_gold": {
+    "_note": "montado: Lule em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_phantom": {
+    "_note": "montado: Lule em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_frost": {
+    "_note": "montado: Lule em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_shadow": {
+    "_note": "montado: Lule em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_drake_ember": {
+    "_note": "montado: Lule em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_politico_mount_drake_void": {
+    "_note": "montado: Lule em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_politico_mount_drake_emerald": {
+    "_note": "montado: Lule em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_politico_mount_wolf": {
+    "_note": "montado: Lule em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_wolf_frost": {
+    "_note": "montado: Lule em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_wolf_shadow": {
+    "_note": "montado: Lule em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_bull": {
+    "_note": "montado: Lule em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_politico_mount_bull_infernal": {
+    "_note": "montado: Lule em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/lule/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_alpaca": {
+    "_note": "montado: Praieiro em Alpaca Andina",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/alpaca-andina.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_alpaca_royal": {
+    "_note": "montado: Praieiro em Alpaca Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/alpaca-real.glb",
+    "height": 1.8,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_donkey": {
+    "_note": "montado: Praieiro em Burro Teimoso",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/burro-teimoso.glb",
+    "height": 1.35,
+    "ortho": 3.46,
+    "size": 192,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_horse": {
+    "_note": "montado: Praieiro em Cavalo Baio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/cavalo-baio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_stag_spirit": {
+    "_note": "montado: Praieiro em Cervo Espectral",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/cervo-espectral.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_stag": {
+    "_note": "montado: Praieiro em Cervo Real",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/cervo-real.glb",
+    "height": 2.0,
+    "ortho": 4.32,
+    "size": 232,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_deer": {
+    "_note": "montado: Praieiro em Corça da Floresta",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corca-da-floresta.glb",
+    "height": 1.5,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_white": {
+    "_note": "montado: Praieiro em Corcel Branco",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corcel-branco.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_ember": {
+    "_note": "montado: Praieiro em Corcel de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corcel-de-brasa.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_gold": {
+    "_note": "montado: Praieiro em Corcel Dourado",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corcel-dourado.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_phantom": {
+    "_note": "montado: Praieiro em Corcel Fantasma",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corcel-fantasma.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_frost": {
+    "_note": "montado: Praieiro em Corcel Gélido",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corcel-gelido.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_shadow": {
+    "_note": "montado: Praieiro em Corcel Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/corcel-sombrio.glb",
+    "height": 1.6,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_drake_ember": {
+    "_note": "montado: Praieiro em Dragão de Brasa",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/dragao-de-brasa.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_praieiro_mount_drake_void": {
+    "_note": "montado: Praieiro em Dragão do Vazio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/dragao-do-vazio.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_praieiro_mount_drake_emerald": {
+    "_note": "montado: Praieiro em Dragão Esmeralda",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/dragao-esmeralda.glb",
+    "height": 2.2,
+    "ortho": 12.0,
+    "size": 336,
+    "center": 0.45,
+    "rider_scale": 1.3,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — idle_loop",
+      "walk": "Montaria — walk_loop",
+      "run": "Montaria — walk_loop"
+    },
+    "frames": {
+      "idle": 8,
+      "walk": 8,
+      "run": 8
+    },
+    "rider_offset": [
+      0,
+      1.0,
+      0.75
+    ]
+  },
+  "ride_skin_praieiro_mount_wolf": {
+    "_note": "montado: Praieiro em Lobo Cinzento",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/lobo-cinzento.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_wolf_frost": {
+    "_note": "montado: Praieiro em Lobo Glacial",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/lobo-glacial.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_wolf_shadow": {
+    "_note": "montado: Praieiro em Lobo Sombrio",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/lobo-sombrio.glb",
+    "height": 1.4,
+    "ortho": 3.67,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_bull": {
+    "_note": "montado: Praieiro em Touro Bravo",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/touro-bravo.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
+  },
+  "ride_skin_praieiro_mount_bull_infernal": {
+    "_note": "montado: Praieiro em Touro Infernal",
+    "source": "mounted",
+    "path": "modelos-montados-3d/skins-personagens/praieiro/touro-infernal.glb",
+    "height": 1.5,
+    "ortho": 3.89,
+    "size": 208,
+    "center": 0.55,
+    "rider_scale": 1.5,
+    "exposure": 0.6,
+    "ambient": 0.5,
+    "anims": {
+      "idle": "Montaria — Idle",
+      "walk": "Montaria — Walk",
+      "run": "Montaria — Gallop"
+    },
+    "frames": {
+      "idle": 10
+    }
   }
 }

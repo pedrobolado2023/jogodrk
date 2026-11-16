@@ -239,7 +239,11 @@ def load_unit(key, u):
                 actions[name] = act
             delete(extra)
         if src:
+            src_idle = {k: a for k, a in actions.items() if k == "idle"}
             actions = {name: retarget(src, arm, act, f"{key}_{name}_rt", u.get("align_rest", False)) for name, act in actions.items()}
+            if u.get("ride") and "idle" in src_idle:
+                # seated pose built on the pack's own hero (its rig is the one RIDE_POSE is written for), then copied over
+                actions["ride"] = retarget(src, arm, ride_action(src, src_idle["idle"], u), f"{key}_ride_rt", u.get("align_rest", False))
             bpy.data.objects.remove(src, do_unlink=True)
         if "idle" not in actions and arm.animation_data and arm.animation_data.action:
             actions["idle"] = arm.animation_data.action
@@ -441,7 +445,7 @@ def compose(paths, rows, cols, size, out, g=None):
 def render_unit(key, u, preview=False, only=None):
     arm, meshes, actions = load_unit(key, u)
     if u.get("ride") and "idle" in actions and (only is None or "ride" in only):
-        actions = {**actions, "ride": None}  # built after the framing (it changes the legs)
+        actions = {**actions, "ride": actions.get("ride")}  # built after the framing (it changes the legs), unless a skin's is ready
     pivot = bpy.data.objects.new("pivot", None)
     bpy.context.scene.collection.objects.link(pivot)
     mounted = u["source"] == "mounted"
@@ -470,7 +474,7 @@ def render_unit(key, u, preview=False, only=None):
     for name, act in actions.items():
         if only and name not in only:
             continue
-        if name == "ride":
+        if name == "ride" and act is None:
             act = ride_action(arm, actions["idle"], u)
         set_action(arm, act)
         start, end = act.frame_range

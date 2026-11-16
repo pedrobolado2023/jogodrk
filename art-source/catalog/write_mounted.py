@@ -10,6 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cosmetic_catalog as cat  # noqa: E402
 
 CLASSES = {"Mestre da Lâmina": "blade_master", "Grande Feiticeiro": "grand_sorcerer", "Patrulheiro Noturno": "night_ranger"}
+# skins with their own model, seated on every mount (skins-personagens/indice.json): one picture per skin and mount,
+# the same for every class (the class only changes the animations on foot) — ride_<skin sheet>_<mount>
+SKINS = {"Bolzo": "skin_presidente", "Lule": "skin_politico", "Brutamontes": "skin_brutamontes",
+         "Colosso de Ferro": "skin_lutador", "Praieiro": "skin_praieiro"}
 QUATERNIUS = {"idle": "Montaria — Idle", "walk": "Montaria — Walk", "run": "Montaria — Gallop"}
 DRAKE = {"idle": "Montaria — idle_loop", "walk": "Montaria — walk_loop", "run": "Montaria — walk_loop"}  # as the plain drake
 
@@ -26,8 +30,13 @@ def main() -> None:
     units = json.loads(units_path.read_text(encoding="utf-8"))
     sprites = units_path.parent.parent / "client" / "public" / "sprites"
     new = []
-    for m in index["modelos"]:
-        cls, mount = CLASSES[m["personagem"]], m["idMontaria"]
+    skins = folder / "skins-personagens" / "indice.json"
+    entries = [(m, CLASSES[m["personagem"]], "") for m in index["modelos"]]
+    if skins.exists():
+        entries += [(m, SKINS[m["personagem"]], "skins-personagens/")
+                    for m in json.loads(skins.read_text(encoding="utf-8"))["modelos"]]
+    for m, cls, sub in entries:
+        mount = m["idMontaria"]
         model = model_of.get(mount)
         if not model:
             print(f"ignorado (montaria fora do catálogo): {m['arquivo']}", file=sys.stderr)
@@ -37,7 +46,7 @@ def main() -> None:
         e = {
             "_note": f"montado: {m['personagem']} em {m['montaria']}",
             "source": "mounted",
-            "path": f"modelos-montados-3d/{m['arquivo']}",
+            "path": f"modelos-montados-3d/{sub}{m['arquivo']}",
             "height": height,                         # the animal's height: same size as the plain mount
             "ortho": round(ortho * (0.8 if drake else 1.08), 2),  # horses: more room above, for the rider
             "size": int(round(size * (1.05 if drake else 1.2) / 8) * 8),

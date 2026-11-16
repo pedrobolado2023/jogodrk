@@ -611,6 +611,12 @@ export class GameScene extends Phaser.Scene {
     const want = skinId ?? "";
     if ((u.skin ?? "") === want) return;
     u.skin = want;
+    if (u.ride) {
+      // the seated picture depends on the look: get off and back on with the new one
+      const owner = u === this.player ? this.charId : (u as RemoteHero).id, mount = u.ride.id;
+      this.setMount(owner, undefined);
+      this.setMount(owner, mount);
+    }
     const base = this.heroBase(u);
     const def = want ? META.skins?.find((s) => s.id === want) : undefined;
     const apply = (key: string): void => {
@@ -638,8 +644,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Puts a hero on a mount (or takes him off). Looks only, the pace never changes. The hero seated on that mount is
-   *  one 3D sheet (ride_<class>_<mount>), the only thing loaded; a mount without one (none today) falls back to the
-   *  plain animal under the hero's body. */
+   *  one 3D sheet (ride_<class>_<mount>, or ride_<skin sheet>_<mount> for a skin with its own model), the only thing
+   *  loaded. A recolour skin (or a mount without that sheet) rides the plain animal instead, in his own sheet's seated
+   *  pose ("ride"), so the colours show on the mount. */
   private setMount(ownerId: string, mountId: string | undefined): void {
     const u = ownerId === this.charId ? this.player : this.remotes.get(ownerId);
     if (!u) return;
@@ -654,8 +661,12 @@ export class GameScene extends Phaser.Scene {
     }
     const def = META.mounts?.find((m) => m.id === want);
     if (!def) return;
-    const combined = `ride_${this.heroBase(u).replace(/^unit_/, "")}_${def.id}`;
-    const full = knowsSheet(combined);
+    // a skin with its own model has its own seated sheets (ride_<skin sheet>_<mount>, the same for every class);
+    // a recolour skin rides the plain animal in the class's seated pose, recoloured like the rest of the hero
+    const skinDef = u.skin ? META.skins?.find((s) => s.id === u.skin) : undefined;
+    const rider = skinDef?.sheet ?? (skinDef ? "" : this.heroBase(u).replace(/^unit_/, ""));
+    const combined = `ride_${rider}_${def.id}`;
+    const full = !!rider && knowsSheet(combined);
     const sheet = full ? combined : def.sheet;
     const put = () => {
       if (u.ride || !u.root.active) return;
@@ -713,10 +724,10 @@ export class GameScene extends Phaser.Scene {
       // the horse's body sits ~9 px ahead of its frame point and the saddle just behind the middle:
       // nudge the rider a little forward along his direction (screen angles clockwise from east, ground squashed 2:1)
       const ang = (u.dir * Math.PI) / 4;
-      u.body.x = Math.cos(ang) * 3;
+      u.body.x = Math.cos(ang) * 9;
       const heroPx = SHEETS[u.sheet].height * 44;
       const seat = SHEETS[u.sheet].anims.ride ? heroPx * 0.52 - 3 : heroPx * 0.28;  // the hips sink a little into the saddle
-      u.body.y = -r.raise + Math.round(seat) + Math.sin(ang) * 1.5;
+      u.body.y = -r.raise + Math.round(seat) + Math.sin(ang) * 4.5;
       const info = SHEETS[r.sheet];
       const anim = u.moving ? (info.anims.run && (u === this.player || u.speed > 2.6) ? "run" : "walk") : "idle";
       const key = animKey(r.sheet, anim, u.dir);
@@ -897,13 +908,13 @@ export class GameScene extends Phaser.Scene {
       guild: (m.guild as string) || "" });
     if (fight) this.drawHp(r, 0xd04040);
     r.label?.setColor(this.remoteColor(r));
+    this.remotes.set(id, r);  // first: setMount/setPet look the hero up by id
     this.setTitleTag(r, m.title as string | undefined);
     this.setAura(r, m.aura as string | undefined);
     this.setPet(id, m.pet as string | undefined);
+    this.setSkin(r, m.skin as string | undefined);  // before the mount: a skinned hero rides in his own look
     this.setMount(id, m.mount as string | undefined);
-    this.setSkin(r, m.skin as string | undefined);
     this.setGuildTag(r, r.guild);
-    this.remotes.set(id, r);
   }
 
   /** Players can hurt each other everywhere except the safe town (free in the arena, with PK rules outside). */
