@@ -10,6 +10,7 @@ import { DECAL_DEPTH, FX_DEPTH, Fx } from "../gfx/effects";
 import { PixelFx, hasFx, isLoopFx, palette, type PfxHandle } from "../gfx/pixelfx";
 import { FONT } from "../gfx/draw";
 import { gfx } from "../gfx/quality";
+import { switchGpu, watchGpu } from "../gfx/renderer";
 import { VEIN_INFO, VEIN_ORIGIN, ensureVeinTextures } from "../gfx/veins";
 import { isTouch } from "../ui/device";
 import { isResting } from "../ui/restMode";
@@ -49,8 +50,9 @@ const MAX_PLAYER_LIGHTS = 8;
 /** Time between two skill effects got ready in the background after entering a map. */
 const WARM_EVERY = 150;
 
-/** The night overlay is drawn this many times smaller than the screen, then stretched. */
-const DARK_RES = 2;
+/** The night overlay is drawn this many times smaller than the screen, then stretched (3 with the graphics card,
+ *  where the whole layer is sent to the card every frame: smaller means less to send). */
+let DARK_RES = 2;
 
 /** Hunting radius of auto-farm around the spot where it was turned on. */
 const AUTO_RADIUS = 10;
@@ -259,8 +261,10 @@ export class GameScene extends Phaser.Scene {
   private world: WorldRenderer | null = null;
   private fx!: Fx;
   private pfx!: PixelFx;
-  private dark!: Phaser.GameObjects.RenderTexture;
-  private stamp!: Phaser.GameObjects.Image;
+  /** the night: a small canvas we paint ourselves (same result with the processor or the graphics card) */
+  private dark!: Phaser.GameObjects.Image;
+  private darkTex!: Phaser.Textures.CanvasTexture;
+  private lightMask!: CanvasImageSource;
   private darkness = 0.5;
   /** colour of the night over this map (its mood) */
   private nightTint = 0x04060f;
@@ -312,6 +316,11 @@ export class GameScene extends Phaser.Scene {
     this.fx.onFlash = (x, y, r, dur) => this.flashLights.push({ x, y, r, dur, until: this.time.now + dur });
     this.pfx = new PixelFx(this);
     this.warmEffects();
+    // automatic graphics card: if the game is slow with it on this computer, go back to the processor
+    watchGpu(this.game, () => {
+      this.events.emit("notice", { text: "A placa de vídeo deixou o jogo lento neste aparelho. Voltando ao modo normal...", kind: "warn" });
+      this.time.delayedCall(2500, () => switchGpu("off"));
+    });
     this.events.once("shutdown", () => { this.pfx.clear(); socket.disconnect(); socket.clearHandlers(); });
     // rest mode (tab hidden / window out of focus): keep playing, drop what is only there to be seen
     const onRest = () => {
@@ -358,8 +367,11 @@ export class GameScene extends Phaser.Scene {
     this.heroRing = this.add.image(0, 0, `ring_${CLASS_RING[this.cls] ?? "gold"}`).setAlpha(0.28).setScale(0.32, 0.16)
       .setBlendMode(Phaser.BlendModes.ADD).setDepth(DECAL_DEPTH + 16);
 
-    this.stamp = this.make.image({ key: "light_mask", add: false });
-    this.dark = this.add.renderTexture(0, 0, 64, 64).setOrigin(0).setDepth(FX_DEPTH - 30);
+    this.lightMask = this.textures.get("light_mask").getSourceImage() as CanvasImageSource;
+    DARK_RES = this.game.renderer.type === Phaser.WEBGL ? 3 : 2;
+    if (this.textures.exists("night_dark")) this.textures.remove("night_dark");
+    this.darkTex = this.textures.createCanvas("night_dark", 64, 64)!;
+    this.dark = this.add.image(0, 0, "night_dark").setOrigin(0).setDepth(FX_DEPTH - 30);
 
     this.loadingText = this.add.text(0, 0, "Entrando no mundo…", { fontFamily: FONT, fontSize: "14px", color: "#d8c8a0" })
       .setOrigin(0.5).setScrollFactor(0).setDepth(FX_DEPTH + 100);
@@ -2437,16 +2449,28 @@ export class GameScene extends Phaser.Scene {
     // the night is drawn at 1/DARK_RES of the screen and stretched: it is a soft gradient, so it looks the same,
     // and every light cut into it costs a quarter (at full size, a fight full of glowing effects froze the game)
     const dw = Math.ceil(w / DARK_RES), dh = Math.ceil(h / DARK_RES);
-    if (Math.abs(this.dark.width - dw) > 1 || Math.abs(this.dark.height - dh) > 1) this.dark.resize(dw, dh);
+    const tex = this.darkTex;
+    if (Math.abs(tex.width - dw) > 1 || Math.abs(tex.height - dh) > 1) {
+      tex.setSize(dw, dh);
+      this.dark.setTexture("night_dark");  // picks up the new size
+    }
     const ox = Math.floor(v.x - pad), oy = Math.floor(v.y - pad);
     this.dark.setPosition(ox, oy).setScale(DARK_RES);
-    this.dark.clear();
-    this.dark.fill(this.nightTint, this.darkness);
+    // painted with the browser's 2D canvas and sent to the screen as an image: works the same with the processor
+    // and with the graphics card (whose "erase" on render textures does not cut the lights out)
+    const ctx = tex.context;
+    const tint = this.nightTint;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    ctx.clearRect(0, 0, tex.width, tex.height);
+    ctx.fillStyle = `rgba(${(tint >> 16) & 255},${(tint >> 8) & 255},${tint & 255},${this.darkness})`;
+    ctx.fillRect(0, 0, tex.width, tex.height);
+    ctx.globalCompositeOperation = "destination-out";
     const light = (x: number, y: number, r: number, a: number) => {
       if (x < ox - r || y < oy - r || x > ox + w + r || y > oy + h + r) return;
-      const s = r / 128 / DARK_RES;
-      this.stamp.setScale(s, s * 0.72).setAlpha(Phaser.Math.Clamp(a, 0, 1));
-      this.dark.erase(this.stamp, (x - ox) / DARK_RES, (y - oy) / DARK_RES);
+      const rw = (r * 2) / DARK_RES, rh = rw * 0.72;
+      ctx.globalAlpha = Phaser.Math.Clamp(a, 0, 1);
+      ctx.drawImage(this.lightMask, (x - ox) / DARK_RES - rw / 2, (y - oy) / DARK_RES - rh / 2, rw, rh);
     };
     const p = this.player.root;
     light(p.x, p.y - 24, this.isDead ? 110 : 220, 0.95);
@@ -2473,6 +2497,9 @@ export class GameScene extends Phaser.Scene {
     for (const fx of glows) light(fx.x, fx.y - 20, fx.glow, 0.9);
     this.flashLights = this.flashLights.filter((f) => time < f.until);
     for (const f of this.flashLights.slice(-look.fxLights)) light(f.x, f.y, f.r, (f.until - time) / f.dur);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    tex.refresh();
   }
 
   // ── Ambience and text ────────────────────────────────────────────────

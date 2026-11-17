@@ -8,7 +8,8 @@ import { portraitFromSheet } from "../gfx/sprites3d";
 import { ensureItemIcons } from "../gfx/itemIcons";
 import type { DailyState, GameScene } from "./GameScene";
 import { TextPrompt } from "./TextPrompt";
-import { cycleQuality } from "../gfx/quality";
+import { QUALITY_NAMES, quality, setQuality, type Quality } from "../gfx/quality";
+import { gpuChoice, switchGpu, usingGpu, webglSupported, type GpuChoice } from "../gfx/renderer";
 import { InventoryUI, type MarketMsg } from "./InventoryUI";
 import { PassUI } from "./PassUI";
 import { WorldMapUI, type WorldMapMsg } from "./WorldMapUI";
@@ -146,6 +147,7 @@ export class HUDScene extends Phaser.Scene {
   private friends: FriendRow[] = [];
   private friendsMax = 50;
   private friendsWin?: Phaser.GameObjects.Container;
+  private graphicsWin?: Phaser.GameObjects.Container;
   private friendsPage = 0;
   private friendConfirm = "";
   private guild: GuildState = { guild: null };
@@ -692,12 +694,7 @@ export class HUDScene extends Phaser.Scene {
     this.autoFarmText = auto.label;
     this.autoGlow = auto.glow;
     mk("chat", "Chat", "CHAT (Enter)\nEscrever uma mensagem.", () => this.chat?.openInput());
-    mk("graficos", "Gráficos", "GRÁFICOS\nTroca entre Alta, Média e Baixa (mais leve).", () => {
-      const next = cycleQuality();
-      (this.scene.get("GameScene") as GameScene).applyQuality();
-      this.toast(next === "baixa" ? "Gráficos: Baixa — sem neblina, sombras e balanço das árvores (mais leve)."
-        : next === "media" ? "Gráficos: Média — sem os raios de luz." : "Gráficos: Alta — todos os efeitos ligados.", "#e8dcc0");
-    });
+    mk("graficos", "Gráficos", "GRÁFICOS\nQualidade e placa de vídeo.", () => this.toggleGraphics());
     if (this.mobile) mk("montaria", "Montaria", "", () => this.scene.get("GameScene").events.emit("toggle_mount"));
   }
 
@@ -1304,6 +1301,7 @@ export class HUDScene extends Phaser.Scene {
     this.book?.destroy(); this.book = undefined;
     this.charPanel?.destroy(); this.charPanel = undefined;
     this.friendsWin?.destroy(); this.friendsWin = undefined;
+    this.graphicsWin?.destroy(); this.graphicsWin = undefined;
     this.guildWin?.destroy(); this.guildWin = undefined;
     if (this.inventoryUI?.isOpen) this.inventoryUI.close();
     if (this.passUI?.isOpen) this.passUI.close();
@@ -1501,6 +1499,63 @@ export class HUDScene extends Phaser.Scene {
       }
     }
     this.friendsWin = this.add.container(this.scale.width / 2, this.scale.height / 2, items).setDepth(60);
+  }
+
+  private toggleGraphics(): void {
+    if (this.graphicsWin) { this.graphicsWin.destroy(); this.graphicsWin = undefined; return; }
+    this.closeWindows();
+    this.drawGraphics();
+  }
+
+  /** Graphics window: quality level, and whether the graphics card or the processor draws the game. */
+  private drawGraphics(): void {
+    this.graphicsWin?.destroy();
+    const W = 440, H = 270;
+    const g = this.add.graphics();
+    panel(g, -W / 2, -H / 2, W, H, 12, 0.96);
+    const items: Phaser.GameObjects.GameObject[] = [g,
+      this.add.text(0, -H / 2 + 12, "GRÁFICOS", txt(16, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5, 0)];
+    const close = this.add.text(W / 2 - 14, -H / 2 + 10, "✕", txt(14, "#bfa77a")).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+    close.on("pointerdown", () => this.toggleGraphics());
+    items.push(close);
+    const row = (y: number, options: [string, string, boolean][], onPick: (id: string) => void) => {
+      const bw = 120, gap = 10, x0 = -((options.length * bw + (options.length - 1) * gap) / 2);
+      options.forEach(([id, label, on], i) => {
+        const x = x0 + i * (bw + gap);
+        const bg = this.add.graphics();
+        bg.fillStyle(on ? 0x5a3a12 : 0x1a140e, 1).fillRoundedRect(x, y, bw, 30, 6);
+        bg.lineStyle(on ? 2 : 1, on ? 0xffc860 : 0x5a4a30, 1).strokeRoundedRect(x, y, bw, 30, 6);
+        const t = this.add.text(x + bw / 2, y + 15, label, txt(11, on ? "#fff2c0" : "#c8b890", { fontStyle: on ? "bold" : "normal" })).setOrigin(0.5);
+        const hit = this.add.zone(x, y, bw, 30).setOrigin(0).setInteractive({ useHandCursor: true });
+        hit.on("pointerdown", () => onPick(id));
+        items.push(bg, t, hit);
+      });
+    };
+    // quality
+    let y = -H / 2 + 46;
+    items.push(this.add.text(-W / 2 + 20, y, "Qualidade", txt(12, "#e8dcc0", { fontStyle: "bold" })));
+    const q = quality();
+    row(y + 20, (["alta", "media", "baixa"] as Quality[]).map((id): [string, string, boolean] => [id, QUALITY_NAMES[id], id === q]), (id) => {
+      setQuality(id as Quality);
+      (this.scene.get("GameScene") as GameScene).applyQuality();
+      this.toast(id === "baixa" ? "Gráficos: Baixa — sem neblina, sombras e balanço das árvores, menos efeitos (mais leve)."
+        : id === "media" ? "Gráficos: Média — sem os raios de luz, menos efeitos." : "Gráficos: Alta — todos os efeitos ligados.", "#e8dcc0");
+      this.drawGraphics();
+    });
+    // graphics card
+    y += 72;
+    items.push(this.add.text(-W / 2 + 20, y, "Placa de vídeo", txt(12, "#e8dcc0", { fontStyle: "bold" })));
+    const c = gpuChoice();
+    row(y + 20, [["auto", "Automático", c === "auto"], ["on", "Ligada", c === "on"], ["off", "Desligada", c === "off"]], (id) => {
+      if (id === c) return;
+      this.toast("Recarregando o jogo para trocar o modo de desenho...", "#ffd77a");
+      this.time.delayedCall(600, () => switchGpu(id as GpuChoice));
+    });
+    const now = usingGpu(this.game) ? "Agora: a placa de vídeo desenha o jogo (mais leve)."
+      : webglSupported() ? "Agora: o processador desenha o jogo." : "Agora: o processador desenha o jogo (este navegador não oferece a placa de vídeo).";
+    items.push(this.add.text(0, y + 62, now + "\nAutomático usa a placa de vídeo e volta ao processador se o jogo ficar lento.\nTrocar recarrega o jogo.",
+      txt(10, "#a8987a", { align: "center", lineSpacing: 3 })).setOrigin(0.5, 0));
+    this.graphicsWin = this.add.container(this.scale.width / 2, this.scale.height / 2, items).setDepth(60);
   }
 
   private toggleInv(): void {

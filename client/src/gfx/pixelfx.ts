@@ -2,76 +2,7 @@ import Phaser from "phaser";
 import { isResting } from "../ui/restMode";
 import { gfx } from "./quality";
 import { PAL, clearFrame, composite, createFrame, createFx, type PfxFrame, type PfxInstance, type PfxModule } from "pixelfx";
-import * as swordSlash from "pixelfx/fx/melee/sword-slash";
-import * as spinSlash from "pixelfx/fx/melee/spin-slash";
-import * as heavyCleave from "pixelfx/fx/melee/heavy-cleave";
-import * as clawSwipe from "pixelfx/fx/melee/claw-swipe";
-import * as critHit from "pixelfx/fx/impacts/crit-hit";
-import * as hitSpark from "pixelfx/fx/impacts/hit-spark";
-import * as groundSlam from "pixelfx/fx/impacts/ground-slam";
-import * as stunned from "pixelfx/fx/status/stunned";
-import * as frozen from "pixelfx/fx/status/frozen";
-import * as slowed from "pixelfx/fx/status/slowed";
-import * as bleeding from "pixelfx/fx/status/bleeding";
-import * as poisoned from "pixelfx/fx/status/poisoned";
-import * as burning from "pixelfx/fx/status/burning";
-import * as rage from "pixelfx/fx/status/rage";
-import * as fireball from "pixelfx/fx/fire/fireball";
-import * as meteor from "pixelfx/fx/fire/meteor";
-import * as fireRing from "pixelfx/fx/fire/fire-ring";
-import * as campfire from "pixelfx/fx/fire/campfire";
-import * as brazier from "pixelfx/fx/fire/brazier";
-import * as candle from "pixelfx/fx/fire/candle";
-import * as iceLance from "pixelfx/fx/ice/ice-lance";
-import * as frostNova from "pixelfx/fx/ice/frost-nova";
-import * as zapHit from "pixelfx/fx/lightning/zap-hit";
-import * as blinkOut from "pixelfx/fx/arcane/blink-out";
-import * as blinkIn from "pixelfx/fx/arcane/blink-in";
-import * as starFall from "pixelfx/fx/arcane/star-fall";
-import * as portal from "pixelfx/fx/arcane/portal";
-import * as blackHole from "pixelfx/fx/shadow/black-hole";
-import * as shadowTendrils from "pixelfx/fx/shadow/shadow-tendrils";
-import * as darkExplosion from "pixelfx/fx/shadow/dark-explosion";
-import * as poisonCloud from "pixelfx/fx/nature/poison-cloud";
-import * as rootSnare from "pixelfx/fx/nature/root-snare";
-import * as divineShield from "pixelfx/fx/holy/divine-shield";
-import * as blessing from "pixelfx/fx/holy/blessing";
-import * as holyPillar from "pixelfx/fx/holy/holy-pillar";
-import * as heal from "pixelfx/fx/holy/heal";
-import * as arrow from "pixelfx/fx/projectiles/arrow";
-import * as energyDisc from "pixelfx/fx/projectiles/energy-disc";
-import * as magicMissile from "pixelfx/fx/projectiles/magic-missile";
-import * as smallExplosion from "pixelfx/fx/explosions/small-explosion";
-import * as soulRise from "pixelfx/fx/spawn/soul-rise";
-import * as summonRise from "pixelfx/fx/spawn/summon-rise";
-import * as respawnBeam from "pixelfx/fx/spawn/respawn-beam";
-
-// pixelfx (MIT) by Patch — https://github.com/patch-gg/pixelfx
-const LIB: Record<string, PfxModule> = {
-  "melee/sword-slash": swordSlash, "melee/spin-slash": spinSlash, "melee/heavy-cleave": heavyCleave,
-  "melee/claw-swipe": clawSwipe, "impacts/crit-hit": critHit, "impacts/hit-spark": hitSpark,
-  "impacts/ground-slam": groundSlam, "status/stunned": stunned, "status/frozen": frozen, "status/slowed": slowed,
-  "status/bleeding": bleeding, "status/poisoned": poisoned, "status/burning": burning, "status/rage": rage,
-  "fire/fireball": fireball, "fire/meteor": meteor, "fire/fire-ring": fireRing, "fire/campfire": campfire,
-  "fire/brazier": brazier, "fire/candle": candle, "ice/ice-lance": iceLance, "ice/frost-nova": frostNova,
-  "lightning/zap-hit": zapHit, "arcane/blink-out": blinkOut, "arcane/blink-in": blinkIn, "arcane/star-fall": starFall,
-  "arcane/portal": portal, "shadow/black-hole": blackHole, "shadow/shadow-tendrils": shadowTendrils,
-  "shadow/dark-explosion": darkExplosion, "nature/poison-cloud": poisonCloud, "nature/root-snare": rootSnare,
-  "holy/divine-shield": divineShield, "holy/blessing": blessing, "holy/holy-pillar": holyPillar, "holy/heal": heal,
-  "projectiles/arrow": arrow, "projectiles/energy-disc": energyDisc, "projectiles/magic-missile": magicMissile,
-  "explosions/small-explosion": smallExplosion, "spawn/soul-rise": soulRise, "spawn/summon-rise": summonRise,
-  "spawn/respawn-beam": respawnBeam,
-};
-
-// Every other effect of the library (244 in all), so skills can use any of them by "category/name".
-const ALL_FX = import.meta.glob("/node_modules/pixelfx/src/fx/*/*.js", { eager: true }) as Record<string, PfxModule>;
-for (const [path, mod] of Object.entries(ALL_FX)) {
-  const m = path.match(/\/fx\/([^/]+)\/([^/]+)\.js$/);
-  const impl = mod as { create?: unknown; draw?: unknown; meta?: unknown };
-  if (!m || m[2].startsWith("_") || !impl.meta || !(impl.create || impl.draw)) continue;
-  const key = `${m[1]}/${m[2]}`;
-  if (!LIB[key]) LIB[key] = mod;
-}
+import { LIB } from "./pfxLib";
 
 export const hasFx = (name: string): boolean => name in LIB;
 export const isLoopFx = (name: string): boolean => !!LIB[name]?.meta.loop;
@@ -134,12 +65,36 @@ interface Live extends PfxHandle {
   light?: Phaser.GameObjects.Image;
   pending: number;
   step: number;
+  /** drawn in the effects worker: its id there, and whether a frame was asked for and not received yet */
+  wid?: number;
+  waiting?: boolean;
   // baked loops
   sprite?: Phaser.GameObjects.Sprite;
   fading?: boolean;
 }
 
 let uid = 0;
+
+// ── effects worker (another processor core paints the effects; see fxWorker.ts) ──────────────────────────────
+
+interface WorkerFrame { id: number; done?: boolean; color?: Uint8ClampedArray; light?: Uint32Array | null }
+let worker: Worker | null | undefined;
+let wid = 0;
+/** live effects drawn by the worker, by worker id (they can belong to different scenes) */
+const byWid = new Map<number, (f: WorkerFrame) => void>();
+
+/** The shared effects worker, or null when this browser cannot run one (then effects are painted here). */
+function fxWorker(): Worker | null {
+  if (worker !== undefined) return worker;
+  try {
+    worker = new Worker(new URL("./fxWorker.ts", import.meta.url), { type: "module" });
+    worker.onmessage = (ev: MessageEvent<WorkerFrame>) => byWid.get(ev.data.id)?.(ev.data);
+    worker.onerror = (e) => { console.error("[fx worker]", e.message); worker?.terminate(); worker = null; byWid.clear(); };
+  } catch {
+    worker = null;
+  }
+  return worker;
+}
 const BAKE_FPS = 12;
 /** At most this many animation steps of an effect are simulated in one frame. */
 const MAX_CATCHUP = 2;
@@ -240,6 +195,16 @@ export class PixelFx {
       }
       if (l.opts.life !== undefined && l.age > l.opts.life) this.end(l);
       if (l.sprite || l.dead) continue;
+      if (l.wid !== undefined) {
+        // worker: ask for the next frame when the last one has arrived (it answers within a frame or two)
+        const step = crowded ? Math.max(l.step, 1 / CROWDED_FPS) : l.step;
+        l.pending = Math.min(l.pending + dt * (l.opts.speed ?? 1), step * MAX_CATCHUP);
+        if (l.waiting || l.pending < step) continue;
+        l.waiting = true;
+        worker?.postMessage({ op: "step", id: l.wid, dt: l.pending });
+        l.pending = 0;
+        continue;
+      }
       if (l.fx!.done()) { this.destroy(l); continue; }
       // never simulate more than a few steps per frame: after a slow frame, catching up on the whole gap made the
       // next frame slower still, until the game froze (long boss fights, many effects at once)
@@ -280,8 +245,10 @@ export class PixelFx {
     const [w, h] = mod.meta.size;
     const [ox, oy] = mod.meta.origin;
     const surf = this.acquire(w, h);
-    const fx = createFx(mod, {
-      x: ox, y: oy, flip: !!opts.flip, angle: opts.angle ?? 0, seed: (Math.random() * 1e6) | 0,
+    const seed = (Math.random() * 1e6) | 0;
+    const wk = fxWorker();
+    const fx = wk ? undefined : createFx(mod, {
+      x: ox, y: oy, flip: !!opts.flip, angle: opts.angle ?? 0, seed,
       ...(opts.palette ? { palette: opts.palette } : {}),
     });
     const scale = opts.scale ?? 1;
@@ -294,7 +261,17 @@ export class PixelFx {
     Object.assign(self, { fx, surf, color, light, step: 1 / fps, pending: Math.random() / fps });
     this.live.push(self);
     this.drawn++;
-    this.draw(self);
+    if (wk) {
+      const id = ++wid;
+      self.wid = id;
+      byWid.set(id, (f) => this.onWorkerFrame(self, f));
+      wk.postMessage({ op: "create", id, name, x: ox, y: oy, flip: !!opts.flip, angle: opts.angle ?? 0, seed, palette: opts.palette });
+      // the first frame right away, so the effect shows up on the next frame
+      self.waiting = true;
+      wk.postMessage({ op: "step", id, dt: 1 / fps });
+    } else {
+      this.draw(self);
+    }
     return self;
   }
 
@@ -328,8 +305,29 @@ export class PixelFx {
       if (l.fading) return;
       l.fading = true;
       this.scene.tweens.add({ targets: l.sprite, alpha: 0, duration: 300, onComplete: () => this.destroy(l) });
+    } else if (l.wid !== undefined) {
+      worker?.postMessage({ op: "stop", id: l.wid });
     } else {
       l.fx!.stop();
+    }
+  }
+
+  /** A frame painted by the worker: show it (or remove the effect when it is over). */
+  private onWorkerFrame(l: Live, f: WorkerFrame): void {
+    l.waiting = false;
+    if (l.dead) return;
+    if (f.done || !f.color) { this.destroy(l); return; }
+    const v = this.scene.cameras.main.worldView;
+    if (!this.onScreen(l, v)) return;
+    const { ctex, ltex, cdata, ldata, lview } = l.surf!;
+    cdata.data.set(f.color);
+    ctex.context.putImageData(cdata, 0, 0);
+    ctex.refresh();
+    l.light!.setVisible(!!f.light);
+    if (f.light) {
+      lview.set(f.light);
+      ltex.context.putImageData(ldata, 0, 0);
+      ltex.refresh();
     }
   }
 
@@ -350,6 +348,8 @@ export class PixelFx {
   private release(s: Surface): void {
     s.ctex.context.clearRect(0, 0, s.frame.w, s.frame.h);
     s.ltex.context.clearRect(0, 0, s.frame.w, s.frame.h);
+    s.ctex.refresh();  // graphics card: the next effect using this surface must not show the old pixels
+    s.ltex.refresh();
     const list = this.pool.get(s.size) ?? [];
     list.push(s);
     this.pool.set(s.size, list);
@@ -378,6 +378,9 @@ export class PixelFx {
     }
     l.light!.setVisible(any);
     if (any) ltex.context.putImageData(ldata, 0, 0);
+    // graphics card mode: send the new pixels to the card (nothing to do when the processor draws)
+    ctex.refresh();
+    if (any) ltex.refresh();
   }
 
   private destroy(l: Live): void {
@@ -385,5 +388,9 @@ export class PixelFx {
     l.dead = true;
     for (const o of l.objects) (o as unknown as Phaser.GameObjects.GameObject).destroy();
     if (l.surf) { this.release(l.surf); this.drawn--; }
+    if (l.wid !== undefined) {
+      byWid.delete(l.wid);
+      worker?.postMessage({ op: "drop", id: l.wid });
+    }
   }
 }

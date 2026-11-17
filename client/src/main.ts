@@ -4,9 +4,11 @@ import { GameScene } from "./scenes/GameScene";
 import { HUDScene } from "./scenes/HUDScene";
 import { goFullscreenLandscape, isTouch } from "./ui/device";
 import { installRestMode } from "./ui/restMode";
+import { rendererType, setGpuChoice } from "./gfx/renderer";
 
 const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.CANVAS,
+  // graphics card (WebGL) when available and not turned off in Gráficos; the processor (Canvas) otherwise
+  type: rendererType(),
   parent: "game-container",
   width: window.innerWidth,
   height: window.innerHeight,
@@ -39,6 +41,13 @@ const fontsReady = Promise.all([document.fonts.load("16px Cinzel"), document.fon
 const timeout = new Promise((resolve) => setTimeout(resolve, 2000));
 Promise.race([fontsReady, timeout]).finally(() => {
   const game = new Phaser.Game(config);
-  game.events.once(Phaser.Core.Events.READY, () => installRestMode(game));
+  game.events.once(Phaser.Core.Events.READY, () => {
+    installRestMode(game);
+    // the graphics card gave up (driver reset, too little memory): restart drawing with the processor
+    game.renderer.on?.(Phaser.Renderer.Events.LOSE_WEBGL, () => {
+      setGpuChoice("off");
+      window.location.reload();
+    });
+  });
   if (import.meta.env.DEV) (window as unknown as { __game: Phaser.Game }).__game = game;
 });

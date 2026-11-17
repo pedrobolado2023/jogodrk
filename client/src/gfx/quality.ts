@@ -24,6 +24,12 @@ export function quality(): Quality {
   return current;
 }
 
+/** Picks a level (and remembers it). */
+export function setQuality(q: Quality): void {
+  current = q;
+  try { localStorage.setItem(KEY, current); } catch { /* not remembered, still applied now */ }
+}
+
 /** Next level in the cycle Alta → Média → Baixa → Alta; returns it. */
 export function cycleQuality(): Quality {
   current = ORDER[(ORDER.indexOf(current) + 1) % ORDER.length];
