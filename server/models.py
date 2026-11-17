@@ -147,6 +147,7 @@ class Character(Base):
     cosmetics = Column(JSON, nullable=True)  # titles and auras owned, aura worn
     gems = Column(JSON, nullable=True)       # premium currency (shop.py)
     boosts = Column(JSON, nullable=True)     # shop boosts → end time (unix)
+    discoveries = Column(JSON, nullable=True)  # hidden places found (discovery.py)
 
     is_online = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

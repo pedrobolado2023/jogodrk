@@ -45,6 +45,9 @@ async def run_all() -> None:
     main, near, far = wolves
     for m in wolves:
         m.hp = m.max_hp = 10 ** 6
+    for m in mm.mobs.values():           # the spots are crowded now: keep the other monsters out of the way
+        if m not in wolves:
+            m.x, m.y = 150.0, 150.0
     main.x, main.y = 50.0, 50.0
     near.x, near.y = 51.0, 50.5          # inside the splash
     far.x, far.y = 55.0, 50.0            # outside
@@ -52,6 +55,7 @@ async def run_all() -> None:
     melee = next(s for s in skills_for("blade_master") if s["kind"] == "melee")
     hero.mp = hero.max_mp
     manager.sessions[hero.char_id].x, manager.sessions[hero.char_id].y = 49.0, 50.0
+    random.seed(7)  # again here: how many monsters the map spawned changes how many numbers were drawn before
     assert await game.use_skill(hero, melee["id"], main.instance_id, main.x, main.y) is None
     used = next(m for m in ws.sent if m["type"] == "skill_used")
     assert used["splash"] == [near.instance_id] and set(used["hits"]) == {main.instance_id, near.instance_id}

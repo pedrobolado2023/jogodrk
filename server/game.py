@@ -26,6 +26,7 @@ import market as mk
 import mining
 import world_boss as wb
 import hidden_quest as hq
+import discovery as disc
 from auto_farm import auto_farm
 from mob_manager import MobManager
 from skills_data import SKILLS, passive_effects, passives_for, skills_for
@@ -114,6 +115,8 @@ class Hero:
     boosts: dict[str, float] = field(default_factory=dict)   # shop boost → when it ends (unix time)
     vip_level: int = 0                                        # the account's VIP (vip.py), set when the hero joins
     vip_until: float = 0.0
+    found: list[str] = field(default_factory=list)            # hidden places discovered (discovery.py)
+    disc: dict[str, float] = field(default_factory=dict)      # their permanent bonus, as mod() keys
 
     def boost(self, kind: str) -> float:
         """Extra share from an active shop boost (0.5 = +50%) plus the VIP bonus, 0 when none."""
@@ -135,7 +138,7 @@ class Hero:
     def mod(self, key: str) -> float:
         now = time.monotonic()
         return (self.passive.get(key, 0.0) + sum(b.fx.get(key, 0.0) for b in self.buffs if b.until > now)
-                + inv.gear_mod(self.gear, key))
+                + inv.gear_mod(self.gear, key) + self.disc.get(key, 0.0))
 
     @property
     def max_hp(self) -> int:
@@ -181,7 +184,7 @@ class Hero:
             "atk": int(self.atk), "def": self.defense, "crit": round(self.crit, 3), "crit_dmg": round(self.crit_dmg, 3), "dodge": round(self.dodge, 3),
             "str": self.stat("str"), "agi": self.stat("agi"), "int": self.stat("int"), "vit": self.stat("vit"),
             "speed": self.mod("speed"), "buffs": [b.id for b in self.buffs if b.until > time.monotonic()],
-            "story": self.story, "loot": self.loot, "pvp": {"kills": self.pvp_kills, "deaths": self.pvp_deaths},
+            "story": self.story, "loot": self.loot, "found": self.found, "pvp": {"kills": self.pvp_kills, "deaths": self.pvp_deaths},
             "pk": {"status": self.pk_status(), "red_left": int(self.red_left), "kills": self.pk_kills,
                    "aggressor_left": max(0, int(self.aggressor_until - time.monotonic()))},
         }
@@ -287,6 +290,7 @@ class Game:
             await self.wb.on_enter(self, hero)
         await self.send_map_state(hero)
         await self.hq.on_move(self, hero, x, y)  # standing next to the Hidden Wanderer already
+        await self.check_discovery(hero, x, y)
 
     async def mob_sync(self, hero: Hero, x: float, y: float) -> None:
         """Where the monsters around a player are now: monster moves only reach players in range, so one coming
@@ -336,11 +340,40 @@ class Game:
         await manager.change_map(hero.char_id, map_id, x, y)
         await self.send(hero.char_id, {**self.map_info(hero), "type": "map_change", "x": x, "y": y})
         await self.hq.on_move(self, hero, x, y)
+        await self.check_discovery(hero, x, y)
         if map_id == wb.EVENT_MAP:
             await self.wb.on_enter(self, hero)
         await self.send_map_state(hero)
         if MAPS[old]["pvp"]:
             await self.broadcast_scores(old)
+        await self.save_hero(hero)
+
+    # ── hidden places (discovery.py) ─────────────────────────────────────
+
+    async def check_discovery(self, hero: Hero, x: float, y: float) -> None:
+        """Walking up to a hidden place for the first time: diary, story, permanent bonus; a map done gives gold."""
+        place = disc.near(hero.map_id, x, y, hero.found)
+        if not place or hero.is_dead:
+            return
+        hero.found.append(place["id"])
+        hero.disc = disc.mods(hero.found)
+        done = disc.map_done(hero.map_id, hero.found)
+        gold = disc.MAP_GOLD.get(hero.map_id, 0) if done else 0
+        hero.gold += gold
+        title = len(hero.found) >= disc.TOTAL and disc.TITLE not in hero.cosmetics.setdefault("titles", [])
+        if title:
+            hero.cosmetics["titles"].append(disc.TITLE)
+        n_map = sum(1 for p in disc.PLACES.get(hero.map_id, ()) if p["id"] in hero.found)
+        await self.send(hero.char_id, {
+            "type": "discovered", "id": place["id"], "name": place["name"], "lore": place["lore"],
+            "bonus": disc.bonus_text(*place["bonus"]), "landmark": place["landmark"],
+            "map_n": n_map, "map_total": len(disc.PLACES.get(hero.map_id, ())), "map_gold": gold,
+            "n": len(hero.found), "total": disc.TOTAL, "title": "Cartógrafo de Ravencrest" if title else "",
+        })
+        if title:
+            await self.to_map(hero.map_id, {"type": "notice", "kind": "quest",
+                                            "text": f"{hero.name} encontrou todos os lugares escondidos do mundo e virou Cartógrafo de Ravencrest!"})
+        await self.push_hero(hero)
         await self.save_hero(hero)
 
     # ── world map teleport ───────────────────────────────────────────────
@@ -437,6 +470,7 @@ class Game:
         if moved and moved.get("cell_changed"):
             await self.mob_sync(hero, s.x, s.y)
         await self.hq.on_move(self, hero, s.x, s.y)
+        await self.check_discovery(hero, s.x, s.y)
         for p in MAPS[hero.map_id]["portals"]:
             if _dist(s.x, s.y, p["x"], p["y"]) < PORTAL_RADIUS:
                 if self.portal_open(hero, p):

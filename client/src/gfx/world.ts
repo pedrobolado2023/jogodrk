@@ -9,7 +9,7 @@ import type { MapInfo } from "../data/meta";
 
 const CHUNK = 16;
 const PAD = 4;
-const GROUND_DEPTH = -1_000_000;
+export const GROUND_DEPTH = -1_000_000;
 /** Ground look: how far neighbouring ground colours blend, and how strong the grain textures are. */
 const BLEND_BLUR = 7;
 const BLEND_MARGIN = 24;
@@ -793,6 +793,24 @@ export class WorldRenderer {
       this.staticLights.push({ x: sx, y: sy - 60, r: 150, a: 0.85, flicker: 0.04 });
       this.owned.push(scene.add.image(sx, sy - 68, "glow_warm").setBlendMode(Phaser.BlendModes.ADD).setScale(0.9).setAlpha(0.45).setDepth(sy + 1));
     }
+  }
+
+  /**
+   * A hidden place's object (shrine, landmark or prop): kept with the map, faded when the hero walks behind a tall
+   * one, and lit at night when it has a glow. Returns the image.
+   */
+  addPlace(key: string, wx: number, wy: number, origin: [number, number], tall: boolean, light: number): Phaser.GameObjects.Image {
+    const { sx, sy } = worldToScreen(wx, wy);
+    const img = this.scene.add.image(sx, sy, key).setOrigin(origin[0], origin[1]).setDepth(sy);
+    this.owned.push(img);
+    if (tall) this.tall.push({ img, tall: true });
+    if (light) this.staticLights.push({ x: sx, y: sy - img.height * origin[1] * 0.5, r: light, a: 0.8, flicker: 0.05 });
+    return img;
+  }
+
+  /** Something that belongs to the map and goes away with it. */
+  own(obj: Phaser.GameObjects.GameObject): void {
+    this.owned.push(obj);
   }
 
   lights(): LightSource[] {

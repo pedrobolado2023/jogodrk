@@ -32,6 +32,7 @@ import payments
 import vip
 from websocket_manager import manager
 import season
+import discovery
 import titles
 from world_data import CLASS_BASE, MAPS, START_MAP, meta, normalize_story
 
@@ -65,6 +66,7 @@ async def save_hero(hero: Hero) -> None:
         char.cosmetics = dict(hero.cosmetics) if hero.cosmetics else None
         char.gems = int(hero.gems)
         char.boosts = {k: v for k, v in hero.boosts.items() if v > time.time()} or None
+        char.discoveries = list(hero.found) or None
         char.map_id = hero.map_id
         if s:
             char.pos_x, char.pos_y = s.x, s.y
@@ -138,7 +140,7 @@ async def _game_loop() -> None:
 def _add_missing_columns(conn) -> None:
     """create_all never alters existing tables: add columns introduced after a database was created."""
     have = {c["name"] for c in inspect(conn).get_columns("characters")}
-    for name in ("bag", "gear", "pk", "daily", "friends", "title", "season", "cosmetics", "gems", "boosts"):
+    for name in ("bag", "gear", "pk", "daily", "friends", "title", "season", "cosmetics", "gems", "boosts", "discoveries"):
         if name not in have:
             conn.execute(text(f"ALTER TABLE characters ADD COLUMN {name} JSON"))
 
@@ -572,6 +574,8 @@ async def game_ws(ws: WebSocket, character_id: str):
     hero.cosmetics = season.cosmetics(char.cosmetics)
     hero.gems = max(0, int(char.gems or 0))
     hero.boosts = {k: float(v) for k, v in (char.boosts or {}).items() if k in ("exp", "gold")}
+    hero.found = discovery.clean(char.discoveries)
+    hero.disc = discovery.mods(hero.found)
     # the account's VIP (bonus, bag spaces, title, auras) and its gems of the day
     daily = 0
     async with async_session() as db:

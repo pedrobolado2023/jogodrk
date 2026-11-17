@@ -5,13 +5,15 @@ import { MOVE_SPEED } from "../utils/constants";
 import { META, PARTY_COLOR, fmtBig, PK_INFO, basicSkill, classSkills, skillById, type GuildState, type HeroState, type InventoryState, type MapInfo, type PartyMember, type PkStatus, type SkillDef } from "../data/meta";
 import { GLOW_COLORS, ensureTextures, UNIT_ORIGIN, UNIT_RES, WALK_FRAMES } from "../gfx/textures";
 import { ensureSkillIcons } from "../gfx/themeProps";
-import { WorldRenderer } from "../gfx/world";
+import { GROUND_DEPTH, WorldRenderer } from "../gfx/world";
 import { DECAL_DEPTH, FX_DEPTH, Fx } from "../gfx/effects";
 import { PixelFx, hasFx, isLoopFx, palette, type PfxHandle } from "../gfx/pixelfx";
 import { FONT } from "../gfx/draw";
 import { gfx } from "../gfx/quality";
 import { switchGpu, watchGpu } from "../gfx/renderer";
 import { VEIN_INFO, VEIN_ORIGIN, ensureVeinTextures } from "../gfx/veins";
+import { FLOATING, PLACE_ORIGIN, ensurePlaceMark, placeTexture } from "../gfx/landmarks";
+import { THEME_ORIGIN } from "../gfx/themeProps";
 import { isTouch } from "../ui/device";
 import { isResting } from "../ui/restMode";
 import { SHEETS, animKey, dirIndex, hasSheet, knowsSheet, loadedSheets, releaseSheet, requestGraded, requestSheet, resumeSheets, skinKey, suspendSheets } from "../gfx/sprites3d";
@@ -201,6 +203,8 @@ export interface MinimapData {
   mobs: { x: number; y: number; boss: boolean }[];
   players: { x: number; y: number; party: boolean }[];
   npcs: { x: number; y: number }[];
+  /** hidden places of this map the hero already found */
+  places: { x: number; y: number; landmark: boolean }[];
   target: string | null;
 }
 
@@ -236,6 +240,8 @@ export class GameScene extends Phaser.Scene {
   private npcs = new Map<string, Npc>();
   /** the Hidden Wanderer's exploration marks (only the quest holder gets them, only up close) */
   private hqMarks = new Map<number, Phaser.GameObjects.GameObject[]>();
+  /** the star and glow over each hidden place of this map not found yet, by place id */
+  private placeMarks = new Map<string, Phaser.GameObjects.GameObject[]>();
   /** our guild's name and the guilds we are at war with */
   myGuild = "";
   private guildEnemies = new Set<string>();
@@ -398,6 +404,8 @@ export class GameScene extends Phaser.Scene {
     this.mobs.clear(); this.remotes.clear(); this.npcs.clear(); this.statuses.clear();
     for (const objs of this.hqMarks.values()) objs.forEach((o) => o.destroy());
     this.hqMarks.clear();
+    for (const objs of this.placeMarks.values()) objs.forEach((o) => o.destroy());
+    this.placeMarks.clear();
     for (const r of this.rays) r.img.destroy();
     this.portalObjs = []; this.portalFx = []; this.ambient = []; this.fog = []; this.rays = [];
     this.target = null; this.pendingCast = null; this.pendingTalk = null; this.moveTarget = null; this.dangers = [];
@@ -419,6 +427,7 @@ export class GameScene extends Phaser.Scene {
       this.portalFx.push(this.pfx.play(f.fx, sx, sy + 4, { scale: f.scale, keep: true }));
     }
     this.buildPortals(info);
+    this.buildPlaces(info);
     for (const n of info.npcs) this.addNpc(n.id, n.name, n.look, n.role, n.x, n.y);
 
     this.player.worldX = x;
@@ -998,6 +1007,66 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** An exploration mark on the ground: a purple glow; touching it is checked by the server. */
+  /** The hidden places of this map (server/discovery.py): their objects, and a floating star over each one not found. */
+  private buildPlaces(info: MapInfo): void {
+    const world = this.world;
+    if (!world) return;
+    ensurePlaceMark(this);
+    const found = new Set(this.hero?.found ?? []);
+    for (const p of META.discovery?.places[info.map_id] ?? []) {
+      const key = placeTexture(this, p.look, p.glow);
+      let top = 70;
+      if (key && this.textures.exists(key)) {
+        const origin = PLACE_ORIGIN[p.look] ?? THEME_ORIGIN[key] ?? [0.5, 0.9];
+        const light = p.landmark ? 260 : p.look === "shrine" ? 120 : 0;
+        const img = world.addPlace(key, p.x, p.y, origin, p.landmark || p.look === "statue", light);
+        top = img.height * origin[1];
+        const { sx, sy } = worldToScreen(p.x, p.y);
+        if (p.landmark) {
+          const shadow = this.add.image(sx + 6, sy + 2, "shadow").setScale(img.width / 64 * 0.8, img.width / 64 * 0.3).setAlpha(0.5)
+            .setDepth(GROUND_DEPTH + 2);
+          world.own(shadow);
+          if (FLOATING.has(p.look)) this.tweens.add({ targets: img, y: img.y - 10, duration: 2600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+        }
+        if (p.glow && (p.landmark || p.look === "shrine")) {
+          const glow = this.add.image(sx, sy - top * 0.45, `glow_${p.glow}`).setBlendMode(Phaser.BlendModes.ADD)
+            .setScale(p.landmark ? 5 : 1.6).setAlpha(p.landmark ? 0.35 : 0.45).setDepth(sy + 1);
+          world.own(glow);
+          this.tweens.add({ targets: glow, alpha: { from: glow.alpha * 0.6, to: glow.alpha }, duration: 1800, yoyo: true, repeat: -1 });
+        }
+      }
+      if (!found.has(p.id)) this.placeMark(p.id, p.x, p.y, top);
+    }
+  }
+
+  /** A gold star bobbing over a place not found yet, with a few sparks rising. */
+  private placeMark(id: string, wx: number, wy: number, top: number): void {
+    const { sx, sy } = worldToScreen(wx, wy);
+    const y = sy - Math.min(top, 240) - 26;
+    const star = this.add.image(sx, y, "mark_place").setDepth(sy + 3);
+    const sparks = this.add.particles(sx, sy - 10, "spark_gold", {
+      x: { min: -18, max: 18 }, lifespan: 1600, speedY: { min: -36, max: -12 }, scale: { start: 0.55, end: 0 },
+      alpha: { start: 0.9, end: 0 }, frequency: 180, blendMode: "ADD",
+    }).setDepth(sy + 2);
+    this.tweens.add({ targets: star, y: y - 8, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.placeMarks.set(id, [star, sparks]);
+  }
+
+  /** The server says the hero just found a place: remember it, a burst of light over it, and the HUD tells the story. */
+  private onDiscovered(m: ServerMessage): void {
+    const id = m.id as string;
+    if (this.hero) this.hero.found = [...(this.hero.found ?? []).filter((x) => x !== id), id];
+    const objs = this.placeMarks.get(id);
+    if (objs) {
+      const star = objs[0] as Phaser.GameObjects.Image;
+      this.fx.ring(star.x, star.y + 40, "gold", 0.5, 3, 700);
+      this.fx.burst("sparks", "gold", star.x, star.y, 30);
+      objs.forEach((o) => o.destroy());
+      this.placeMarks.delete(id);
+    }
+    this.events.emit("discovered", m);
+  }
+
   private hqMark(id: number, wx: number, wy: number, gone: boolean, found: boolean): void {
     const old = this.hqMarks.get(id);
     if (old) {
@@ -1094,6 +1163,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on("keydown-TAB", (e: KeyboardEvent) => { e.preventDefault(); this.cycleTarget(); });
     this.input.keyboard!.on("keydown-K", () => this.events.emit("toggle_book"));
     this.input.keyboard!.on("keydown-N", () => this.events.emit("toggle_map"));
+    this.input.keyboard!.on("keydown-J", () => this.events.emit("toggle_diary"));
     this.input.keyboard!.on("keydown-C", () => this.events.emit("toggle_char"));
     this.input.keyboard!.on("keydown-I", () => this.events.emit("toggle_inv"));
     this.input.keyboard!.on("keydown-F", () => this.events.emit("toggle_friends"));
@@ -1616,6 +1686,7 @@ export class GameScene extends Phaser.Scene {
     });
     socket.on("hq_mark", (m) => this.hqMark(m.id as number, m.x as number, m.y as number, !!m.gone, !!m.found));
     socket.on("hq", (m) => this.events.emit("hq", m));
+    socket.on("discovered", (m) => this.onDiscovered(m));
     // the weapon's element triggered on a hit: a burst in its colour on the monster
     socket.on("enchant_proc", (m) => {
       const u = this.mobs.get(m.target as string);
@@ -2226,6 +2297,8 @@ export class GameScene extends Phaser.Scene {
       mobs: [...this.mobs.values()].filter((m) => !m.dead).map((m) => ({ x: m.worldX, y: m.worldY, boss: m.boss })),
       players: [...this.remotes.values()].map((r) => ({ x: r.worldX, y: r.worldY, party: this.inParty(r.id) })),
       npcs: [...this.npcs.values()].map((n) => ({ x: n.worldX, y: n.worldY })),
+      places: (META.discovery?.places[this.mapInfo.map_id] ?? []).filter((p) => this.hero?.found?.includes(p.id))
+        .map((p) => ({ x: p.x, y: p.y, landmark: p.landmark })),
       target: this.target?.id ?? null,
     };
   }

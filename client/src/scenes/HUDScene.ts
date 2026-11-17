@@ -13,6 +13,7 @@ import { gpuChoice, switchGpu, usingGpu, webglSupported, type GpuChoice } from "
 import { InventoryUI, type MarketMsg } from "./InventoryUI";
 import { PassUI } from "./PassUI";
 import { WorldMapUI, type WorldMapMsg } from "./WorldMapUI";
+import { DiaryUI } from "./DiaryUI";
 import { ShopUI } from "./ShopUI";
 import { ChatUI, type ChatMsg } from "./ChatUI";
 import { panel, txt } from "./uiStyle";
@@ -93,6 +94,8 @@ export class HUDScene extends Phaser.Scene {
   private inventoryUI!: InventoryUI;
   private passUI!: PassUI;
   private worldMap!: WorldMapUI;
+  private diary!: DiaryUI;
+  private discoveryCard?: Phaser.GameObjects.Container;
   private shopUI!: ShopUI;
   private chat?: ChatUI;
   private partyBox!: Phaser.GameObjects.Container;
@@ -214,6 +217,7 @@ export class HUDScene extends Phaser.Scene {
     this.inventoryUI = new InventoryUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), this.cls);
     this.passUI = new PassUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), () => this.toggleShop("destaques"));
     this.worldMap = new WorldMapUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
+    this.diary = new DiaryUI(this, () => this.hero?.found ?? [], () => this.map?.map_id ?? "");
     this.shopUI = new ShopUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
     this.mobile = isTouch();
     this.chat = new ChatUI((m) => this.scene.get("GameScene").events.emit("inv_action", m));
@@ -276,6 +280,8 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("toggle_shop", () => this.toggleShop());
     game.events.on("toggle_pass", () => this.togglePass());
     game.events.on("toggle_map", () => this.toggleMap());
+    game.events.on("toggle_diary", () => this.toggleDiary());
+    game.events.on("discovered", (m: DiscoveredMsg) => this.showDiscovery(m));
     game.events.on("world_map", (m: WorldMapMsg) => this.worldMap.set(m));
     game.events.on("guild", (st: GuildState) => {
       this.guild = st;
@@ -684,6 +690,7 @@ export class HUDScene extends Phaser.Scene {
     mk("loja", "Loja", "LOJA (L)\nSkins, montarias, mascotes e mais com gemas.", () => this.toggleShop());
     mk("passe", "Passe", "PASSE DA TEMPORADA (P)\nPrêmios por nível do passe.", () => this.togglePass());
     mk("mapa", "Mapa", "MAPA DO MUNDO (N)\nVeja as regiões e viaje.", () => this.toggleMap());
+    mk("diario", "Diário", "DIÁRIO DE DESCOBERTAS (J)\nLugares escondidos e os bônus que eles dão.", () => this.toggleDiary());
     mk("guilda", "Guilda", "GUILDA (G)\nCrie ou entre numa guilda.", () => this.toggleGuild());
     mk("amigos", "Amigos", "AMIGOS (F)\nQuem está online e onde.", () => this.toggleFriends());
     mk("inventario", "Inventário", "INVENTÁRIO (I)\nSua bolsa e seus equipamentos.", () => this.toggleInv());
@@ -851,7 +858,7 @@ export class HUDScene extends Phaser.Scene {
   /** While a window or the menu is open, the joystick, the round buttons and the chat step aside. */
   private coverTouch(): void {
     const open = this.menuOpen || !!(this.book || this.charPanel || this.friendsWin || this.guildWin || this.dialog)
-      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen || !!this.worldMap?.isOpen;
+      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen || !!this.worldMap?.isOpen || !!this.diary?.isOpen;
     if (open === this.covered) return;
     this.covered = open;
     if (open) this.releaseJoy();
@@ -1233,6 +1240,13 @@ export class HUDScene extends Phaser.Scene {
     };
     for (const m of d.mobs) { const p = plot(m.x, m.y); if (p) g.fillStyle(m.boss ? 0xb05cff : 0xe0303a, 1).fillCircle(p[0], p[1], m.boss ? 4 : 2.2); }
     for (const n of d.npcs) { const p = plot(n.x, n.y); if (p) g.fillStyle(0xffd77a, 1).fillCircle(p[0], p[1], 2.6); }
+    for (const s of d.places) {
+      const p = plot(s.x, s.y);
+      if (!p) continue;
+      const r = s.landmark ? 4.2 : 3;
+      g.fillStyle(0x2a1800, 1).fillTriangle(p[0], p[1] - r - 1.2, p[0] + r + 1.2, p[1], p[0], p[1] + r + 1.2).fillTriangle(p[0], p[1] - r - 1.2, p[0] - r - 1.2, p[1], p[0], p[1] + r + 1.2);
+      g.fillStyle(0xffd23c, 1).fillTriangle(p[0], p[1] - r, p[0] + r, p[1], p[0], p[1] + r).fillTriangle(p[0], p[1] - r, p[0] - r, p[1], p[0], p[1] + r);
+    }
     for (const r of d.players) { const p = plot(r.x, r.y); if (p) g.fillStyle(r.party ? 0x8aff9a : 0x7fb0ff, 1).fillCircle(p[0], p[1], r.party ? 3.2 : 2.6); }
     g.fillStyle(0xffffff, 1).fillTriangle(0, -5, 4, 4, -4, 4);
   }
@@ -1306,6 +1320,7 @@ export class HUDScene extends Phaser.Scene {
     if (this.inventoryUI?.isOpen) this.inventoryUI.close();
     if (this.passUI?.isOpen) this.passUI.close();
     if (this.worldMap?.isOpen) this.worldMap.close();
+    if (this.diary?.isOpen) this.diary.close();
     if (this.shopUI?.isOpen) this.shopUI.close();
   }
 
@@ -1313,6 +1328,56 @@ export class HUDScene extends Phaser.Scene {
     const open = this.shopUI.isOpen;
     this.closeWindows();
     if (!open || tab) this.shopUI.toggle(tab);
+  }
+
+  private toggleDiary(): void {
+    const open = this.diary.isOpen;
+    this.closeWindows();
+    this.discoveryCard?.destroy();  // the diary tells the same story, bigger
+    this.discoveryCard = undefined;
+    if (!open) this.diary.toggle();
+  }
+
+  /**
+   * A hidden place was just found: a card at the top of the screen with its name, its story and the bonus,
+   * for a few seconds (a tap closes it sooner).
+   */
+  private showDiscovery(m: DiscoveredMsg): void {
+    this.discoveryCard?.destroy();
+    if (this.hero && !(this.hero.found ?? []).includes(m.id)) this.hero.found = [...(this.hero.found ?? []), m.id];
+    this.diary.refresh();
+    const w = Math.min(520, this.scale.width - 24);
+    const objs: Phaser.GameObjects.GameObject[] = [];
+    const head = this.add.text(0, 14, m.landmark ? "★  MARCO LENDÁRIO DESCOBERTO  ★" : "✦  LUGAR DESCOBERTO  ✦",
+      txt(12, "#ffd77a", { fontStyle: "bold" })).setOrigin(0.5, 0);
+    const name = this.add.text(0, 34, m.name, txt(22, "#fff1c4", { fontStyle: "bold", strokeThickness: 4 })).setOrigin(0.5, 0);
+    name.setShadow(0, 0, "#ffb040", 12, true, true);
+    const lore = this.add.text(0, 68, m.lore, txt(11, "#e8dcc0", { align: "center", wordWrap: { width: w - 40 }, lineSpacing: 3 })).setOrigin(0.5, 0);
+    let y = 68 + lore.height + 10;
+    const lines: [string, string][] = [[`${m.bonus} para sempre`, "#9dff8a"]];
+    lines.push([`Diário: ${m.map_n} de ${m.map_total} neste mapa  ·  ${m.n} de ${m.total} no total  (tecla J)`, "#c8bca0"]);
+    if (m.map_gold) lines.push([`Mapa completo! +${fmtBig(m.map_gold)} ouro`, "#ffd77a"]);
+    if (m.title) lines.push([`Novo título: ${m.title}`, "#ffd77a"]);
+    const texts = lines.map(([t, c]) => {
+      const o = this.add.text(0, y, t, txt(t.includes("para sempre") ? 13 : 11, c, { fontStyle: "bold", align: "center", wordWrap: { width: w - 40 } })).setOrigin(0.5, 0);
+      y += o.height + 4;
+      return o;
+    });
+    const h = y + 10;
+    const g = this.add.graphics();
+    panel(g, -w / 2, 0, w, h, 12, 0.94);
+    g.lineStyle(2, 0xd6aa5a, 0.9).strokeRoundedRect(-w / 2 + 3, 3, w - 6, h - 6, 10);
+    const hit = this.add.zone(-w / 2, 0, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
+    objs.push(g, hit, head, name, lore, ...texts);
+    const k = Math.min(1, Math.max(0.72, this.ui));
+    // under the window icons at the top (they fill the top right on small screens)
+    const card = this.add.container(this.scale.width / 2, Math.max(150 * this.ui, this.scale.height * 0.2), objs).setDepth(110).setScale(k).setAlpha(0);
+    this.discoveryCard = card;
+    const out = () => this.tweens.add({ targets: card, alpha: 0, duration: 500, onComplete: () => card.destroy() });
+    hit.on("pointerdown", out);
+    this.tweens.add({ targets: card, alpha: 1, y: card.y + 8, duration: 450, ease: "Back.easeOut" });
+    this.time.delayedCall(m.title || m.map_gold ? 11000 : 8000, () => { if (card.active) out(); });
+    this.feedLine(`Lugar descoberto: ${m.name} (${m.bonus})`, "#ffd77a");
   }
 
   private toggleMap(): void {
@@ -1815,6 +1880,11 @@ export class HUDScene extends Phaser.Scene {
     this.tweens.add({ targets: c, alpha: 1, duration: 900 });
     b.on("pointerdown", () => c.destroy());
   }
+}
+
+interface DiscoveredMsg {
+  id: string; name: string; lore: string; bonus: string; landmark: boolean;
+  map_n: number; map_total: number; map_gold: number; n: number; total: number; title: string;
 }
 
 interface WbStatus { state: "idle" | "active" | "over"; next_boss: string; next_at: string; starts_in?: number; boss?: string; ends_in?: number }

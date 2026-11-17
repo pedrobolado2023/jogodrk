@@ -51,12 +51,31 @@ export interface SkillDef {
   fx?: Record<string, number>;
 }
 
+/** A hidden place of the discovery diary (server/discovery.py). */
+export interface PlaceDef {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  /** texture: "shrine", a giant landmark "lm_<theme>", an ordinary prop key, or "" (an object already on the map) */
+  look: string;
+  /** GLOW_COLORS name of its light */
+  glow: string;
+  /** Hero.mod() key and value, e.g. ["max_hp_pct", 0.01] */
+  bonus: [string, number];
+  hint: string;
+  lore: string;
+  landmark: boolean;
+}
+
 export interface Meta {
   skills: SkillDef[];
   passives: SkillDef[];
   mobs: Record<string, { name: string; level: number; boss: boolean }>;
   maps: Record<string, { name: string; theme: string; level: string; pvp: boolean; safe: boolean }>;
   quests: { id: string; title: string; goal_text: string; count: number; mob: string }[];
+  /** hidden places of every map, the gold for finishing a map, and how each bonus is named */
+  discovery?: { places: Record<string, PlaceDef[]>; total: number; map_gold: Record<string, number>; bonus_text: Record<string, string> };
   /** portals of every map (for the auto-pilot's routes) */
   world: Record<string, { to: string; x: number; y: number }[]>;
   /** where each monster lives: [map, x, y] */
@@ -351,6 +370,8 @@ export interface HeroState {
   buffs: string[];
   story: { q: number; st: string; n: number };
   loot: Record<string, number>;
+  /** hidden places found (discovery diary) */
+  found?: string[];
   pvp: { kills: number; deaths: number };
   pk: { status: PkStatus; red_left: number; kills: number; aggressor_left: number };
 }

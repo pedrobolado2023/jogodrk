@@ -199,7 +199,7 @@ def region(map_id: str, name: str, theme: str, level: str, prev: str, nxt: str |
         portals.append({"id": f"to_{nxt}", "x": 110.0, "y": 30.0, "to": nxt, "dx": 10.0, "dy": 65.0,
                         "label": REGION_NAMES[nxt], "story": nxt_gate})
     return {"name": name, "theme": theme, "size": 130, "safe": False, "pvp": False, "spawn": (10.0, 65.0), "level": level,
-            "portals": portals, "npcs": [], "clearings": REGION_CLEARINGS}
+            "portals": portals, "npcs": [], "clearings": [list(c) for c in REGION_CLEARINGS]}  # own copy per region
 
 
 for _r in REGIONS:
@@ -506,6 +506,15 @@ for _quest in QUESTS:
     if MAPS[_m].get("theme") != "crypt":  # in the crypt the clearings are its rooms; elsewhere keep trees off him
         MAPS[_m]["clearings"].append([round(_ex), round(_ey), 2])
 
+# Hidden places (discovery.py) stand in a clearing, so the trees never hide them: a big one around each landmark.
+# The crypt's and the mine's clearings are their rooms, so nothing is added there.
+import discovery as _disc  # noqa: E402
+for _m, _places in _disc.PLACES.items():
+    if MAPS[_m].get("theme") in ("crypt", "mine"):
+        continue
+    for _p in _places:
+        MAPS[_m]["clearings"].append([round(_p["x"]), round(_p["y"]), 10 if _p["landmark"] else 4])
+
 # Story quests are long hunts meant to be played with the auto-mission: 10× the monsters written above,
 # and every boss twice (it comes back after its respawn). The numbers in the Elder's lines follow along.
 QUEST_KILL_MULT = 10
@@ -529,13 +538,17 @@ for _d in MOBS.values():
     if _d.get("slam"):
         _d["slam"] = {**_d["slam"], "damage": int(_d["slam"]["damage"] * _k)}
 
-# Hunting density: twice the monsters on every spot and respawns twice as fast (bosses too, so the
-# auto-mission does not wait long for the second boss kill). The world boss event has its own rules.
-SPOT_MULT = 2
+# Hunting density: four times the monsters written above on every spot (doubled twice: 2026-11 and 2026-11-17),
+# spread a bit wider so the pack does not stand in one pile, and respawns twice as fast (bosses too, so the
+# auto-mission does not wait long for the second boss kill). Bosses stay one per spot. The world boss event has
+# its own rules.
+SPOT_MULT = 4
+SPOT_WANDER_MULT = 1.3
 RESPAWN_MULT = 0.5
 for _sp in SPAWNS:
     if not MOBS[_sp["mob"]].get("boss"):
         _sp["count"] *= SPOT_MULT
+        _sp["wander"] = round(_sp["wander"] * SPOT_WANDER_MULT, 1)
 for _m in MOBS.values():
     _m["respawn"] = max(5, round(_m["respawn"] * RESPAWN_MULT))
 
@@ -581,6 +594,7 @@ NPC_LINES: dict[str, list[str]] = {
 
 def meta() -> dict[str, Any]:
     from items import catalog
+    import discovery
     from titles import meta as titles_meta
     import season as season_meta
     import shop as shop_meta
@@ -605,6 +619,7 @@ def meta() -> dict[str, Any]:
         "mounts": season_meta.mounts_meta(),
         "skins": season_meta.skins_meta(),
         "season": season_meta.meta(),
+        "discovery": discovery.meta(),
         "shop": shop_meta.meta(),
         **catalog(),
     }

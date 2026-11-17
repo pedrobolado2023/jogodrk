@@ -12,6 +12,7 @@ const TINT: Record<string, [string, string]> = {
   loja: ["#b8321c", "#3a0c06"],
   passe: ["#c98a12", "#3a2404"],
   mapa: ["#2f8a5a", "#08261a"],
+  diario: ["#b0882a", "#2e2006"],
   guilda: ["#2d5fc4", "#0a1838"],
   amigos: ["#c04a8e", "#36102a"],
   inventario: ["#8a5a2a", "#2a1608"],
@@ -28,6 +29,7 @@ const EMBLEM: Record<string, (c: Ctx) => void> = {
   loja: drawChest,
   passe: drawMedal,
   mapa: drawMap,
+  diario: drawDiary,
   guilda: drawShield,
   amigos: drawFriends,
   inventario: drawBag,
@@ -184,6 +186,25 @@ function drawMap(c: Ctx): void {
   c.lineWidth = 5; c.strokeStyle = "#c0141c"; c.lineCap = "round";
   c.beginPath(); c.moveTo(76, 68); c.lineTo(88, 80); c.moveTo(88, 68); c.lineTo(76, 80); c.stroke();
   c.lineCap = "butt";
+}
+
+function drawDiary(c: Ctx): void {
+  // a leather journal with a gold star on the cover and a strap
+  c.save(); c.translate(64, 66); c.rotate(-0.12); c.translate(-64, -66);
+  rrect(c, 36, 30, 60, 74, 6);
+  c.fillStyle = linear(c, 36, 0, 96, 0, [[0, "#8a4e22"], [0.5, "#6a3814"], [1, "#3e1e08"]]); c.fill();
+  c.fillStyle = "#f2e2b4"; c.fillRect(92, 34, 6, 66);
+  c.fillStyle = "#2a1406"; c.fillRect(36, 30, 8, 74);
+  c.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 8 : 20;
+    c.lineTo(68 + Math.cos(a) * r, 64 + Math.sin(a) * r);
+  }
+  c.closePath();
+  c.fillStyle = linear(c, 48, 44, 88, 84, [[0, "#fff2b0"], [0.5, "#ffc83c"], [1, "#b8780e"]]); c.fill();
+  c.fillStyle = "#5a2a0c"; c.fillRect(80, 60, 20, 10);
+  c.fillStyle = "#d8b060"; c.fillRect(94, 61, 6, 8);
+  c.restore();
 }
 
 function drawShield(c: Ctx): void {
