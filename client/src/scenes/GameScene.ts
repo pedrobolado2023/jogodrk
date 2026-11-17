@@ -7,7 +7,7 @@ import { GLOW_COLORS, ensureTextures, UNIT_ORIGIN, UNIT_RES, WALK_FRAMES } from 
 import { ensureSkillIcons } from "../gfx/themeProps";
 import { WorldRenderer } from "../gfx/world";
 import { DECAL_DEPTH, FX_DEPTH, Fx } from "../gfx/effects";
-import { PixelFx, palette, type PfxHandle } from "../gfx/pixelfx";
+import { PixelFx, hasFx, isLoopFx, palette, type PfxHandle } from "../gfx/pixelfx";
 import { FONT } from "../gfx/draw";
 import { gfx } from "../gfx/quality";
 import { VEIN_INFO, VEIN_ORIGIN, ensureVeinTextures } from "../gfx/veins";
@@ -42,6 +42,12 @@ interface AutoState {
 /** Deaths within AUTO_DEATH_WINDOW that make the auto-pilot give up (the monsters are too strong). */
 const AUTO_MAX_DEATHS = 3;
 const AUTO_DEATH_WINDOW = 10 * 60 * 1000;
+
+/** Time between two skill effects got ready in the background after entering a map. */
+const WARM_EVERY = 150;
+
+/** The night overlay is drawn this many times smaller than the screen, then stretched. */
+const DARK_RES = 2;
 
 /** Hunting radius of auto-farm around the spot where it was turned on. */
 const AUTO_RADIUS = 10;
@@ -302,6 +308,7 @@ export class GameScene extends Phaser.Scene {
     this.fx = new Fx(this);
     this.fx.onFlash = (x, y, r, dur) => this.flashLights.push({ x, y, r, dur, until: this.time.now + dur });
     this.pfx = new PixelFx(this);
+    this.warmEffects();
     this.events.once("shutdown", () => { this.pfx.clear(); socket.disconnect(); socket.clearHandlers(); });
     // rest mode (tab hidden / window out of focus): keep playing, drop what is only there to be seen
     const onRest = () => {
@@ -1809,6 +1816,33 @@ export class GameScene extends Phaser.Scene {
     }));
   }
 
+  /**
+   * Gets every skill effect ready a little at a time after entering the map (one every WARM_EVERY ms): the first
+   * use of an effect used to build it on the spot, a hitch of up to a few hundred ms in the middle of a fight.
+   */
+  private warmEffects(): void {
+    const todo = new Map<string, string[] | undefined>();
+    const add = (name?: string, pal?: string) => { if (name && hasFx(name)) todo.set(`${name}|${pal ?? ""}`, isLoopFx(name) ? palette(pal) : undefined); };
+    for (const s of META.skills) {
+      const v = s.vfx;
+      if (!v) continue;
+      for (const n of [v.cast, v.after, v.buff, v.proj, v.hit]) add(n, v.pal);
+      for (const n of [v.impact, v.status, v.area, v.area2]) add(n);
+    }
+    for (const n of [...Object.values(STATUS_FX), "impacts/hit-spark", "spawn/soul-rise"]) add(n);
+    const queue = [...todo.entries()];
+    const timer = this.time.addEvent({
+      delay: WARM_EVERY, loop: true, callback: () => {
+        if (isResting()) return;
+        const next = queue.shift();
+        if (!next) { timer.remove(); return; }
+        const name = next[0].split("|")[0];
+        if (isLoopFx(name)) this.pfx.bake(name, next[1]);
+        else this.pfx.warm([name], 2);
+      },
+    });
+  }
+
   private onSkillUsed(m: ServerMessage): void {
     const own = m.char_id === this.charId;
     const caster = own ? this.player : this.remotes.get(m.char_id as string);
@@ -1872,7 +1906,7 @@ export class GameScene extends Phaser.Scene {
         this.time.delayedCall(r * 140, () => {
           const sx = cx + (tx > cx ? 10 : -10), sy = mid - 6;
           const ex = def.kind === "line" ? t.sx : tx, ey = def.kind === "line" ? t.sy - 20 : tmid;
-          const h = this.pfx.play(v.proj!, sx, sy, { scale: v.ps ?? 0.6, palette: pal, depth: FX_DEPTH, glow: 70 });
+          const h = this.pfx.play(v.proj!, sx, sy, { scale: v.ps ?? 0.6, palette: pal, depth: FX_DEPTH, glow: 70, important: true });
           h.setRotation(Math.atan2(ey - sy, ex - sx));
           const pos = { x: sx, y: sy };
           this.tweens.add({
@@ -1880,7 +1914,7 @@ export class GameScene extends Phaser.Scene {
             onUpdate: () => h.setPosition(pos.x, pos.y),
             onComplete: () => {
               h.stop();
-              if (v.hit && def.kind !== "line") this.pfx.play(v.hit, tx, tmid + 10, { once: true, scale: v.hs ?? 0.6, palette: pal, depth: FX_DEPTH, flip: tx < cx });
+              if (v.hit && def.kind !== "line") this.pfx.play(v.hit, tx, tmid + 10, { once: true, scale: v.hs ?? 0.6, palette: pal, depth: FX_DEPTH, flip: tx < cx, important: true });
               if (v.impact && def.kind !== "line") this.pfx.play(v.impact, tx, tmid + 6, { once: true, scale: v.is ?? 0.6, depth: FX_DEPTH + 1, glow: 90 });
               if (v.status && target) this.pfx.play(v.status, 0, 0, { follow: target.root, scale: 0.7, life: def.dot ? def.dot.ticks * def.dot.every : 3, depth: FX_DEPTH });
               if (v.shake) this.fx.shake(v.shake, 160);
@@ -1890,7 +1924,7 @@ export class GameScene extends Phaser.Scene {
       }
     } else if (v.hit && target && def.kind !== "chain") {
       this.time.delayedCall(dashed ? 110 : 40, () => {
-        this.pfx.play(v.hit!, target.root.x, tmid + 14, { once: true, scale: v.hs ?? 0.7, flip: target.root.x < caster.root.x, depth: FX_DEPTH, palette: pal });
+        this.pfx.play(v.hit!, target.root.x, tmid + 14, { once: true, scale: v.hs ?? 0.7, flip: target.root.x < caster.root.x, depth: FX_DEPTH, palette: pal, important: true });
         if (v.impact) this.pfx.play(v.impact, target.root.x, tmid + 8, { once: true, scale: v.is ?? 0.6, depth: FX_DEPTH + 1, glow: 90 });
         if (v.shake) { this.fx.shake(v.shake, 160); if (caster === this.player) this.punch(0.08); }
       });
@@ -2385,16 +2419,19 @@ export class GameScene extends Phaser.Scene {
   private updateLighting(time: number): void {
     const v = this.cameras.main.worldView, pad = 48;
     const w = Math.ceil(v.width + pad * 2), h = Math.ceil(v.height + pad * 2);
-    if (Math.abs(this.dark.width - w) > 2 || Math.abs(this.dark.height - h) > 2) this.dark.resize(w, h);
+    // the night is drawn at 1/DARK_RES of the screen and stretched: it is a soft gradient, so it looks the same,
+    // and every light cut into it costs a quarter (at full size, a fight full of glowing effects froze the game)
+    const dw = Math.ceil(w / DARK_RES), dh = Math.ceil(h / DARK_RES);
+    if (Math.abs(this.dark.width - dw) > 1 || Math.abs(this.dark.height - dh) > 1) this.dark.resize(dw, dh);
     const ox = Math.floor(v.x - pad), oy = Math.floor(v.y - pad);
-    this.dark.setPosition(ox, oy);
+    this.dark.setPosition(ox, oy).setScale(DARK_RES);
     this.dark.clear();
     this.dark.fill(this.nightTint, this.darkness);
     const light = (x: number, y: number, r: number, a: number) => {
       if (x < ox - r || y < oy - r || x > ox + w + r || y > oy + h + r) return;
-      const s = r / 128;
+      const s = r / 128 / DARK_RES;
       this.stamp.setScale(s, s * 0.72).setAlpha(Phaser.Math.Clamp(a, 0, 1));
-      this.dark.erase(this.stamp, x - ox, y - oy);
+      this.dark.erase(this.stamp, (x - ox) / DARK_RES, (y - oy) / DARK_RES);
     };
     const p = this.player.root;
     light(p.x, p.y - 24, this.isDead ? 110 : 220, 0.95);
@@ -2403,9 +2440,17 @@ export class GameScene extends Phaser.Scene {
       const f = 1 + Math.sin(time * 0.017 + l.x) * l.flicker * 0.6 + Math.sin(time * 0.043 + l.y) * l.flicker * 0.4;
       light(l.x, l.y, l.r * f, l.a);
     }
-    for (const fx of this.pfx.active) if (fx.glow && fx.alive) light(fx.x, fx.y - 20, fx.glow, 0.9);
+    // effect lights: only the ones nearest the hero (each one costs about 1 ms per frame; a big fight lit dozens)
+    const look = gfx();
+    const glows = this.pfx.active.filter((fx) => fx.glow && fx.alive && fx.x > ox - fx.glow && fx.x < ox + w + fx.glow
+      && fx.y > oy - fx.glow && fx.y < oy + h + fx.glow);
+    if (glows.length > look.fxLights) {
+      glows.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+      glows.length = look.fxLights;
+    }
+    for (const fx of glows) light(fx.x, fx.y - 20, fx.glow, 0.9);
     this.flashLights = this.flashLights.filter((f) => time < f.until);
-    for (const f of this.flashLights) light(f.x, f.y, f.r, (f.until - time) / f.dur);
+    for (const f of this.flashLights.slice(-look.fxLights)) light(f.x, f.y, f.r, (f.until - time) / f.dur);
   }
 
   // ── Ambience and text ────────────────────────────────────────────────
@@ -2613,6 +2658,8 @@ export class GameScene extends Phaser.Scene {
 
   private lastShake = 0;
   private dmgSide = 1;
+  /** damage numbers on screen now (past the quality's limit, plain hits on others are not shown) */
+  private numbersAlive = new Set<Phaser.GameObjects.Text>();
 
   /**
    * A damage number that pops out of the target: just the number (12.345, or 1,2 mi), bigger for bigger hits;
@@ -2621,6 +2668,7 @@ export class GameScene extends Phaser.Scene {
    */
   private damageNumber(x: number, y: number, amount: number, taken: boolean, crit: boolean, dot?: string): void {
     if (isResting()) return;
+    if (!taken && !crit && this.numbersAlive.size >= gfx().numbers) return;
     const magnitude = Phaser.Math.Clamp(Math.log10(Math.max(10, amount)) / 7, 0, 1);  // 10 → 0.14 … 10 mi → 1
     const base = dot ? 11 : taken ? 14 : 14 + magnitude * 9;
     const size = Math.round(crit ? base * 1.6 : base);
@@ -2632,6 +2680,8 @@ export class GameScene extends Phaser.Scene {
       fontFamily: FONT, fontSize: `${size}px`, fontStyle: "bold", color, stroke, strokeThickness: crit ? 6 : 4,
     }).setOrigin(0.5).setDepth(FX_DEPTH + (crit ? 12 : 10)).setScale(0.2);
     t.setShadow(0, 2, "#000000", 4, true, true);
+    this.numbersAlive.add(t);
+    t.once("destroy", () => this.numbersAlive.delete(t));
     const drift = this.dmgSide * Phaser.Math.Between(14, crit ? 40 : 28);
     if (crit) {
       t.setAngle(this.dmgSide * -6);

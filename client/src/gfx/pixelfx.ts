@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { isResting } from "../ui/restMode";
+import { gfx } from "./quality";
 import { PAL, clearFrame, composite, createFrame, createFx, type PfxFrame, type PfxInstance, type PfxModule } from "pixelfx";
 import * as swordSlash from "pixelfx/fx/melee/sword-slash";
 import * as spinSlash from "pixelfx/fx/melee/spin-slash";
@@ -73,6 +74,7 @@ for (const [path, mod] of Object.entries(ALL_FX)) {
 }
 
 export const hasFx = (name: string): boolean => name in LIB;
+export const isLoopFx = (name: string): boolean => !!LIB[name]?.meta.loop;
 export const palette = (name?: string): string[] | undefined => (name ? PAL[name] : undefined);
 
 export interface PlayOpts {
@@ -93,6 +95,8 @@ export interface PlayOpts {
   speed?: number;
   /** Radius in world px of the light this effect casts into the night, 0 for none. */
   glow?: number;
+  /** Shown even when many effects are already playing (projectiles, hits); extras like cast flashes are skipped first. */
+  important?: boolean;
   fps?: number;
 }
 
@@ -139,10 +143,16 @@ let uid = 0;
 const BAKE_FPS = 12;
 /** At most this many animation steps of an effect are simulated in one frame. */
 const MAX_CATCHUP = 2;
+/** Important effects may go this far past the quality's budget, then they are skipped too. */
+const HARD_CAP = 1.6;
+/** Frames per second of drawn effects when the screen is crowded (half the budget or more in use). */
+const CROWDED_FPS = 8;
 
 export class PixelFx {
   private live: Live[] = [];
   private pool = new Map<string, Surface[]>();
+  /** drawn (not baked) effects still playing: the expensive ones */
+  private drawn = 0;
 
   constructor(private scene: Phaser.Scene) {}
 
@@ -209,11 +219,16 @@ export class PixelFx {
     // resting (tab hidden): nobody sees them, and piled up they froze the game on return; only map effects start
     if (isResting() && !opts.keep) return this.dummy(x, y);
     if (opts.once && mod.meta.loop && opts.life === undefined) opts = { ...opts, life: Math.max(0.8, Math.min(2, mod.meta.duration ?? 1)) };
-    return mod.meta.loop ? this.playBaked(name, mod, x, y, opts) : this.playLive(name, mod, x, y, opts);
+    if (mod.meta.loop) return this.playBaked(name, mod, x, y, opts);
+    // a big fight piles up dozens of drawn effects and the game froze: past the budget, extras are skipped
+    const budget = gfx().fxBudget;
+    if (!opts.keep && this.drawn >= (opts.important ? Math.ceil(budget * HARD_CAP) : budget)) return this.dummy(x, y);
+    return this.playLive(name, mod, x, y, opts);
   }
 
   update(dt: number): void {
     const v = this.scene.cameras.main.worldView;
+    const crowded = this.drawn >= gfx().fxBudget / 2;
     for (const l of this.live) {
       if (l.dead) continue;
       l.age += dt;
@@ -228,8 +243,10 @@ export class PixelFx {
       if (l.fx!.done()) { this.destroy(l); continue; }
       // never simulate more than a few steps per frame: after a slow frame, catching up on the whole gap made the
       // next frame slower still, until the game froze (long boss fights, many effects at once)
-      l.pending = Math.min(l.pending + dt * (l.opts.speed ?? 1), l.step * MAX_CATCHUP);
-      if (l.pending < l.step) continue;
+      // crowded screen: fewer redraws per second (the animation keeps its speed, just in bigger steps)
+      const step = crowded ? Math.max(l.step, 1 / CROWDED_FPS) : l.step;
+      l.pending = Math.min(l.pending + dt * (l.opts.speed ?? 1), step * MAX_CATCHUP);
+      if (l.pending < step) continue;
       l.fx!.update(l.pending);
       l.pending = 0;
       if (this.onScreen(l, v)) this.draw(l);
@@ -276,6 +293,7 @@ export class PixelFx {
     const fps = opts.fps ?? Math.min(24, (mod.meta as { fps?: number }).fps ?? 30);
     Object.assign(self, { fx, surf, color, light, step: 1 / fps, pending: Math.random() / fps });
     this.live.push(self);
+    this.drawn++;
     this.draw(self);
     return self;
   }
@@ -366,6 +384,6 @@ export class PixelFx {
     if (l.dead) return;
     l.dead = true;
     for (const o of l.objects) (o as unknown as Phaser.GameObjects.GameObject).destroy();
-    if (l.surf) this.release(l.surf);
+    if (l.surf) { this.release(l.surf); this.drawn--; }
   }
 }

@@ -31,11 +31,21 @@ export function cycleQuality(): Quality {
   return current;
 }
 
+export interface GfxLook {
+  blend: boolean; sway: boolean; shadows: boolean; fog: boolean; rays: boolean; particles: number;
+  /** skill effects drawn at the same time (each one is redrawn pixel by pixel many times a second) */
+  fxBudget: number;
+  /** effect lights cut into the night at the same time (each one costs about 1 ms per frame) */
+  fxLights: number;
+  /** damage numbers on screen at the same time */
+  numbers: number;
+}
+
 /** What each level turns on. */
-export function gfx(): { blend: boolean; sway: boolean; shadows: boolean; fog: boolean; rays: boolean; particles: number } {
+export function gfx(): GfxLook {
   switch (current) {
-    case "baixa": return { blend: false, sway: false, shadows: false, fog: false, rays: false, particles: 0.35 };
-    case "media": return { blend: true, sway: true, shadows: true, fog: true, rays: false, particles: 0.7 };
-    default: return { blend: true, sway: true, shadows: true, fog: true, rays: true, particles: 1 };
+    case "baixa": return { blend: false, sway: false, shadows: false, fog: false, rays: false, particles: 0.35, fxBudget: 5, fxLights: 2, numbers: 18 };
+    case "media": return { blend: true, sway: true, shadows: true, fog: true, rays: false, particles: 0.7, fxBudget: 8, fxLights: 4, numbers: 28 };
+    default: return { blend: true, sway: true, shadows: true, fog: true, rays: true, particles: 1, fxBudget: 11, fxLights: 6, numbers: 40 };
   }
 }
