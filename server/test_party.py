@@ -64,10 +64,13 @@ async def run_all() -> None:
     a.cooldowns.clear()
     a.mp = a.max_mp
     wolf.hp = 1
+    for m in game.mobs["forest_01"].mobs.values():  # no other monster close enough to die from the splash
+        if m is not wolf and (m.x - wolf.x) ** 2 + (m.y - wolf.y) ** 2 < 36:
+            m.x, m.y = wolf.x + 30, wolf.y + 30
     assert await game.use_skill(a, "bm_slash", wolf.instance_id, None, None) is None
     expected = int(wolf.exp_reward * (1 + pt.EXP_BONUS_PER_MEMBER))
     assert last(bws, "reward")["exp"] == expected and last(aws, "reward")["exp"] == expected
-    assert b.exp == expected and b.story["n"] == 1
+    assert b.exp == expected and b.story["n"] == 1, (b.exp, expected, b.story, [m for m in bws.sent if m.get("type") in ("reward", "mob_damaged")][-4:])
     assert last(cws, "reward") is None  # not in the party: nothing
     print("ok  EXP com bônus e missão divididas com quem está perto")
 

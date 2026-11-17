@@ -29,13 +29,14 @@ import hidden_quest as hq
 from auto_farm import auto_farm
 from mob_manager import MobManager
 from skills_data import SKILLS, passive_effects, passives_for, skills_for
-from websocket_manager import manager
+from websocket_manager import MOB_VIEW_RADIUS, VIEW_RADIUS, encode, manager
 from world_data import power
 from world_data import (CHAPTER_ENDS, CLASS_BASE, CLASS_GROWTH, DODGE_CAP, LEVEL_DODGE, LEVEL_HP, LEVEL_MP, MAPS, MAX_LEVEL, MOBS, NPC_LINES, QUESTS, SPAWNS,
                         exp_to_next, fmt_big)
 
 PVP_DAMAGE = 0.6  # default share of the normal damage a hero deals to another hero (the admin panel changes it)
 PVP_DAMAGE_MIN, PVP_DAMAGE_MAX = 0.1, 5.0
+ENEMY_RADIUS = 40.0  # tiles around a caster where targets are looked for (skills and chain jumps reach less)
 CHAT_MAX_LEN = 160
 CHAT_BURST = 5          # at most this many messages…
 CHAT_WINDOW = 6.0       # …in this many seconds
@@ -224,18 +225,28 @@ class Game:
     async def send(self, cid: str, msg: dict[str, Any]) -> None:
         s = manager.sessions.get(cid)
         if s:
-            try:
-                await s.ws.send_json(msg)
-            except Exception:
-                pass
+            await manager.deliver(s, encode(msg))
 
     async def to_map(self, map_id: str, msg: dict[str, Any]) -> None:
-        for cid, s in list(manager.sessions.items()):
-            if s.map_id == map_id:
-                try:
-                    await s.ws.send_json(msg)
-                except Exception:
-                    pass
+        """Everyone on the map: for things all of them must know (a monster dies or appears, a level up...)."""
+        await manager.send_text_to([s for s in list(manager.sessions.values()) if s.map_id == map_id], encode(msg))
+
+    async def to_area(self, map_id: str, x: float, y: float, msg: dict[str, Any], r: float = VIEW_RADIUS) -> None:
+        """Only the players who can see (x, y): skills, hits, potions. With many players on a map, sending every
+        effect to everyone was most of the server's work and of each player's download."""
+        await manager.send_text_to(manager.around(map_id, x, y, r), encode(msg))
+
+    def mob_pos(self, map_id: str, mob_id: str) -> tuple[float, float] | None:
+        m = self.mobs[map_id].mobs.get(mob_id)
+        return (m.x, m.y) if m else None
+
+    async def to_target(self, map_id: str, target_id: str, msg: dict[str, Any], fallback: tuple[float, float]) -> None:
+        """To the players around a monster or hero (by id), or around `fallback` when it is gone."""
+        pos = self.mob_pos(map_id, target_id)
+        if pos is None:
+            s = manager.sessions.get(target_id)
+            pos = (s.x, s.y) if s else fallback
+        await self.to_area(map_id, pos[0], pos[1], msg)
 
     async def notice(self, cid: str, text: str, kind: str = "info") -> None:
         await self.send(cid, {"type": "notice", "text": text, "kind": kind})
@@ -276,6 +287,15 @@ class Game:
             await self.wb.on_enter(self, hero)
         await self.send_map_state(hero)
         await self.hq.on_move(self, hero, x, y)  # standing next to the Hidden Wanderer already
+
+    async def mob_sync(self, hero: Hero, x: float, y: float) -> None:
+        """Where the monsters around a player are now: monster moves only reach players in range, so one coming
+        closer gets the current positions (and life) of the monsters it is about to see."""
+        r2 = (MOB_VIEW_RADIUS + 16) ** 2
+        mobs = [[m.instance_id, round(m.x, 2), round(m.y, 2), m.hp] for m in self.mobs[hero.map_id].mobs.values()
+                if not m.is_dead and (m.x - x) ** 2 + (m.y - y) ** 2 <= r2]
+        if mobs:
+            await self.send(hero.char_id, {"type": "mob_sync", "mobs": mobs})
 
     async def send_map_state(self, hero: Hero) -> None:
         if hero.map_id == mining.MINE_MAP:
@@ -410,10 +430,12 @@ class Game:
             return
         size = MAPS[hero.map_id]["size"]
         x, y = max(0.5, min(size - 1.5, x)), max(0.5, min(size - 1.5, y))
-        await manager.handle_move(hero.char_id, x, y)
+        moved = await manager.handle_move(hero.char_id, x, y)
         s = manager.sessions.get(hero.char_id)
         if not s:
             return
+        if moved and moved.get("cell_changed"):
+            await self.mob_sync(hero, s.x, s.y)
         await self.hq.on_move(self, hero, s.x, s.y)
         for p in MAPS[hero.map_id]["portals"]:
             if _dist(s.x, s.y, p["x"], p["y"]) < PORTAL_RADIUS:
@@ -432,12 +454,42 @@ class Game:
     # ── skills ───────────────────────────────────────────────────────────
 
     def enemies(self, hero: Hero, aimed_at: str | None = None) -> list[tuple[str, str, float, float]]:
-        """(kind, id, x, y) of everything this hero may hit on its map. In the open world an innocent
-        player is only hittable when aimed at on purpose; aggressors and reds are always fair game."""
-        out = [("mob", m.instance_id, m.x, m.y) for m in self.mobs[hero.map_id].mobs.values() if not m.is_dead]
+        """(kind, id, x, y) of everything this hero may hit around it (ENEMY_RADIUS tiles: farther than any skill
+        reaches). In the open world an innocent player is only hittable when aimed at on purpose; aggressors and
+        reds are always fair game. Only nearby players are checked: going through every player of the map (party,
+        guild, war, PK) on every skill was a third of the server's work with a hundred players."""
+        me = manager.sessions.get(hero.char_id)
+        if not me:
+            return []
+        r2 = ENEMY_RADIUS * ENEMY_RADIUS
+        out = [("mob", m.instance_id, m.x, m.y) for m in self.mobs[hero.map_id].mobs.values()
+               if not m.is_dead and (m.x - me.x) ** 2 + (m.y - me.y) ** 2 <= r2]
         m = MAPS[hero.map_id]
         if m["safe"] or m.get("event"):
             return out
+        # the hero's own party, guild and guild wars, looked up once (not once per nearby player)
+        party_of, guild_of = self.parties.of, self.guilds.of
+        my_party = party_of.get(hero.char_id)
+        my_gid = guild_of.get(hero.char_id)
+        my_guild = self.guilds.guilds.get(my_gid) if my_gid is not None else None
+        now_t = time.time()
+        war_ids = {int(k) for k, until in my_guild.wars.items() if until > now_t} if my_guild else set()
+        pvp = m["pvp"]
+        for s in manager.around(hero.map_id, me.x, me.y, ENEMY_RADIUS):
+            cid = s.char_id
+            if cid == hero.char_id:
+                continue
+            other = self.heroes.get(cid)
+            if not other or other.map_id != hero.map_id or other.is_dead:
+                continue
+            if my_party is not None and party_of.get(cid) == my_party:
+                continue
+            gid = guild_of.get(cid)
+            if my_gid is not None and gid == my_gid:
+                continue
+            if pvp or cid == aimed_at or (gid is not None and gid in war_ids) or other.pk_status() != "white":
+                out.append(("hero", cid, s.x, s.y))
+        return out
         for other in self.heroes.values():
             s = manager.sessions.get(other.char_id)
             if other.char_id == hero.char_id or other.map_id != hero.map_id or other.is_dead or not s:
@@ -557,7 +609,7 @@ class Game:
                 event["splash"] = sorted(splash)
         if hits:
             event["hits"] = [h[1] for h in hits[:40]]
-        await self.to_map(hero.map_id, event)
+        await self.to_area(hero.map_id, cx, cy, event)
         stat = hero.stat(sk.get("stat", "str")) if sk.get("stat") else 0
         ench = self.weapon_enchant(hero)
         for e in hits:
@@ -605,7 +657,7 @@ class Game:
                 victim = self.heroes.get(e[1])
                 if victim and cc["t"] in ("stun", "freeze"):
                     victim.stun_until = max(victim.stun_until, now + cc["d"] * 0.6)
-            await self.to_map(hero.map_id, {"type": "cc", "target": e[1], "kind": cc["t"], "dur": cc["d"]})
+            await self.to_area(hero.map_id, e[2], e[3], {"type": "cc", "target": e[1], "kind": cc["t"], "dur": cc["d"]})
         if sk.get("dot"):
             d = sk["dot"]
             stat = hero.stat(sk.get("stat", "str"))
@@ -626,7 +678,11 @@ class Game:
         if ls > 0 and not hero.is_dead:
             hero.hp = min(hero.max_hp, hero.hp + max(1, int(dmg * ls)))
         killed = res.pop("contributors", None)
-        await self.to_map(hero.map_id, res)
+        if res.get("killed"):
+            await self.to_map(hero.map_id, res)  # everyone must drop the dead monster
+        else:
+            s = manager.sessions.get(hero.char_id)
+            await self.to_target(hero.map_id, mob_id, res, (s.x, s.y) if s else (0.0, 0.0))
         if killed is not None:
             await self.on_mob_killed(hero, res, killed)
 
@@ -681,7 +737,9 @@ class Game:
         if victim.is_dead:
             return
         if attacker is None and not dot and not true_damage and random.random() < victim.dodge:
-            await self.to_map(victim.map_id, {"type": "damage", "target_id": victim.char_id, "dodge": True, "source": source})
+            vs = manager.sessions.get(victim.char_id)
+            await self.to_area(victim.map_id, vs.x if vs else 0.0, vs.y if vs else 0.0,
+                               {"type": "damage", "target_id": victim.char_id, "dodge": True, "source": source})
             return
         if attacker is None and not dot and not true_damage:
             dmg = max(1, dmg * 100 // (100 + victim.defense))
@@ -724,7 +782,11 @@ class Game:
             elif attacker and attacker.char_id != victim.char_id:
                 msg["killer_name"] = attacker.name
                 await self.on_player_kill(attacker, victim, status_at_death)
-        await self.to_map(victim.map_id, msg)
+        if msg.get("killed"):
+            await self.to_map(victim.map_id, msg)
+        else:
+            vs = manager.sessions.get(victim.char_id)
+            await self.to_area(victim.map_id, vs.x if vs else 0.0, vs.y if vs else 0.0, msg)
         if msg.get("killed") and MAPS[victim.map_id]["pvp"]:
             await self.broadcast_scores(victim.map_id)
 
@@ -970,6 +1032,9 @@ class Game:
                         s = manager.sessions.get(h.char_id)
                         if h.map_id == map_id and s and _dist(s.x, s.y, ev["x"], ev["y"]) <= ev["radius"]:
                             await self.hurt_hero(h, ev["damage"], None, source=ev["mob_id"])
+                elif ev["type"] == "mob_move":
+                    if players:  # nobody to see it otherwise (the next player in range gets a mob_sync)
+                        await self.to_area(map_id, ev["x"], ev["y"], ev, MOB_VIEW_RADIUS)
                 else:
                     await self.to_map(map_id, ev)
 
@@ -1235,7 +1300,9 @@ class Game:
         else:
             hero.mp = min(hero.max_mp, hero.mp + gain)
         hero.potion_cd[kind] = now + inv.POTION_COOLDOWN
-        await self.to_map(hero.map_id, {"type": "potion", "char_id": hero.char_id, "kind": kind, "amount": gain})
+        ps = manager.sessions.get(hero.char_id)
+        await self.to_area(hero.map_id, ps.x if ps else 0.0, ps.y if ps else 0.0,
+                           {"type": "potion", "char_id": hero.char_id, "kind": kind, "amount": gain})
         await self.send(hero.char_id, {"type": "stats", "hp": hero.hp, "mp": hero.mp, "max_hp": hero.max_hp,
                                        "max_mp": hero.max_mp})
         await self.push_inventory(hero)
@@ -2120,10 +2187,10 @@ class Game:
             self.dots.append(Dot(hero.char_id, mob_id, hero.map_id, per, 1.0, ticks, now + 1.0, kind))
         elif kind == "slow":
             self.mobs[hero.map_id].apply_cc(mob_id, "slow", forge.SLOW_SECONDS)
-            await self.to_map(hero.map_id, {"type": "cc", "target": mob_id, "kind": "slow", "dur": forge.SLOW_SECONDS})
+            await self.to_target(hero.map_id, mob_id, {"type": "cc", "target": mob_id, "kind": "slow", "dur": forge.SLOW_SECONDS}, (0.0, 0.0))
         elif kind == "shock":
             await self.hurt_mob(hero, mob_id, max(1, int(hit * forge.SHOCK_SHARE)))
-        await self.to_map(hero.map_id, {"type": "enchant_proc", "target": mob_id, "kind": kind})
+        await self.to_target(hero.map_id, mob_id, {"type": "enchant_proc", "target": mob_id, "kind": kind}, (0.0, 0.0))
 
     async def forge_enchant(self, hero: Hero, where: str, ref: Any, item_id: str, element: str) -> str | None:
         if element not in forge.ENCHANTS:

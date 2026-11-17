@@ -55,11 +55,20 @@ export class GameSocket {
     };
 
     this.ws.onmessage = (ev) => {
+      let msg: ServerMessage;
       try {
-        const msg: ServerMessage = JSON.parse(ev.data);
-        this.emit(msg.type, msg);
+        msg = JSON.parse(ev.data);
       } catch {
-        /* ignore malformed */
+        return; /* ignore malformed */
+      }
+      // the server sends what it has for us at the same moment as one "batch" (in order)
+      const list = msg.type === "batch" ? (msg.m as ServerMessage[]) : [msg];
+      for (const m of list) {
+        try {
+          this.emit(m.type, m);
+        } catch (e) {
+          console.error(e); // one failing handler never drops the rest of the batch
+        }
       }
     };
 

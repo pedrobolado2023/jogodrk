@@ -54,6 +54,7 @@ async def enchant() -> None:
     hero.map_id = "forest_01"
     s = manager.sessions[hero.char_id]
     s.map_id, s.x, s.y = "forest_01", wolf.x + 1, wolf.y
+    manager.get_grid("forest_01").add(hero.char_id, s.x, s.y)  # as change_map does: nearby messages use the grid
     random.seed(1)
     hits = []
     for element, check in (("fire", lambda: any(d.kind == "burn" for d in game.dots)),

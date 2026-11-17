@@ -6,6 +6,7 @@ and spatial partitioning per map.
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 import time
 from dataclasses import dataclass, field
@@ -18,6 +19,15 @@ from spatial import CELL_SIZE, SpatialGrid
 # Movement speed cap — tiles per second (server-side cheat prevention)
 MAX_SPEED = 8.0
 MAX_MOVE_GAP = 1.0  # seconds
+# how far (tiles) purely visual map events reach (skills, hits, potions); every screen sees less than this
+VIEW_RADIUS = 30.0
+# monster movement reaches a bit farther, so a monster walking into view is already where it should be
+MOB_VIEW_RADIUS = 40.0
+
+
+def encode(msg: dict[str, Any]) -> str:
+    """One message as JSON text, made once and sent to every recipient (it used to be re-made for each one)."""
+    return json.dumps(msg, separators=(",", ":"), ensure_ascii=False)
 # Tick rate for batched broadcasts (ms)
 BROADCAST_INTERVAL = 0.05  # 50ms = 20 ticks/sec
 
@@ -34,6 +44,9 @@ class PlayerSession:
     cell: tuple[int, int] = (0, 0)
     dirty: bool = False  # position changed since last broadcast
     info: dict[str, Any] = field(default_factory=dict)  # class, level — shown to other players
+    # messages waiting to go out together (see ConnectionManager.deliver)
+    outbox: list[str] = field(default_factory=list)
+    flushing: bool = False
 
 
 class WebSocketManager:
@@ -45,6 +58,8 @@ class WebSocketManager:
         # pending movement updates per map, flushed every tick
         self._dirty_maps: set[str] = set()
         self._running = False
+        # messages to one player in the same moment go out as one (deliver); tests turn it off to read them at once
+        self.batch = True
 
     # ── Grid management ──────────────────────────────────────────────────
 
@@ -128,13 +143,62 @@ class WebSocketManager:
         new_cell = grid.move(char_id, old_x, old_y, target_x, target_y)
 
         # cell change → send snapshot of new neighbors
-        if new_cell != session.cell:
+        changed = new_cell != session.cell
+        if changed:
             session.cell = new_cell
             nearby = grid.nearby_players(target_x, target_y)
             await self._send_nearby_snapshot(session, nearby)
 
         self._dirty_maps.add(session.map_id)
-        return {"x": target_x, "y": target_y}
+        return {"x": target_x, "y": target_y, "cell_changed": changed}
+
+    def around(self, map_id: str, x: float, y: float, r: float = VIEW_RADIUS) -> list["PlayerSession"]:
+        """Sessions on this map within r tiles of (x, y)."""
+        grid = self.grids.get(map_id)
+        if not grid:
+            return []
+        r2 = r * r
+        sessions = self.sessions
+        out = []
+        for cid in grid.players_within(x, y, r):
+            s = sessions.get(cid)
+            if s is not None and s.map_id == map_id:
+                dx, dy = s.x - x, s.y - y
+                if dx * dx + dy * dy <= r2:
+                    out.append(s)
+        return out
+
+    async def send_text_to(self, sessions, text: str) -> None:
+        for s in sessions:
+            await self.deliver(s, text)
+
+    async def deliver(self, s: "PlayerSession", text: str) -> None:
+        """Queues one message for a player. Everything queued for that player in the same moment (a skill: the cast,
+        each hit, the stun; a game tick: every monster step) goes out as ONE websocket message right after, in order.
+        Sent one by one, compressing and framing thousands of tiny messages a second was most of the sending work."""
+        if not self.batch:
+            try:
+                await s.ws.send_text(text)
+            except Exception:
+                pass
+            return
+        s.outbox.append(text)
+        if not s.flushing:
+            s.flushing = True
+            asyncio.get_running_loop().create_task(self._flush_out(s))
+
+    async def _flush_out(self, s: "PlayerSession") -> None:
+        try:
+            while s.outbox:
+                texts, s.outbox = s.outbox, []
+                frame = texts[0] if len(texts) == 1 else '{"type":"batch","m":[' + ",".join(texts) + "]}"
+                try:
+                    await s.ws.send_text(frame)
+                except Exception:
+                    s.outbox.clear()
+                    break
+        finally:
+            s.flushing = False
 
     # ── Batched broadcast loop ───────────────────────────────────────────
 
@@ -148,49 +212,43 @@ class WebSocketManager:
         self._running = False
 
     async def _flush_movements(self) -> None:
+        """Every 50 ms: each player gets one message with the new positions of the players around them.
+        (It used to look up neighbours once per moving player and could skip updates; now it is one lookup per
+        player on a map where someone moved.)"""
         dirty_maps = self._dirty_maps.copy()
         self._dirty_maps.clear()
-
-        for map_id in dirty_maps:
+        if not dirty_maps:
+            return
+        by_map: dict[str, list[PlayerSession]] = {}
+        for s in list(self.sessions.values()):
+            if s.map_id in dirty_maps:
+                by_map.setdefault(s.map_id, []).append(s)
+        for map_id, sessions in by_map.items():
             grid = self.grids.get(map_id)
             if not grid:
                 continue
-
-            # collect all dirty players on this map
-            updates: list[dict[str, Any]] = []
-            dirty_sessions: list[PlayerSession] = []
-            for char_id in list(self.sessions):
-                s = self.sessions.get(char_id)
-                if s and s.map_id == map_id and s.dirty:
+            # each moved player's entry is turned into JSON once: [id, x, y] with one decimal
+            updates: dict[str, tuple[float, float, str]] = {}
+            for s in sessions:
+                if s.dirty:
                     s.dirty = False
-                    dirty_sessions.append(s)
-                    updates.append({
-                        "char_id": s.char_id,
-                        "x": round(s.x, 2),
-                        "y": round(s.y, 2),
-                    })
-
+                    x, y = round(s.x, 1), round(s.y, 1)
+                    updates[s.char_id] = (x, y, encode([s.char_id, x, y]))
             if not updates:
                 continue
-
-            # for each dirty player, broadcast to their neighbors
-            notified: set[str] = set()
-            for s in dirty_sessions:
-                nearby = grid.nearby_players(s.x, s.y)
-                for cid in nearby:
-                    if cid not in notified:
-                        notified.add(cid)
-                        target = self.sessions.get(cid)
-                        if target:
-                            # send only the updates relevant to this player's view
-                            relevant = [u for u in updates if u["char_id"] in nearby]
-                            try:
-                                await target.ws.send_json({
-                                    "type": "move_batch",
-                                    "moves": relevant,
-                                })
-                            except Exception:
-                                pass
+            r2 = VIEW_RADIUS * VIEW_RADIUS
+            for s in sessions:
+                # only players close enough to be on this player's screen, never itself
+                # (positions were most of what every player downloaded)
+                parts = []
+                for c in grid.players_within(s.x, s.y, VIEW_RADIUS):
+                    u = updates.get(c)
+                    if u is not None and c != s.char_id:
+                        dx, dy = u[0] - s.x, u[1] - s.y
+                        if dx * dx + dy * dy <= r2:
+                            parts.append(u[2])
+                if parts:
+                    await self.deliver(s, '{"type":"mv","m":[' + ",".join(parts) + "]}")
 
     # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -208,24 +266,16 @@ class WebSocketManager:
                     "y": round(other.y, 2),
                     **other.info,
                 })
-        try:
-            await session.ws.send_json({
-                "type": "nearby_snapshot",
-                "players": players,
-            })
-        except Exception:
-            pass
+        await self.deliver(session, encode({"type": "nearby_snapshot", "players": players}))
 
     async def _broadcast_to(self, char_ids: set[str], msg: dict[str, Any], exclude: str = "") -> None:
+        text = encode(msg)
         for cid in char_ids:
             if cid == exclude:
                 continue
             s = self.sessions.get(cid)
             if s:
-                try:
-                    await s.ws.send_json(msg)
-                except Exception:
-                    pass
+                await self.deliver(s, text)
 
 
 manager = WebSocketManager()

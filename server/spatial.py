@@ -55,6 +55,18 @@ class SpatialGrid:
             self.cells[new_key].players.add(char_id)
         return new_key
 
+    def players_within(self, x: float, y: float, r: float) -> set[str]:
+        """Everyone in the cells that a circle of radius r (tiles) around (x, y) touches (callers check the distance)."""
+        x0, y0 = self._key(x - r, y - r)
+        x1, y1 = self._key(x + r, y + r)
+        result: set[str] = set()
+        for cx in range(x0, x1 + 1):
+            for cy in range(y0, y1 + 1):
+                cell = self.cells.get((cx, cy))
+                if cell:
+                    result.update(cell.players)
+        return result
+
     def nearby_players(self, x: float, y: float) -> set[str]:
         cx, cy = self._key(x, y)
         result: set[str] = set()

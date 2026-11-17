@@ -43,6 +43,9 @@ interface AutoState {
 const AUTO_MAX_DEATHS = 3;
 const AUTO_DEATH_WINDOW = 10 * 60 * 1000;
 
+/** Other players that carry a light into the night at once (the nearest ones). */
+const MAX_PLAYER_LIGHTS = 8;
+
 /** Time between two skill effects got ready in the background after entering a map. */
 const WARM_EVERY = 150;
 
@@ -1708,11 +1711,12 @@ export class GameScene extends Phaser.Scene {
       if (r) { r.root.destroy(); this.remotes.delete(m.char_id as string); }
       if (this.target?.id === m.char_id) this.setTarget(null);
     });
-    socket.on("move_batch", (m) => {
-      for (const mv of m.moves as { char_id: string; x: number; y: number }[]) {
-        if (mv.char_id === this.charId) continue;
-        const r = this.remotes.get(mv.char_id);
-        if (r) { r.targetX = mv.x; r.targetY = mv.y; }
+    // other players' positions, in short form: [id, x, y] (only the players close enough to be seen)
+    socket.on("mv", (m) => {
+      for (const [id, x, y] of m.m as [string, number, number][]) {
+        if (id === this.charId) continue;
+        const r = this.remotes.get(id);
+        if (r) { r.targetX = x; r.targetY = y; }
       }
     });
 
@@ -1720,6 +1724,17 @@ export class GameScene extends Phaser.Scene {
     socket.on("mob_move", (m) => {
       const mob = this.mobs.get(m.id as string);
       if (mob && !mob.dead) { mob.targetX = m.x as number; mob.targetY = m.y as number; }
+    });
+    // monster moves only reach players in range: walking closer brings the current place and life of the ones around
+    socket.on("mob_sync", (m) => {
+      for (const [id, x, y, hp] of m.mobs as [string, number, number, number][]) {
+        const mob = this.mobs.get(id);
+        if (!mob || mob.dead) continue;
+        mob.targetX = x; mob.targetY = y;
+        // far away (it moved a lot while out of sight): appear there instead of sliding across the map
+        if (Math.hypot(mob.worldX - x, mob.worldY - y) > 6) { mob.worldX = x; mob.worldY = y; this.placeUnit(mob); }
+        if (mob.hp !== hp) { mob.hp = hp; this.drawHp(mob, mob.boss ? 0x9a48ec : 0xc0303a, mob.boss ? 60 : 34); }
+      }
     });
     socket.on("mob_damaged", (m) => this.onMobDamaged(m));
     socket.on("cc", (m) => this.onCC(m));
@@ -2435,7 +2450,14 @@ export class GameScene extends Phaser.Scene {
     };
     const p = this.player.root;
     light(p.x, p.y - 24, this.isDead ? 110 : 220, 0.95);
-    for (const r of this.remotes.values()) light(r.root.x, r.root.y - 24, 130, 0.75);
+    // other players' lights: only the nearest ones (a crowd lit one light each, every frame)
+    const near = [...this.remotes.values()].filter((r) => !r.dead && r.root.x > ox - 130 && r.root.x < ox + w + 130
+      && r.root.y > oy - 130 && r.root.y < oy + h + 130);
+    if (near.length > MAX_PLAYER_LIGHTS) {
+      near.sort((a, b) => Math.hypot(a.root.x - p.x, a.root.y - p.y) - Math.hypot(b.root.x - p.x, b.root.y - p.y));
+      near.length = MAX_PLAYER_LIGHTS;
+    }
+    for (const r of near) light(r.root.x, r.root.y - 24, 130, 0.75);
     for (const l of this.world!.lights()) {
       const f = 1 + Math.sin(time * 0.017 + l.x) * l.flicker * 0.6 + Math.sin(time * 0.043 + l.y) * l.flicker * 0.4;
       light(l.x, l.y, l.r * f, l.a);

@@ -6,11 +6,14 @@ Run: .venv/Scripts/python.exe -m pytest test_skills.py -q   (or plain python tes
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 
 from game import Game, Hero
 from skills_data import BASICS, SKILLS, passives_for, skills_for
 from websocket_manager import PlayerSession, manager
+
+manager.batch = False  # tests read each message right after the call that sends it
 
 
 class FakeWS:
@@ -20,12 +23,16 @@ class FakeWS:
     async def send_json(self, msg: dict) -> None:
         self.sent.append(msg)
 
+    async def send_text(self, text: str) -> None:  # map-wide messages are encoded once and sent as text
+        self.sent.append(json.loads(text))
+
 
 async def _noop_save(_hero: Hero) -> None:
     return None
 
 
 def _hero(game: Game, cls: str, map_id: str, x: float, y: float, level: int = 12) -> tuple[Hero, FakeWS]:
+    manager.batch = False  # tests read each message right after the call that sends it
     ws = FakeWS()
     cid = f"test_{cls}_{map_id}"
     manager.sessions[cid] = PlayerSession(ws=ws, char_id=cid, char_name=cid, map_id=map_id, x=x, y=y)
