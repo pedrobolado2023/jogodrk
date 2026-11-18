@@ -294,6 +294,11 @@ $("bosses").addEventListener("click", async (ev) => {
   try { toast((await api<{ message: string }>("/admin/boss/start", { boss: Number(b.dataset.boss) })).message); await loadOverview(); }
   catch (e) { toast(e instanceof Error ? e.message : "Algo deu errado.", true); }
 });
+document.querySelectorAll<HTMLButtonElement>("[data-ev]").forEach((b) => b.addEventListener("click", async () => {
+  if (!confirm(`${b.textContent}?`)) return;
+  try { toast((await api<{ message: string }>(b.dataset.ev!, {})).message); }
+  catch (e) { toast(e instanceof Error ? e.message : "Algo deu errado.", true); }
+}));
 $("bc-send").addEventListener("click", async () => {
   const text = ($("bc-text") as HTMLTextAreaElement).value.trim();
   if (!text) { toast("Escreva o aviso.", true); return; }

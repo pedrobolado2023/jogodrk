@@ -22,6 +22,7 @@ def last(ws, kind: str) -> dict | None:
 
 async def run_all() -> None:
     game = Game(_noop_save)
+    game.night = False  # rewards below are the daytime ones (night gives more)
     wolf = next(m for m in game.mobs["forest_01"].mobs.values() if m.mob_def_id == "wolf")
     a, aws = _hero(game, "blade_master", "forest_01", wolf.x + 1, wolf.y)
     b, bws = _hero(game, "night_ranger", "forest_01", wolf.x + 3, wolf.y)

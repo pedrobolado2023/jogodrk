@@ -13,6 +13,9 @@ const TINT: Record<string, [string, string]> = {
   passe: ["#c98a12", "#3a2404"],
   mapa: ["#2f8a5a", "#08261a"],
   diario: ["#b0882a", "#2e2006"],
+  presentes: ["#c02a5a", "#36081a"],
+  conquistas: ["#c8a020", "#382a04"],
+  ranking: ["#2a8ac8", "#06223a"],
   guilda: ["#2d5fc4", "#0a1838"],
   amigos: ["#c04a8e", "#36102a"],
   inventario: ["#8a5a2a", "#2a1608"],
@@ -30,6 +33,9 @@ const EMBLEM: Record<string, (c: Ctx) => void> = {
   passe: drawMedal,
   mapa: drawMap,
   diario: drawDiary,
+  presentes: drawGift,
+  conquistas: drawTrophy,
+  ranking: drawPodium,
   guilda: drawShield,
   amigos: drawFriends,
   inventario: drawBag,
@@ -186,6 +192,49 @@ function drawMap(c: Ctx): void {
   c.lineWidth = 5; c.strokeStyle = "#c0141c"; c.lineCap = "round";
   c.beginPath(); c.moveTo(76, 68); c.lineTo(88, 80); c.moveTo(88, 68); c.lineTo(76, 80); c.stroke();
   c.lineCap = "butt";
+}
+
+function drawGift(c: Ctx): void {
+  // a box with a ribbon and a bow
+  rrect(c, 32, 56, 64, 46, 4);
+  c.fillStyle = linear(c, 32, 0, 96, 0, [[0, "#e04a6a"], [1, "#8a1430"]]); c.fill();
+  rrect(c, 28, 44, 72, 16, 4);
+  c.fillStyle = linear(c, 28, 0, 100, 0, [[0, "#f05a7a"], [1, "#a01a3a"]]); c.fill();
+  c.fillStyle = "#ffd23c"; c.fillRect(58, 44, 12, 58);
+  c.beginPath(); c.ellipse(52, 38, 12, 8, -0.4, 0, Math.PI * 2); c.ellipse(76, 38, 12, 8, 0.4, 0, Math.PI * 2);
+  c.fillStyle = "#ffc828"; c.fill();
+  c.beginPath(); c.arc(64, 42, 6, 0, Math.PI * 2); c.fillStyle = "#ffe680"; c.fill();
+}
+
+function drawTrophy(c: Ctx): void {
+  // a gold cup on a base
+  const gold = linear(c, 36, 0, 92, 0, [[0, "#fff2a0"], [0.5, "#ffc83c"], [1, "#a8700a"]]);
+  c.beginPath(); c.moveTo(38, 30); c.lineTo(90, 30); c.quadraticCurveTo(88, 74, 64, 78); c.quadraticCurveTo(40, 74, 38, 30); c.closePath();
+  c.fillStyle = gold; c.fill();
+  c.lineWidth = 6; c.strokeStyle = "#d8a024";
+  c.beginPath(); c.arc(36, 46, 11, Math.PI * 0.5, Math.PI * 1.5); c.stroke();
+  c.beginPath(); c.arc(92, 46, 11, -Math.PI * 0.5, Math.PI * 0.5); c.stroke();
+  c.fillStyle = gold; c.fillRect(58, 78, 12, 12);
+  rrect(c, 44, 90, 40, 12, 3); c.fill();
+  c.fillStyle = "rgba(255,255,255,0.6)"; c.fillRect(48, 36, 5, 26);
+}
+
+function drawPodium(c: Ctx): void {
+  // three steps with the numbers and a star over the first
+  const step = (x: number, y: number, h: number, col: string, n: string) => {
+    c.fillStyle = col; c.fillRect(x, y, 26, h);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.fillRect(x + 20, y, 6, h);
+    c.font = "bold 16px Georgia, serif"; c.textAlign = "center"; c.fillStyle = "#1a1206"; c.fillText(n, x + 12, y + 20);
+  };
+  step(25, 66, 38, "#d8d8e8", "2");
+  step(51, 48, 56, "#ffd23c", "1");
+  step(77, 76, 28, "#e09a5a", "3");
+  c.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 5 : 12;
+    c.lineTo(64 + Math.cos(a) * r, 32 + Math.sin(a) * r);
+  }
+  c.closePath(); c.fillStyle = "#fff2a0"; c.fill();
 }
 
 function drawDiary(c: Ctx): void {

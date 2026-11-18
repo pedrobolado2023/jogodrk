@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import math
 import time
+from typing import Any
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import re
@@ -33,6 +34,7 @@ import vip
 from websocket_manager import manager
 import season
 import discovery
+import progress as progress_mod
 import titles
 from world_data import CLASS_BASE, MAPS, START_MAP, meta, normalize_story
 
@@ -67,6 +69,7 @@ async def save_hero(hero: Hero) -> None:
         char.gems = int(hero.gems)
         char.boosts = {k: v for k, v in hero.boosts.items() if v > time.time()} or None
         char.discoveries = list(hero.found) or None
+        char.progress = dict(hero.progress) or None
         char.map_id = hero.map_id
         if s:
             char.pos_x, char.pos_y = s.x, s.y
@@ -120,8 +123,99 @@ async def save_guilds() -> None:
         await db.commit()
 
 
+async def save_prizes() -> None:
+    async with async_session() as db:
+        row = await db.get(GameState, "pending_prizes")
+        data = dict(game.pending_prizes)
+        if row:
+            row.value = data
+        else:
+            db.add(GameState(key="pending_prizes", value=data))
+        await db.commit()
+
+
+_rank_cache: dict[str, Any] = {"at": 0.0, "data": None}
+RANK_TTL = 60.0
+RANK_SIZE = 20
+
+
+async def ranking() -> dict[str, Any]:
+    """The strongest heroes, this week's PvP and hunters, and the strongest guilds (cached for a minute)."""
+    if _rank_cache["data"] is not None and time.monotonic() - _rank_cache["at"] < RANK_TTL:
+        return _rank_cache["data"]
+    for h in list(game.heroes.values()):  # online heroes as they are now
+        try:
+            await save_hero(h)
+        except Exception:
+            pass
+    async with async_session() as db:
+        rows = (await db.execute(select(Character.id, Character.name, Character.char_class, Character.level,
+                                        Character.exp, Character.progress))).all()
+    wk = progress_mod.week_id()
+    heroes = [{"id": r[0], "name": r[1], "cls": r[2].value if hasattr(r[2], "value") else str(r[2]), "level": r[3],
+               "exp": r[4] or 0, "week": (r[5] or {}).get("week") or {}} for r in rows]
+    for h in heroes:
+        if h["week"].get("id") != wk:
+            h["week"] = {}
+    strong = sorted(heroes, key=lambda h: (-h["level"], -h["exp"]))[:RANK_SIZE]
+    pvp = sorted((h for h in heroes if h["week"].get("pvp")), key=lambda h: -h["week"]["pvp"])[:RANK_SIZE]
+    hunt = sorted((h for h in heroes if h["week"].get("kills")), key=lambda h: -h["week"]["kills"])[:RANK_SIZE]
+    level_of = {h["id"]: h["level"] for h in heroes}
+    guilds = []
+    for g in game.guilds.guilds.values():
+        members = list(g.members)
+        guilds.append({"name": g.name, "members": len(members), "power": sum(level_of.get(m, 0) for m in members)})
+    guilds.sort(key=lambda g: -g["power"])
+    row = lambda h, v: {"id": h["id"], "name": h["name"], "cls": h["cls"], "level": h["level"], "value": v}
+    data = {"strong": [row(h, h["level"]) for h in strong], "pvp": [row(h, h["week"]["pvp"]) for h in pvp],
+            "hunt": [row(h, h["week"]["kills"]) for h in hunt], "guilds": guilds[:RANK_SIZE],
+            "prizes": {"pvp": WEEK_PRIZES["pvp"], "hunt": WEEK_PRIZES["hunt"]}}
+    _rank_cache.update(at=time.monotonic(), data=data)
+    return data
+
+
+# the weekly prizes: top 3 of this week's PvP and of this week's hunters, paid when the week turns (Monday 00:00)
+WEEK_PRIZES = {
+    "pvp": [[{"gems": 100}, {"title": "campeao_semana"}], [{"gems": 60}], [{"gems": 30}]],
+    "hunt": [[{"gems": 60}, {"gold": 100000}], [{"gems": 40}, {"gold": 50000}], [{"gems": 20}, {"gold": 25000}]],
+}
+
+
+async def pay_week_if_turned() -> None:
+    """When a new week starts, the top 3 of last week's PvP and hunters get their prizes (once)."""
+    wk = progress_mod.week_id()
+    async with async_session() as db:
+        row = await db.get(GameState, "rank_week")
+        last = (row.value or {}).get("id") if row else None
+        if last == wk:
+            return
+        if row:
+            row.value = {"id": wk}
+        else:
+            db.add(GameState(key="rank_week", value={"id": wk}))
+        await db.commit()
+    if not last:
+        return  # first start: nothing to pay yet
+    for h in list(game.heroes.values()):
+        await save_hero(h)
+    async with async_session() as db:
+        rows = (await db.execute(select(Character.id, Character.name, Character.progress))).all()
+    week = [(r[0], r[1], (r[2] or {}).get("week") or {}) for r in rows]
+    week = [w for w in week if w[2].get("id") == last]
+    for key, label in (("pvp", "Ranking semanal de PvP"), ("hunt", "Ranking semanal de caçadores")):
+        stat = "pvp" if key == "pvp" else "kills"
+        top = sorted((w for w in week if w[2].get(stat)), key=lambda w: -w[2][stat])[:3]
+        for i, (cid, name, _) in enumerate(top):
+            await game.give_prize(cid, WEEK_PRIZES[key][i], f"{label}: {i + 1}º lugar")
+            for c in list(game.heroes):
+                await game.send(c, {"type": "chat", "channel": "event", "text": f"{label}: {i + 1}º lugar para {name}!"})
+    _rank_cache["data"] = None
+
+
 game = Game(save_hero, save_market, unfriend_offline, save_guilds)
 game.save_hq = save_hidden_quest
+game.save_prizes = save_prizes
+game.ranking = ranking
 
 
 async def _game_loop() -> None:
@@ -131,6 +225,8 @@ async def _game_loop() -> None:
         tick += 1
         try:
             await game.tick(GAME_TICK, tick)
+            if tick % 600 == 1:  # once a minute: did the week turn? (pays the weekly ranking)
+                await pay_week_if_turned()
         except Exception as e:  # keep the world running even if one tick fails
             import traceback
             traceback.print_exc()
@@ -140,7 +236,7 @@ async def _game_loop() -> None:
 def _add_missing_columns(conn) -> None:
     """create_all never alters existing tables: add columns introduced after a database was created."""
     have = {c["name"] for c in inspect(conn).get_columns("characters")}
-    for name in ("bag", "gear", "pk", "daily", "friends", "title", "season", "cosmetics", "gems", "boosts", "discoveries"):
+    for name in ("bag", "gear", "pk", "daily", "friends", "title", "season", "cosmetics", "gems", "boosts", "discoveries", "progress"):
         if name not in have:
             conn.execute(text(f"ALTER TABLE characters ADD COLUMN {name} JSON"))
 
@@ -185,6 +281,8 @@ async def lifespan(app: FastAPI):
         game.hq = hqm.HiddenQuest(row.value if row else None)
         row = await db.get(GameState, "settings")
         game.apply_settings(row.value if row else None)
+        row = await db.get(GameState, "pending_prizes")
+        game.pending_prizes = dict(row.value or {}) if row else {}
     tasks = [asyncio.create_task(manager.start_broadcast_loop()), asyncio.create_task(_game_loop())]
     yield
     manager.stop_broadcast_loop()
@@ -487,6 +585,9 @@ INVENTORY_ACTIONS = {
     "party_kick": lambda h, d: game.party_kick(h, str(d.get("name", ""))),
     "wb_join": lambda h, d: game.wb.join(game, h),
     "world_map": lambda h, d: game.world_map(h),
+    "login_claim": lambda h, d: game.login_claim(h),
+    "ranking": lambda h, d: game.send_ranking(h),
+    "duel_invite": lambda h, d: game.duels.invite(game, h, str(d.get("id") or d.get("name") or "")),
     "teleport": lambda h, d: game.teleport(h, str(d.get("map", ""))),
     "mine": lambda h, d: game.mine_start(h, str(d.get("vein", ""))),
     "market_query": lambda h, d: game.market_view(h, d.get("cat"), d.get("sort"),
@@ -576,6 +677,7 @@ async def game_ws(ws: WebSocket, character_id: str):
     hero.boosts = {k: float(v) for k, v in (char.boosts or {}).items() if k in ("exp", "gold")}
     hero.found = discovery.clean(char.discoveries)
     hero.disc = discovery.mods(hero.found)
+    hero.progress = progress_mod.clean(char.progress)
     # the account's VIP (bonus, bag spaces, title, auras) and its gems of the day
     daily = 0
     async with async_session() as db:

@@ -232,6 +232,7 @@ class WorldBossEvent:
         if self.state != "active" or hero.char_id in self.participants:
             return
         self.participants.add(hero.char_id)
+        await game.track(hero, "wb")
         mob = self.boss_mob(game)
         if not mob or mob.is_dead:
             return

@@ -148,6 +148,7 @@ class Character(Base):
     gems = Column(JSON, nullable=True)       # premium currency (shop.py)
     boosts = Column(JSON, nullable=True)     # shop boosts → end time (unix)
     discoveries = Column(JSON, nullable=True)  # hidden places found (discovery.py)
+    progress = Column(JSON, nullable=True)     # tutorial, login calendar, achievements, this week (progress.py)
 
     is_online = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

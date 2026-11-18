@@ -319,6 +319,40 @@ def make_router(game, async_session, save_hero: Callable[[Any], Awaitable[None]]
         record(admin, "iniciar Boss Global", boss["name"])
         return {"ok": True, "message": f"{boss['name']} começou."}
 
+    # ── town invasion and Arena tournament (invasion.py, duel.py) ────────
+
+    @router.post("/event/invasion")
+    async def invasion_start(admin: User = Depends(admin_user)):
+        err = await game.inv.start(game)
+        if err:
+            raise HTTPException(400, err)
+        record(admin, "iniciar invasão da vila", f"nível {game.inv.level}")
+        return {"ok": True, "message": f"Invasão começou (monstros nível {game.inv.level})."}
+
+    @router.post("/event/invasion/stop")
+    async def invasion_stop(admin: User = Depends(admin_user)):
+        if game.inv.state != "active":
+            raise HTTPException(400, "Não há invasão acontecendo.")
+        await game.inv.finish(game, False)
+        record(admin, "encerrar invasão da vila", "")
+        return {"ok": True, "message": "Invasão encerrada."}
+
+    @router.post("/event/tourney")
+    async def tourney_start(admin: User = Depends(admin_user)):
+        err = await game.tourney.start(game)
+        if err:
+            raise HTTPException(400, err)
+        record(admin, "iniciar torneio da Arena", "")
+        return {"ok": True, "message": "Torneio da Arena começou (20 minutos)."}
+
+    @router.post("/event/tourney/stop")
+    async def tourney_stop(admin: User = Depends(admin_user)):
+        if not game.tourney.active():
+            raise HTTPException(400, "Não há torneio acontecendo.")
+        await game.tourney.finish(game)
+        record(admin, "encerrar torneio da Arena", "premiou o top 3")
+        return {"ok": True, "message": "Torneio encerrado e top 3 premiado."}
+
     # ── the Hidden Wanderer (hidden_quest.py) ────────────────────────────
 
     @router.get("/hidden")

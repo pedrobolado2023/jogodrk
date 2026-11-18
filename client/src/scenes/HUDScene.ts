@@ -14,6 +14,10 @@ import { InventoryUI, type MarketMsg } from "./InventoryUI";
 import { PassUI } from "./PassUI";
 import { WorldMapUI, type WorldMapMsg } from "./WorldMapUI";
 import { DiaryUI } from "./DiaryUI";
+import {
+  AchievementsUI, EventBanner, LoginUI, RankingUI, TUTORIAL_W, TutorialBox,
+  type AchState, type DuelMsg, type InvasionMsg, type LoginMsg, type RankingMsg, type TourneyMsg, type TutorialMsg,
+} from "./ProgressUI";
 import { ShopUI } from "./ShopUI";
 import { ChatUI, type ChatMsg } from "./ChatUI";
 import { panel, txt } from "./uiStyle";
@@ -95,12 +99,19 @@ export class HUDScene extends Phaser.Scene {
   private passUI!: PassUI;
   private worldMap!: WorldMapUI;
   private diary!: DiaryUI;
+  private tutorial!: TutorialBox;
+  private loginUI!: LoginUI;
+  private achUI!: AchievementsUI;
+  private rankUI!: RankingUI;
+  private banner!: EventBanner;
+  private night = false;
   private discoveryCard?: Phaser.GameObjects.Container;
   private shopUI!: ShopUI;
   private chat?: ChatUI;
   private partyBox!: Phaser.GameObjects.Container;
   private party: PartyMember[] = [];
   private inviteBtn!: Phaser.GameObjects.Text;
+  private duelBtn!: Phaser.GameObjects.Text;
   private friendBtn!: Phaser.GameObjects.Text;
   private guildBtn!: Phaser.GameObjects.Text;
   /** automatic PvP on the marked player */
@@ -218,6 +229,12 @@ export class HUDScene extends Phaser.Scene {
     this.passUI = new PassUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a), () => this.toggleShop("destaques"));
     this.worldMap = new WorldMapUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
     this.diary = new DiaryUI(this, () => this.hero?.found ?? [], () => this.map?.map_id ?? "");
+    const send = (m: Record<string, unknown>) => this.scene.get("GameScene").events.emit("inv_action", m);
+    this.tutorial = new TutorialBox(this, send, () => this.placeProgress());
+    this.loginUI = new LoginUI(this, send);
+    this.achUI = new AchievementsUI(this);
+    this.rankUI = new RankingUI(this, send);
+    this.banner = new EventBanner(this);
     this.shopUI = new ShopUI(this, (a) => this.scene.get("GameScene").events.emit("inv_action", a));
     this.mobile = isTouch();
     this.chat = new ChatUI((m) => this.scene.get("GameScene").events.emit("inv_action", m));
@@ -281,6 +298,18 @@ export class HUDScene extends Phaser.Scene {
     game.events.on("toggle_pass", () => this.togglePass());
     game.events.on("toggle_map", () => this.toggleMap());
     game.events.on("toggle_diary", () => this.toggleDiary());
+    game.events.on("toggle_achievements", () => this.toggleWin(this.achUI));
+    game.events.on("toggle_ranking", () => this.toggleWin(this.rankUI));
+    game.events.on("tutorial", (m: TutorialMsg) => this.tutorial.set(m));
+    game.events.on("login_cal", (m: LoginMsg) => this.loginUI.set(m));
+    game.events.on("achievements", (m: AchState) => this.achUI.set(m));
+    game.events.on("achievement", (m: { name: string; desc: string; got: string[] }) => this.showAchievement(m));
+    game.events.on("ranking", (m: RankingMsg) => this.rankUI.set(m));
+    game.events.on("invasion", (m: InvasionMsg) => { this.banner.setInvasion(m); this.placeProgress(); });
+    game.events.on("tourney", (m: TourneyMsg) => { this.banner.meId = this.hero?.char_id ?? ""; this.banner.setTourney(m); this.placeProgress(); });
+    game.events.on("duel", (m: DuelMsg) => { this.banner.setDuel(m); this.placeProgress(); });
+    game.events.on("daynight", (m: { night: boolean }) => { this.night = !!m.night; if (this.map) this.setMapLabel(this.map); });
+    game.events.on("map_safe", (m: MapInfo) => { this.map = m; this.setMapLabel(m); });
     game.events.on("discovered", (m: DiscoveredMsg) => this.showDiscovery(m));
     game.events.on("world_map", (m: WorldMapMsg) => this.worldMap.set(m));
     game.events.on("guild", (st: GuildState) => {
@@ -412,6 +441,12 @@ export class HUDScene extends Phaser.Scene {
     this.inviteBtn.on("pointerdown", () => {
       if (this.targetInfo?.hero) this.scene.get("GameScene").events.emit("inv_action", { type: "party_invite", name: this.targetInfo.name });
     });
+    this.duelBtn = this.add.text(0, 58, "⚔ Desafiar para duelo", txt(11, "#ffe6a0", {
+      backgroundColor: "#3a2a0c", padding: { x: 8, y: 3 },
+    })).setOrigin(0.5, 0).setInteractive({ useHandCursor: true }).setVisible(false);
+    this.duelBtn.on("pointerdown", () => {
+      if (this.targetInfo?.hero) this.scene.get("GameScene").events.emit("inv_action", { type: "duel_invite", name: this.targetInfo.name });
+    });
     this.friendBtn = this.add.text(0, 84, "+ Amigo", txt(11, "#d8a8ff", {
       backgroundColor: "#1a1420", padding: { x: 8, y: 3 },
     })).setOrigin(0.5, 0).setInteractive({ useHandCursor: true }).setVisible(false);
@@ -430,7 +465,7 @@ export class HUDScene extends Phaser.Scene {
     this.pvpBtn.on("pointerdown", () => this.scene.get("GameScene").events.emit("auto_pvp"));
     this.pvpBtn.on("pointerover", () => this.pvpBtn.setAlpha(0.8)).on("pointerout", () => this.pvpBtn.setAlpha(1));
     this.targetPanel = this.add.container(0, 10, [frame, this.targetName, bg, this.targetFill, this.targetHp, this.pvpBtn,
-      this.inviteBtn, this.friendBtn, this.guildBtn]).setVisible(false);
+      this.inviteBtn, this.duelBtn, this.friendBtn, this.guildBtn]).setVisible(false);
 
     const g = this.add.graphics();
     panel(g, -190, 0, 380, 44, 6);
@@ -691,6 +726,9 @@ export class HUDScene extends Phaser.Scene {
     mk("passe", "Passe", "PASSE DA TEMPORADA (P)\nPrêmios por nível do passe.", () => this.togglePass());
     mk("mapa", "Mapa", "MAPA DO MUNDO (N)\nVeja as regiões e viaje.", () => this.toggleMap());
     mk("diario", "Diário", "DIÁRIO DE DESCOBERTAS (J)\nLugares escondidos e os bônus que eles dão.", () => this.toggleDiary());
+    mk("presentes", "Presentes", "PRESENTES DIÁRIOS\nUm presente por dia; o 7º é o maior.", () => this.toggleWin(this.loginUI));
+    mk("conquistas", "Conquistas", "CONQUISTAS (O)\nMetas com prêmios e títulos.", () => this.toggleWin(this.achUI));
+    mk("ranking", "Ranking", "RANKING (R)\nOs mais fortes, o PvP e os caçadores da semana.", () => this.toggleWin(this.rankUI));
     mk("guilda", "Guilda", "GUILDA (G)\nCrie ou entre numa guilda.", () => this.toggleGuild());
     mk("amigos", "Amigos", "AMIGOS (F)\nQuem está online e onde.", () => this.toggleFriends());
     mk("inventario", "Inventário", "INVENTÁRIO (I)\nSua bolsa e seus equipamentos.", () => this.toggleInv());
@@ -758,6 +796,7 @@ export class HUDScene extends Phaser.Scene {
     const over = iconsBottom > 0 && this.iconsOverCenter;
     const targetY = over ? iconsBottom + 2 : 10;
     this.targetPanel.setPosition(w / 2, targetY).setScale(this.ui);
+    this.placeProgress();
     this.bossPanel.setPosition(this.mobile || over ? w / 2 : w / 2 - 70, targetY + 60 * this.ui).setScale(this.ui);
     this.alerts?.place(this.mobile || over ? w / 2 : w / 2 - 70, targetY + (this.bossPanel.visible ? 112 : 60) * this.ui, this.ui);
     this.questBox.setPosition(w - 210, boxY).setVisible(!tiny);
@@ -858,7 +897,8 @@ export class HUDScene extends Phaser.Scene {
   /** While a window or the menu is open, the joystick, the round buttons and the chat step aside. */
   private coverTouch(): void {
     const open = this.menuOpen || !!(this.book || this.charPanel || this.friendsWin || this.guildWin || this.dialog)
-      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen || !!this.worldMap?.isOpen || !!this.diary?.isOpen;
+      || !!this.inventoryUI?.isOpen || !!this.passUI?.isOpen || !!this.shopUI?.isOpen || !!this.worldMap?.isOpen || !!this.diary?.isOpen
+      || !!this.loginUI?.isOpen || !!this.achUI?.isOpen || !!this.rankUI?.isOpen;
     if (open === this.covered) return;
     this.covered = open;
     if (open) this.releaseJoy();
@@ -1166,7 +1206,7 @@ export class HUDScene extends Phaser.Scene {
   private onMap(m: MapInfo): void {
     this.map = m;
     this.terrain = this.textures.get(terrainMapTexture(this, m)).getSourceImage() as HTMLCanvasElement;
-    this.minimapLabel.setText(`${m.name}\n${m.level}`);
+    this.setMapLabel(m);
     this.scoreBox.setVisible(m.pvp);
     this.wbBox.setVisible(!!m.event);
     this.drawWbStatus(); // "click to join" makes no sense once you are in the room
@@ -1191,6 +1231,10 @@ export class HUDScene extends Phaser.Scene {
     const canInvite = !!t.hero && (!this.party.length || leader === myId);
     this.inviteBtn.setVisible(canInvite).setY(y);
     if (canInvite) y += 26;
+    // a friendly duel: anywhere outside safe zones, the Arena and event rooms
+    const canDuel = !!t.hero && !!this.map && !this.map.safe && !this.map.pvp && !this.map.event;
+    this.duelBtn.setVisible(canDuel).setY(y);
+    if (canDuel) y += 26;
     const isFriend = this.friends.some((f) => f.name === t.name);
     this.friendBtn.setVisible(!!t.hero && !isFriend).setY(y);
     if (this.friendBtn.visible) y += 26;
@@ -1321,6 +1365,9 @@ export class HUDScene extends Phaser.Scene {
     if (this.passUI?.isOpen) this.passUI.close();
     if (this.worldMap?.isOpen) this.worldMap.close();
     if (this.diary?.isOpen) this.diary.close();
+    if (this.loginUI?.isOpen) this.loginUI.close();
+    if (this.achUI?.isOpen) this.achUI.close();
+    if (this.rankUI?.isOpen) this.rankUI.close();
     if (this.shopUI?.isOpen) this.shopUI.close();
   }
 
@@ -1328,6 +1375,38 @@ export class HUDScene extends Phaser.Scene {
     const open = this.shopUI.isOpen;
     this.closeWindows();
     if (!open || tab) this.shopUI.toggle(tab);
+  }
+
+  /** One of the progress windows (presents, achievements, ranking): only one big window at a time. */
+  private toggleWin(win: { isOpen: boolean; toggle(): void }): void {
+    const open = win.isOpen;
+    this.closeWindows();
+    if (!open) win.toggle();
+  }
+
+  /** The first steps box (top left, under the hero) and the event banner (above the skill bar). */
+  private placeProgress(): void {
+    if (!this.tutorial) return;
+    const w = this.scale.width, h = this.scale.height;
+    const k = Math.min(1, Math.max(0.7, this.ui), (w - 16) / TUTORIAL_W);
+    // on narrow screens the target box (top centre) would sit on it, so it goes below the target box's buttons
+    const narrow = 12 + TUTORIAL_W * k > w / 2 - 160;
+    this.tutorial.position(12 + (TUTORIAL_W / 2) * k, narrow ? h * 0.44 : (this.mobile ? 96 : 104) * this.ui, k);
+    this.banner.position(w / 2, h - (this.mobile ? 150 : 128) * this.ui - this.banner.height, Math.min(1, Math.max(0.75, this.ui)));
+  }
+
+  private setMapLabel(m: MapInfo): void {
+    const night = this.night && !m.safe && !m.pvp ? "\n☾ Noite: monstros +25% de dano, prêmios +50%" : "";
+    this.minimapLabel.setText(`${m.name}\n${m.safe ? m.level : m.map_id === "town_01" ? "Invasão! Defenda a vila" : m.level}${night}`);
+  }
+
+  /** An achievement done: a short gold card in the middle of the screen. */
+  private showAchievement(m: { name: string; desc: string; got: string[] }): void {
+    const t = this.add.text(this.scale.width / 2, this.scale.height * 0.36, `🏆 CONQUISTA: ${m.name}\n${m.desc}\n+ ${m.got.join(", ")}`,
+      txt(14, "#ffe6a0", { fontStyle: "bold", align: "center", backgroundColor: "#2a1a06ee", padding: { x: 18, y: 10 }, lineSpacing: 4 }))
+      .setOrigin(0.5).setDepth(111).setAlpha(0).setScale(Math.min(1, Math.max(0.75, this.ui)));
+    this.tweens.add({ targets: t, alpha: 1, y: t.y - 10, duration: 400, ease: "Back.easeOut" });
+    this.tweens.add({ targets: t, alpha: 0, delay: 4500, duration: 600, onComplete: () => t.destroy() });
   }
 
   private toggleDiary(): void {

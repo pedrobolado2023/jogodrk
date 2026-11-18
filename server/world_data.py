@@ -595,6 +595,7 @@ NPC_LINES: dict[str, list[str]] = {
 def meta() -> dict[str, Any]:
     from items import catalog
     import discovery
+    import progress
     from titles import meta as titles_meta
     import season as season_meta
     import shop as shop_meta
@@ -620,6 +621,8 @@ def meta() -> dict[str, Any]:
         "skins": season_meta.skins_meta(),
         "season": season_meta.meta(),
         "discovery": discovery.meta(),
+        "achievements": progress.ACHIEVEMENTS,
+        "tutorial_steps": len(progress.TUTORIAL),
         "shop": shop_meta.meta(),
         **catalog(),
     }

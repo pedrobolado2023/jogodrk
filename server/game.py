@@ -27,6 +27,10 @@ import mining
 import world_boss as wb
 import hidden_quest as hq
 import discovery as disc
+import progress as prog
+import daynight
+import invasion as invm
+import duel as dm
 from auto_farm import auto_farm
 from mob_manager import MobManager
 from skills_data import SKILLS, passive_effects, passives_for, skills_for
@@ -117,6 +121,8 @@ class Hero:
     vip_until: float = 0.0
     found: list[str] = field(default_factory=list)            # hidden places discovered (discovery.py)
     disc: dict[str, float] = field(default_factory=dict)      # their permanent bonus, as mod() keys
+    progress: dict[str, Any] = field(default_factory=dict)    # tutorial, login calendar, achievements, week (progress.py)
+    last_xy: tuple[float, float] | None = None                # for the tutorial's "walk" step
 
     def boost(self, kind: str) -> float:
         """Extra share from an active shop boost (0.5 = +50%) plus the VIP bonus, 0 when none."""
@@ -214,6 +220,14 @@ class Game:
         self.parties = pt.PartyManager()
         self.wb = wb.WorldBossEvent()
         self.hq = hq.HiddenQuest()  # replaced by the saved one at start (main.py)
+        self.inv = invm.Invasion()
+        self.duels = dm.Duels()
+        self.tourney = dm.Tourney()
+        self.night = daynight.is_night()
+        # prizes for heroes who were offline when they won them (weekly ranking, tournament): char id → [(reason, rewards)]
+        self.pending_prizes: dict[str, list[list[Any]]] = {}
+        self.save_prizes: Callable[[], Awaitable[None]] | None = None
+        self.ranking: Callable[[], Awaitable[dict[str, Any]]] | None = None  # set by main.py (reads the database)
         self.tp_last: dict[str, float] = {}  # world map teleport cooldown
         self.save_hq = None
         self.mine = mining.Mine()
@@ -291,6 +305,7 @@ class Game:
         await self.send_map_state(hero)
         await self.hq.on_move(self, hero, x, y)  # standing next to the Hidden Wanderer already
         await self.check_discovery(hero, x, y)
+        await self.join_progress(hero)
 
     async def mob_sync(self, hero: Hero, x: float, y: float) -> None:
         """Where the monsters around a player are now: monster moves only reach players in range, so one coming
@@ -317,6 +332,9 @@ class Game:
         self.friends_sent.pop(cid, None)
         self.guild_sent.pop(cid, None)
         self.guilds.invites.pop(cid, None)
+        self.duels.invites.pop(cid, None)
+        if self.duels.partner(cid):
+            await self.duels.end(self, cid, None, "um dos dois saiu")
         hero = self.heroes.pop(cid, None)
         self.hq.forget(cid)
         self.hq.offers.pop(cid, None)
@@ -348,6 +366,138 @@ class Game:
             await self.broadcast_scores(old)
         await self.save_hero(hero)
 
+    # ── progress: tutorial, login calendar, achievements, weekly counters (progress.py) ──
+
+    async def join_progress(self, hero: Hero) -> None:
+        """What a hero gets on arrival: the first steps, the calendar, achievements, the night and the events."""
+        prog.tutorial(hero.progress, hero.level, hero.story.get("q", 0))
+        prog.week(hero.progress)
+        await self.send(hero.char_id, {"type": "tutorial", **prog.tutorial_public(hero.progress)})
+        await self.send(hero.char_id, {"type": "login_cal", **prog.login_public(hero.progress, hero.level)})
+        await self.send(hero.char_id, {"type": "achievements", **prog.ach_public(hero.progress)})
+        await self.send(hero.char_id, daynight.public())
+        await self.send(hero.char_id, self.inv.status())
+        await self.send(hero.char_id, self.tourney.status())
+        for reason, rewards in self.pending_prizes.pop(hero.char_id, []):
+            await self.give_prize(hero.char_id, rewards, reason)
+            if self.save_prizes:
+                await self.save_prizes()
+
+    async def give_rewards(self, hero: Hero, rewards: list[dict[str, Any]]) -> list[str]:
+        """Gold, items, titles and auras (like the pass), plus gems and EXP/gold boosts. Returns how each reads."""
+        got: list[str] = []
+        rest: list[dict[str, Any]] = []
+        for r in rewards:
+            if "gems" in r:
+                hero.gems += int(r["gems"])
+                got.append(f"{r['gems']} gemas")
+            elif "boost" in r:
+                hero.boosts[r["boost"]] = max(hero.boosts.get(r["boost"], 0), time.time()) + r["minutes"] * 60
+                got.append(f"{gshop.BOOSTS[r['boost']][0]} por {r['minutes']} min")
+            elif "title" in r and r["title"] in prog.TITLES:
+                hero.cosmetics = ssn.cosmetics(hero.cosmetics)
+                if r["title"] not in hero.cosmetics["titles"]:
+                    hero.cosmetics["titles"].append(r["title"])
+                got.append(f"título {prog.TITLES[r['title']][0]}")
+            else:
+                rest.append(r)
+        if rest:
+            got += await self.give_pass_rewards(hero, rest)
+        return got
+
+    async def give_prize(self, cid: str, rewards: list[dict[str, Any]], reason: str, track: str | None = None) -> None:
+        """A prize for someone who may be offline: given now, or kept until they come back."""
+        hero = self.heroes.get(cid)
+        if not hero:
+            self.pending_prizes.setdefault(cid, []).append([reason, rewards])
+            if track:
+                self.pending_prizes[cid].append(["", [{"track": track}]])
+            if self.save_prizes:
+                await self.save_prizes()
+            return
+        if rewards and rewards[0].get("track"):
+            await self.track(hero, rewards[0]["track"])
+            return
+        got = await self.give_rewards(hero, rewards)
+        if track:
+            await self.track(hero, track)
+        await self.notice(cid, f"{reason}! Você ganhou: {', '.join(got)}.", "quest")
+        await self.after_rewards(hero)
+
+    async def after_rewards(self, hero: Hero) -> None:
+        await self.push_inventory(hero)
+        await self.push_hero(hero)
+        await self.sync_title(hero)
+        await self.save_hero(hero)
+
+    async def track(self, hero: Hero, kind: str, target: str = "", amount: float = 1, value: float | None = None) -> None:
+        """Something happened (a kill, a step, a talk...): moves the first steps, the achievements and this week on."""
+        p = hero.progress
+        steps = prog.tutorial_track(p, kind, target, amount, hero.level)
+        new = prog.ach_track(p, kind, amount, value)
+        if kind == "kill" and MOBS.get(target, {}).get("boss"):
+            new += prog.ach_track(p, "boss", amount)
+        prog.week_track(p, kind, amount)
+        changed = False
+        for s in steps:
+            got = await self.give_rewards(hero, s["reward"])
+            await self.notice(hero.char_id, f"Passo concluído: {s['title']}! +{', '.join(got)}", "quest")
+            changed = True
+        if steps:
+            st = prog.tutorial_public(p)
+            if st["done"]:
+                got = await self.give_rewards(hero, prog.WELCOME_GIFT)
+                await self.send(hero.char_id, {"type": "tutorial", "done": True, "gift": got})
+            else:
+                await self.send(hero.char_id, {"type": "tutorial", **st})
+        elif kind == "move" and not p.get("tut", {}).get("done", True):
+            st = prog.tutorial_public(p)
+            if int(st["n"]) != int(st["n"] - amount):  # one message per whole tile walked
+                await self.send(hero.char_id, {"type": "tutorial", **st})
+        for a in new:
+            got = await self.give_rewards(hero, a["reward"])
+            await self.send(hero.char_id, {"type": "achievement", "id": a["id"], "name": a["name"], "desc": a["desc"], "got": got})
+            await self.notice(hero.char_id, f"Conquista: {a['name']}! +{', '.join(got)}", "quest")
+            changed = True
+        if new:
+            await self.send(hero.char_id, {"type": "achievements", **prog.ach_public(p)})
+        if changed:
+            await self.after_rewards(hero)
+
+    async def login_claim(self, hero: Hero) -> str | None:
+        rewards = prog.login_claim(hero.progress, hero.level)
+        if rewards is None:
+            return "Você já pegou o presente de hoje. Volte amanhã!"
+        got = await self.give_rewards(hero, rewards)
+        day = prog.login(hero.progress)["day"] or len(prog.LOGIN_DAYS)
+        await self.notice(hero.char_id, f"Presente do dia {day}: {', '.join(got)}!", "quest")
+        await self.send(hero.char_id, {"type": "login_cal", **prog.login_public(hero.progress, hero.level), "got": got})
+        await self.track(hero, "login", value=prog.login(hero.progress)["total"])
+        await self.after_rewards(hero)
+        return None
+
+    async def send_ranking(self, hero: Hero) -> str | None:
+        if not self.ranking:
+            return "O ranking não está disponível agora."
+        await self.send(hero.char_id, {"type": "ranking", **(await self.ranking()), "me": hero.char_id,
+                                       "week_left": prog.seconds_to_week_end()})
+        return None
+
+    async def tick_events(self) -> None:
+        """Once a second: night falling or ending, the town invasion, duels and the Arena tournament."""
+        night = daynight.is_night()
+        if night != self.night:
+            self.night = night
+            msg = daynight.public()
+            text = ("A noite caiu! Os monstros batem mais forte, mas dão 50% mais EXP e ouro." if night
+                    else "O sol nasceu. Os monstros voltaram ao normal.")
+            for cid in list(self.heroes):
+                await self.send(cid, msg)
+                await self.notice(cid, text, "warn" if night else "info")
+        await self.inv.tick(self)
+        await self.duels.tick(self)
+        await self.tourney.tick(self)
+
     # ── hidden places (discovery.py) ─────────────────────────────────────
 
     async def check_discovery(self, hero: Hero, x: float, y: float) -> None:
@@ -373,6 +523,7 @@ class Game:
         if title:
             await self.to_map(hero.map_id, {"type": "notice", "kind": "quest",
                                             "text": f"{hero.name} encontrou todos os lugares escondidos do mundo e virou Cartógrafo de Ravencrest!"})
+        await self.track(hero, "discover", value=len(hero.found))
         await self.push_hero(hero)
         await self.save_hero(hero)
 
@@ -471,6 +622,12 @@ class Game:
             await self.mob_sync(hero, s.x, s.y)
         await self.hq.on_move(self, hero, s.x, s.y)
         await self.check_discovery(hero, s.x, s.y)
+        if not hero.progress.get("tut", {}).get("done", True):
+            if hero.last_xy:
+                step = math.hypot(s.x - hero.last_xy[0], s.y - hero.last_xy[1])
+                if 0 < step < 3:
+                    await self.track(hero, "move", amount=step)
+            hero.last_xy = (s.x, s.y)
         for p in MAPS[hero.map_id]["portals"]:
             if _dist(s.x, s.y, p["x"], p["y"]) < PORTAL_RADIUS:
                 if self.portal_open(hero, p):
@@ -499,8 +656,9 @@ class Game:
         out = [("mob", m.instance_id, m.x, m.y) for m in self.mobs[hero.map_id].mobs.values()
                if not m.is_dead and (m.x - me.x) ** 2 + (m.y - me.y) ** 2 <= r2]
         m = MAPS[hero.map_id]
-        if m["safe"] or m.get("event"):
+        if m["safe"] or m.get("event") or hero.map_id == invm.TOWN:
             return out
+        foe = self.duels.partner(hero.char_id)
         # the hero's own party, guild and guild wars, looked up once (not once per nearby player)
         party_of, guild_of = self.parties.of, self.guilds.of
         my_party = party_of.get(hero.char_id)
@@ -515,6 +673,9 @@ class Game:
                 continue
             other = self.heroes.get(cid)
             if not other or other.map_id != hero.map_id or other.is_dead:
+                continue
+            if cid == foe:  # a duel: friends, party and guild mates too
+                out.append(("hero", cid, s.x, s.y))
                 continue
             if my_party is not None and party_of.get(cid) == my_party:
                 continue
@@ -661,13 +822,16 @@ class Game:
                     victim = self.heroes.get(e[1])
                     if not victim or victim.is_dead:
                         break
-                    await self.flag_attack(hero, victim)
+                    if not self.duels.dueling(hero.char_id, victim.char_id):
+                        await self.flag_attack(hero, victim)
                     dmg, crit = self.roll_damage(hero, sk, stat, victim.defense, victim.hp / victim.max_hp)
                     await self.hurt_hero(victim, max(1, int(dmg * self.pvp_damage * weak)), hero, crit)
             if e[1] not in splash:  # stuns, slows and poisons stay on the real targets
                 await self.apply_effects(hero, sk, e)
                 if ench and last_hit and e[0] == "mob" and random.random() < ench["proc"]:
                     await self.enchant_proc(hero, ench, e[1], last_hit)
+        if not sk.get("basic"):
+            await self.track(hero, "skill", sid)
         await self.push_hero(hero)
         return None
 
@@ -737,8 +901,10 @@ class Game:
         if self.wb.state == "active" and res.get("mob_id") == self.wb.mob_id:
             await self.wb.on_boss_killed(self, killer)
             return
+        invader = self.inv.owns(res.get("mob_id"))
+        night = daynight.NIGHT_REWARD if self.night and self.open_world(killer.map_id) else 1.0
         group = self.party_nearby(killer)
-        bonus = 1 + pt.EXP_BONUS_PER_MEMBER * (len(group) - 1)
+        bonus = (1 + pt.EXP_BONUS_PER_MEMBER * (len(group) - 1)) * night
         recipients = list(dict.fromkeys(contributors + [h.char_id for h in group]))
         for cid in recipients:
             h = self.heroes.get(cid)
@@ -746,7 +912,7 @@ class Game:
                 continue
             exp = int(res["exp"] * (bonus if h in group else 1) * (1 + h.boost("exp")))
             await self.add_exp(h, exp)
-            gold = int(res["gold"] * (1 + h.boost("gold"))) if cid == killer.char_id else 0
+            gold = int(res["gold"] * night * (1 + h.boost("gold"))) if cid == killer.char_id else 0
             names: list[str] = []
             if cid == killer.char_id:
                 h.gold += gold
@@ -761,9 +927,14 @@ class Game:
                 if lost:
                     await self.notice(cid, "Sua bolsa está cheia! Venda ou descarte itens.", "warn")
                 await self.push_inventory(h)
-            await self.quest_kill(h, res["def_id"])
+            if not invader:  # invaders look like other monsters, but they are not the ones the quests ask for
+                await self.quest_kill(h, res["def_id"])
+            else:
+                await self.track(h, "kill", "", 1)
             await self.send(cid, {"type": "reward", "exp": exp, "gold": gold,
                                   "loot": names, "party": len(group) > 1 and h in group})
+        if invader:
+            await self.inv.on_kill(self, res["mob_id"], contributors)
             await self.push_hero(h)
 
     async def hurt_hero(self, victim: Hero, dmg: int, attacker: Hero | None, crit: bool = False,
@@ -777,6 +948,10 @@ class Game:
             return
         if attacker is None and not dot and not true_damage:
             dmg = max(1, dmg * 100 // (100 + victim.defense))
+            if self.night and self.open_world(victim.map_id):
+                dmg = int(dmg * daynight.NIGHT_MOB_HIT)
+            if source and self.inv.owns(source):  # the invasion is a party, not a trap for newcomers in town
+                dmg = min(dmg, max(1, int(victim.max_hp * invm.MAX_HIT)))
         shield = victim.mod("mana_shield")
         if shield > 0 and victim.mp > 0:
             # mana is not power-scaled: one point of mana stops power(level) points of damage
@@ -785,6 +960,7 @@ class Game:
             victim.mp -= max(1, -(-absorbed // int(k)))
             victim.mp = max(0, victim.mp)
             dmg -= absorbed
+        dmg, duel_won = self.duels.on_hit(victim, attacker, dmg)
         victim.hp = max(0, victim.hp - dmg)
         if attacker:
             ls = attacker.mod("lifesteal")
@@ -810,6 +986,8 @@ class Game:
                 victim.pvp_deaths += 1
                 if attacker:
                     attacker.pvp_kills += 1
+                    self.tourney.on_arena_kill(attacker, victim)
+                    await self.track(attacker, "pvp_kill")
                     msg["killer_name"] = attacker.name
                     await self.add_exp(attacker, 40 + victim.level * 10)
                     await self.push_hero(attacker)
@@ -823,6 +1001,10 @@ class Game:
             await self.to_area(victim.map_id, vs.x if vs else 0.0, vs.y if vs else 0.0, msg)
         if msg.get("killed") and MAPS[victim.map_id]["pvp"]:
             await self.broadcast_scores(victim.map_id)
+            if self.tourney.active():
+                await self.tourney.push(self, everyone=False)
+        if duel_won and attacker:
+            await self.duels.end(self, attacker.char_id, attacker.char_id)
 
     async def broadcast_scores(self, map_id: str) -> None:
         rows = sorted(({"name": h.name, "cls": h.cls, "level": h.level, "kills": h.pvp_kills, "deaths": h.pvp_deaths}
@@ -859,6 +1041,7 @@ class Game:
         if titles.crossed(before, hero.level):
             await self.sync_title(hero)
         if leveled:
+            await self.track(hero, "level", value=hero.level)
             await self.save_hero(hero)
 
     def current_quest(self, hero: Hero) -> dict[str, Any] | None:
@@ -876,6 +1059,7 @@ class Game:
         await self.send(hero.char_id, {"type": "daily", **dly.public(self.daily_state(hero))})
 
     async def daily_progress(self, hero: Hero, kind: str, target: str = "", amount: int = 1) -> None:
+        await self.track(hero, kind, target, amount)
         state = self.daily_state(hero)
         done = dly.progress(state, kind, target, amount)
         if not any(t["kind"] == kind and (not t["target"] or t["target"] == target) for t in state["tasks"]):
@@ -896,6 +1080,7 @@ class Game:
             exp += t["exp"]
             gold += t["gold"]
         hero.gold += gold
+        await self.track(hero, "daily")
         text = f"Recompensa diária: +{fmt_big(exp)} EXP e +{fmt_big(gold)} ouro."
         if dly.all_claimed(state) and not state["bonus"]:
             state["bonus"] = True
@@ -938,6 +1123,7 @@ class Game:
         s = manager.sessions.get(hero.char_id)
         if not npc or not s or _dist(s.x, s.y, npc["x"], npc["y"]) > 6.0:
             return
+        await self.track(hero, "talk", npc_id)
         dialog: dict[str, Any] = {"type": "dialog", "npc": npc_id, "name": npc["name"], "lines": [], "options": []}
         if hero.pk_status() == "red":
             dialog["lines"] = pk.NPC_REFUSAL + [f"Volte quando seu nome estiver limpo (faltam {pk.minutes_left(hero.red_left)} min)."]
@@ -1028,6 +1214,9 @@ class Game:
         elif option.startswith("shop:"):
             await self.open_shop(hero, option[5:])
             return
+        elif option in ("duel_accept", "duel_decline"):
+            await self.duels.answer(self, hero, option == "duel_accept")
+            return
         elif option == "go_arena":
             dest = MAPS["town_01"]["portals"][1]
             await self.change_map(hero, dest["to"], dest["dx"], dest["dy"])
@@ -1077,6 +1266,7 @@ class Game:
         await self.tick_mining()
         if tick % 10 == 0:
             await self.wb.tick_schedule(self)
+            await self.tick_events()
             await self.hq.tick(self)
             if self.hq.dirty and self.save_hq:
                 self.hq.dirty = False
@@ -1353,7 +1543,7 @@ class Game:
 
     def open_world(self, map_id: str) -> bool:
         m = MAPS[map_id]
-        return not m["safe"] and not m["pvp"] and not m.get("event")
+        return not m["safe"] and not m["pvp"] and not m.get("event") and map_id != invm.TOWN  # the town, even invaded
 
     async def sync_pk(self, hero: Hero) -> None:
         """Tell the map when a hero's name color changes (and the hero itself, with a notice)."""
@@ -1386,6 +1576,7 @@ class Game:
     async def on_player_kill(self, killer: Hero, victim: Hero, victim_status: str) -> None:
         if not self.open_world(victim.map_id):
             return
+        await self.track(killer, "pvp_kill")
         war = self.guilds.war_kill(killer.char_id, victim.char_id)
         if war:  # guild war: the kill scores for the guild, no Assassin status
             gk, gv = war

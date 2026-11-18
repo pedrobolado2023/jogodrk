@@ -30,6 +30,8 @@ interface AutoState {
   mode: AutoMode;
   /** "pvp": the player being hunted */
   victim?: string;
+  /** "pvp": the player is walking somewhere by hand; the attack waits until the hero gets there */
+  manual?: boolean;
   ax: number;
   ay: number;
   map: string;
@@ -208,6 +210,9 @@ export interface MinimapData {
   target: string | null;
 }
 
+/** How much darker the world gets at night. */
+const NIGHT_EXTRA = 0.16;
+
 export class GameScene extends Phaser.Scene {
   charId = "";
   private cls = "blade_master";
@@ -265,6 +270,10 @@ export class GameScene extends Phaser.Scene {
   private statuses = new Map<string, PfxHandle>();
 
   private world: WorldRenderer | null = null;
+  /** the world's night (server/daynight.py): darker, monsters hit harder and give more */
+  private isNight = false;
+  /** the player we are dueling (no innocent-player warning when hitting them) */
+  private duelFoe: string | null = null;
   private fx!: Fx;
   private pfx!: PixelFx;
   /** the night: a small canvas we paint ourselves (same result with the processor or the graphics card) */
@@ -419,7 +428,7 @@ export class GameScene extends Phaser.Scene {
     this.loadingText = undefined;
 
     this.world = new WorldRenderer(this, info);
-    this.darkness = this.world.theme.darkness;
+    this.darkness = this.world.theme.darkness + (this.isNight ? NIGHT_EXTRA : 0);
     this.nightTint = MOOD[info.theme] ?? 0x04060f;
 
     for (const f of this.world.theme.fires) {
@@ -1164,6 +1173,8 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on("keydown-K", () => this.events.emit("toggle_book"));
     this.input.keyboard!.on("keydown-N", () => this.events.emit("toggle_map"));
     this.input.keyboard!.on("keydown-J", () => this.events.emit("toggle_diary"));
+    this.input.keyboard!.on("keydown-O", () => this.events.emit("toggle_achievements"));
+    this.input.keyboard!.on("keydown-R", () => this.events.emit("toggle_ranking"));
     this.input.keyboard!.on("keydown-C", () => this.events.emit("toggle_char"));
     this.input.keyboard!.on("keydown-I", () => this.events.emit("toggle_inv"));
     this.input.keyboard!.on("keydown-F", () => this.events.emit("toggle_friends"));
@@ -1306,7 +1317,7 @@ export class GameScene extends Phaser.Scene {
       const u = this.unitOf(t.id)!;
       this.fx.ring(u.root.x, u.root.y, "red", 0.9, 0.4, 260);
       const r = t.kind === "hero" ? this.remotes.get(t.id) : undefined;
-      if (r && this.canFightPlayers() && !this.mapInfo?.pvp && r.pk === "white" && this.hero?.pk?.status !== "red") {
+      if (r && r.id !== this.duelFoe && this.canFightPlayers() && !this.mapInfo?.pvp && r.pk === "white" && this.hero?.pk?.status !== "red") {
         this.events.emit("notice", { text: `${r.name} é inocente. Atacar te deixa Agressor; matar te deixa Assassino (nome vermelho).`, kind: "warn" });
       }
       return;
@@ -1330,7 +1341,7 @@ export class GameScene extends Phaser.Scene {
     this.pendingCast = null;
     this.pendingTalk = null;
     this.pendingMine = null;
-    if (this.auto) this.stopAuto("Modo automático desligado (você assumiu o controle).");
+    this.takeControl();
     const wp = this.cameras.main.getWorldPoint(p.x, p.y);
     const { wx, wy } = screenToWorld(wp.x, wp.y);
     const n = (this.mapInfo?.size ?? 40) - 1.5;
@@ -1359,6 +1370,16 @@ export class GameScene extends Phaser.Scene {
         : "Missão automática ligada: vou cumprir, entregar e pegar as próximas missões sozinho.",
       kind: "quest",
     });
+  }
+
+  /**
+   * The player moves the hero by hand. The automatic attack (PvP) stays on: it only waits until the hero gets where
+   * the player sent it, and ends just on a map change or when someone falls. The other automatic modes stop.
+   */
+  private takeControl(): void {
+    if (!this.auto) return;
+    if (this.auto.mode === "pvp") { this.auto.manual = true; return; }
+    this.stopAuto("Modo automático desligado (você assumiu o controle).");
   }
 
   private stopAuto(text?: string): void {
@@ -1417,7 +1438,10 @@ export class GameScene extends Phaser.Scene {
     a.dead = false;
     a.nextThink = time + 200;
     const p = this.player;
-    if (this.mapInfo.map_id !== a.map) { a.map = this.mapInfo.map_id; a.ax = p.worldX; a.ay = p.worldY; }
+    if (this.mapInfo.map_id !== a.map) {
+      if (a.mode === "pvp") { this.stopAuto("Ataque automático desligado: você mudou de mapa."); return; }
+      a.map = this.mapInfo.map_id; a.ax = p.worldX; a.ay = p.worldY;
+    }
 
     // a boss is about to hit the ground under us: run out of the circle before anything else
     this.dangers = this.dangers.filter((d) => d.until > time);
@@ -1454,6 +1478,10 @@ export class GameScene extends Phaser.Scene {
       if (!r) { this.stopAuto("Ataque automático desligado: o alvo saiu do seu alcance."); return; }
       if (r.dead) { this.stopAuto(`${r.name} caiu! Ataque automático desligado.`); return; }
       if (!this.canFightPlayers()) { this.stopAuto("Ataque automático desligado: aqui não dá para lutar contra jogadores."); return; }
+      if (a.manual) {
+        if (this.moveTarget || this.joy.active) return;  // still walking where the player sent the hero
+        a.manual = false;
+      }
       if (this.target?.id !== r.id) this.setTarget({ kind: "hero", id: r.id });
       if (!this.pendingCast) this.autoFight(time, r, Math.hypot(r.worldX - p.worldX, r.worldY - p.worldY));
       return;
@@ -1577,7 +1605,7 @@ export class GameScene extends Phaser.Scene {
     const skill = basicSkill(this.cls);
     if (!skill || this.isDead || !this.hero || (this.cdUntil.get(skill.id) ?? 0) > this.time.now) return;
     if (this.mapInfo?.safe) { this.say(ERRORS.safe_zone, "#ffd77a"); return; }
-    if (this.auto) this.stopAuto("Modo automático desligado (você assumiu o controle).");
+    if (this.auto && this.auto.mode !== "pvp") this.stopAuto("Modo automático desligado (você assumiu o controle).");
     this.tryCast(skill);
   }
 
@@ -1687,6 +1715,21 @@ export class GameScene extends Phaser.Scene {
     socket.on("hq_mark", (m) => this.hqMark(m.id as number, m.x as number, m.y as number, !!m.gone, !!m.found));
     socket.on("hq", (m) => this.events.emit("hq", m));
     socket.on("discovered", (m) => this.onDiscovered(m));
+    socket.on("duel", (m) => { this.duelFoe = m.state === "start" ? (m.foe as string) : null; });
+    for (const kind of ["tutorial", "login_cal", "achievements", "achievement", "ranking", "invasion", "tourney", "duel"]) {
+      socket.on(kind, (m) => this.events.emit(kind, m));
+    }
+    socket.on("daynight", (m) => {
+      this.isNight = !!m.night;
+      if (this.world) this.darkness = this.world.theme.darkness + (this.isNight ? NIGHT_EXTRA : 0);
+      this.events.emit("daynight", m);
+    });
+    // a town invasion makes the town a place to fight monsters for a while
+    socket.on("map_safe", (m) => {
+      if (!this.mapInfo) return;
+      this.mapInfo.safe = !!m.safe;
+      this.events.emit("map_safe", this.mapInfo);
+    });
     // the weapon's element triggered on a hit: a burst in its colour on the monster
     socket.on("enchant_proc", (m) => {
       const u = this.mobs.get(m.target as string);
@@ -2350,7 +2393,7 @@ export class GameScene extends Phaser.Scene {
       // the joystick points on the screen; the world is drawn at an angle, so turn it into world directions
       const wx = this.joy.x / 32 + this.joy.y / 16, wy = this.joy.y / 16 - this.joy.x / 32;
       const len = Math.hypot(wx, wy) || 1;
-      if (this.auto) this.stopAuto("Modo automático desligado (você assumiu o controle).");
+      this.takeControl();
       this.pendingCast = null;
       this.pendingTalk = null;
       this.pendingMine = null;
@@ -2615,6 +2658,28 @@ export class GameScene extends Phaser.Scene {
         scale: { min: 0.15, max: 0.38 }, frequency: 45,
       }).setDepth(7000));
     }
+    if (theme === "swamp" || theme === "crimson") {
+      // rain: thin slanted streaks (red in the abyss)
+      ensureRainTexture(this);
+      this.ambient.push(this.add.particles(0, 0, theme === "swamp" ? "rain_drop" : "rain_blood", {
+        x: { onEmit: () => p.x + rand(-700, 620) },
+        y: { onEmit: () => p.y + rand(-520, 60) },
+        lifespan: 900, speedY: { min: 520, max: 680 }, speedX: { min: 90, max: 130 }, rotate: -12,
+        alpha: { start: theme === "swamp" ? 0.45 : 0.35, end: 0.1 }, scale: { min: 0.7, max: 1.1 },
+        frequency: (theme === "swamp" ? 14 : 30) / gfx().particles,
+      }).setDepth(7000));
+    }
+    if (theme === "ash") {
+      // grey ash snowing down slowly
+      ensureRainTexture(this);
+      this.ambient.push(this.add.particles(0, 0, "ash_flake", {
+        x: { onEmit: () => p.x + rand(-640, 560) },
+        y: { onEmit: () => p.y + rand(-460, 120) },
+        lifespan: 7000, speedY: { min: 14, max: 30 }, speedX: { min: -10, max: 14 },
+        alpha: { onEmit: () => 0, onUpdate: (_p: unknown, _k: string, t: number) => Math.min(1, Math.sin(Math.PI * t) * 2) * 0.55 },
+        scale: { min: 0.6, max: 1.2 }, frequency: 70 / gfx().particles,
+      }).setDepth(7000));
+    }
     if (gfx().rays && RAY_THEMES.has(theme)) {
       // slanted moonbeams around the hero, fading in and out slowly
       for (let i = 0; i < 5; i++) {
@@ -2825,5 +2890,27 @@ export class GameScene extends Phaser.Scene {
   private viewRadius(): number {
     const cam = this.cameras.main;
     return Math.ceil(cam.width / cam.zoom / 2 / 32 + cam.height / cam.zoom / 2 / 16) + 3;
+  }
+}
+
+/** A thin raindrop streak (and a red one for the crimson abyss). */
+function ensureRainTexture(scene: Phaser.Scene): void {
+  for (const [key, rgb] of [["rain_drop", "190,220,255"], ["rain_blood", "220,60,70"]] as const) {
+    if (scene.textures.exists(key)) continue;
+    const t = scene.textures.createCanvas(key, 4, 26)!;
+    const c = t.getContext();
+    const g = c.createLinearGradient(0, 0, 0, 26);
+    g.addColorStop(0, `rgba(${rgb},0)`);
+    g.addColorStop(1, `rgba(${rgb},0.9)`);
+    c.fillStyle = g;
+    c.fillRect(1, 0, 2, 26);
+    t.refresh();
+  }
+  if (!scene.textures.exists("ash_flake")) {
+    const t = scene.textures.createCanvas("ash_flake", 6, 6)!;
+    const c = t.getContext();
+    c.fillStyle = "rgba(150,142,136,0.9)";
+    c.beginPath(); c.arc(3, 3, 2.4, 0, Math.PI * 2); c.fill();
+    t.refresh();
   }
 }

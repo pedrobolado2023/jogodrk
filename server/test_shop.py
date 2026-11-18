@@ -29,6 +29,7 @@ async def run_all() -> None:
     print("ok  a loja só vende visual, Passe Premium e tempo (nada de força)")
 
     game = Game(_noop_save)
+    game.night = False  # rewards below are the daytime ones (night gives more)
     h = _hero(game, "grand_sorcerer", "town_01", 20, 20, level=40)[0]
     gold0, gear0 = h.gold, dict(h.gear)
     assert "Faltam 600" in await game.shop_buy(h, "aura_sangue")

@@ -50,7 +50,9 @@ PASS_TITLES: list[tuple[str, str, str]] = [
 import vip as _vip  # noqa: E402
 PASS_TITLES += _vip.TITLES  # the VIP titles (worn while the account is VIP)
 PASS_TITLES += [("cacador_segredos", "Caçador de Segredos", "#7af0ff")]
-PASS_TITLES += [("cartografo", "Cartógrafo de Ravencrest", "#ffd77a")]  # every hidden place found (discovery.py)  # the Hidden Wanderer's reward (hidden_quest.py)
+PASS_TITLES += [("cartografo", "Cartógrafo de Ravencrest", "#ffd77a")]  # every hidden place found (discovery.py)
+from progress import TITLES as _PROGRESS_TITLES  # noqa: E402  achievements, calendar, tournament, weekly ranking
+PASS_TITLES += [(tid, nm, col) for tid, (nm, col) in _PROGRESS_TITLES.items()]  # the Hidden Wanderer's reward (hidden_quest.py)
 TITLE_BY_ID = {t[0]: t for t in PASS_TITLES}
 
 # id → name, glow colour (a client GLOW_COLORS name)
