@@ -271,6 +271,19 @@ for _mob, (_tier, _stone) in CHAPTER_OF.items():
         LOOT[_mob] = [{"weapon": _tier, "rate": 1.0}, {"pool": _tier, "rate": 1.0}, {"item": "stone_refine", "rate": 0.6},
                       {"item": "stone_protect", "rate": 0.3}, {"item": "pot_hp_l", "rate": 1.0}, {"item": "pot_mp_l", "rate": 1.0}]
 
+# Gear from the sets was filling bags before level 30: every gear drop is 10% of the rates written above, for monsters
+# and bosses alike. A boss's own prize keeps its rate: the legendary weapon of the killer's class (pools of tiers 4 and
+# 6 for Vorthas and Valdrek, the "weapon" entry for the chapter IV-VII bosses) and Morgana's ring.
+GEAR_DROP_MULT = 0.1
+SIGNATURE = {"ring_witch"}
+LEGENDARY_POOLS = {4, 6}
+for _mob, _entries in LOOT.items():
+    for _e in _entries:
+        if _e.get("pool") in LEGENDARY_POOLS:
+            continue
+        if "pool" in _e or ("item" in _e and ITEMS[_e["item"]]["type"] == "gear" and _e["item"] not in SIGNATURE):
+            _e["rate"] = round(_e["rate"] * GEAR_DROP_MULT, 4)
+
 SHOPS: dict[str, list[str]] = {
     "healer": ["pot_hp_s", "pot_hp_l", "pot_mp_s", "pot_mp_l"],
     "mine": ["pickaxe", "pot_hp_s", "pot_mp_s"],

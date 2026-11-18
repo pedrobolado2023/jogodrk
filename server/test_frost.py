@@ -58,14 +58,16 @@ async def run_all() -> None:
     assert hero.story == {"q": last + 1, "st": "offer", "n": 0}  # chapter IV follows
     print("ok  fim do capítulo III anunciado")
 
-    # loot: Valdrek always gives a tier-6 weapon of the killer's class and a tier-5 piece;
-    # Morgana's ring is unique and never comes out of a pool
-    for _ in range(80):
+    # loot: Valdrek always gives a tier-6 weapon of the killer's class; an extra tier-5 piece only now and then
+    # (gear drops are 10% of what they were); Morgana's ring is unique and never comes out of a pool
+    extra = 0
+    for _ in range(400):
         drops = inv.roll_loot("lich_king", "grand_sorcerer")
         assert "staff_t6" in drops
-        assert any(inv.ITEMS[d].get("tier") == 5 for d in drops), drops
+        extra += any(inv.ITEMS[d].get("tier") == 5 for d in drops)
         assert "ring_witch" not in drops
         assert inv.pool_item(5, "blade_master") != "ring_witch"
+    assert 10 <= extra <= 90, extra  # ~10% of 400
     for d in ("frost_pelt", "frozen_core", "troll_tusk", "sword_t6", "bow_t6", "plate_t5", "robe_t5", "leather_t5", "amulet_t5"):
         assert d in inv.ITEMS
     print("ok  loot do Rei Lich e itens novos")
