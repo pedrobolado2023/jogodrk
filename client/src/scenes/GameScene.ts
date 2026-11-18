@@ -30,7 +30,7 @@ interface AutoState {
   mode: AutoMode;
   /** "pvp": the player being hunted */
   victim?: string;
-  /** "pvp": the player is walking somewhere by hand; the attack waits until the hero gets there */
+  /** "pvp" / "farm": the player is walking somewhere by hand; the attack waits until the hero gets there */
   manual?: boolean;
   ax: number;
   ay: number;
@@ -209,6 +209,9 @@ export interface MinimapData {
   places: { x: number; y: number; landmark: boolean }[];
   target: string | null;
 }
+
+/** The automatic modes that fight (they stay on while the player walks; only turning them off or a safe zone ends them). */
+const attackMode = (m: AutoMode) => m === "farm" || m === "pvp";
 
 /** How much darker the world gets at night. */
 const NIGHT_EXTRA = 0.16;
@@ -1364,8 +1367,8 @@ export class GameScene extends Phaser.Scene {
     this.events.emit("auto_state", mode);
     const victimName = victim ? this.remotes.get(victim)?.name ?? "o alvo" : "";
     this.events.emit("notice", {
-      text: mode === "pvp" ? `Ataque automático ligado: atacando ${victimName} até alguém cair.`
-        : mode === "farm" ? "Auto-Farm ligado: caçando os monstros por perto."
+      text: mode === "pvp" ? `Ataque automático ligado: atacando ${victimName}. Pode andar à vontade; só desliga quando você desligar ou entrar numa zona segura.`
+        : mode === "farm" ? "Auto-Farm ligado: caçando os monstros por perto. Pode andar à vontade; só desliga quando você desligar ou entrar numa zona segura."
         : mode === "daily" ? "Diárias automáticas ligadas: vou fazer as caçadas do dia e entregar ao Sargento Hald."
         : "Missão automática ligada: vou cumprir, entregar e pegar as próximas missões sozinho.",
       kind: "quest",
@@ -1373,12 +1376,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * The player moves the hero by hand. The automatic attack (PvP) stays on: it only waits until the hero gets where
-   * the player sent it, and ends just on a map change or when someone falls. The other automatic modes stop.
+   * The player moves the hero by hand. The attack modes (Auto-Farm and the automatic attack on a player) stay on:
+   * they wait until the hero gets where the player sent it and go on from there. They only end when the player
+   * turns them off or enters a safe zone. The mission modes stop (their route would fight the player's).
    */
   private takeControl(): void {
     if (!this.auto) return;
-    if (this.auto.mode === "pvp") { this.auto.manual = true; return; }
+    if (attackMode(this.auto.mode)) { this.auto.manual = true; return; }
     this.stopAuto("Modo automático desligado (você assumiu o controle).");
   }
 
@@ -1425,7 +1429,7 @@ export class GameScene extends Phaser.Scene {
     const a = this.auto!;
     if (!this.mapInfo || !this.hero || time < a.nextThink) return;
     if (this.isDead) {
-      if (a.mode === "pvp") { this.stopAuto("Ataque automático desligado: você foi derrotado."); return; }
+      if (attackMode(a.mode)) return;  // stays on: it picks up again once the hero is back on its feet
       if (!a.dead) {
         a.dead = true;
         a.deaths = [...a.deaths.filter((t) => time - t < AUTO_DEATH_WINDOW), time];
@@ -1438,9 +1442,14 @@ export class GameScene extends Phaser.Scene {
     a.dead = false;
     a.nextThink = time + 200;
     const p = this.player;
-    if (this.mapInfo.map_id !== a.map) {
-      if (a.mode === "pvp") { this.stopAuto("Ataque automático desligado: você mudou de mapa."); return; }
-      a.map = this.mapInfo.map_id; a.ax = p.worldX; a.ay = p.worldY;
+    if (this.mapInfo.map_id !== a.map) { a.map = this.mapInfo.map_id; a.ax = p.worldX; a.ay = p.worldY; }
+    // the attack modes end in a safe zone (nothing to fight there)
+    if (a.mode === "farm" && this.mapInfo.safe) { this.stopAuto("Auto-Farm desligado: você entrou numa zona segura."); return; }
+    if (a.mode === "pvp" && !this.canFightPlayers()) { this.stopAuto("Ataque automático desligado: você entrou numa zona segura."); return; }
+    if (a.manual) {
+      if (this.moveTarget || this.joy.active) return;  // still walking where the player sent the hero
+      a.manual = false;
+      a.ax = p.worldX; a.ay = p.worldY;               // Auto-Farm hunts around the place the player walked to
     }
 
     // a boss is about to hit the ground under us: run out of the circle before anything else
@@ -1475,13 +1484,8 @@ export class GameScene extends Phaser.Scene {
 
     if (a.mode === "pvp") {
       const r = this.remotes.get(a.victim ?? "");
-      if (!r) { this.stopAuto("Ataque automático desligado: o alvo saiu do seu alcance."); return; }
-      if (r.dead) { this.stopAuto(`${r.name} caiu! Ataque automático desligado.`); return; }
-      if (!this.canFightPlayers()) { this.stopAuto("Ataque automático desligado: aqui não dá para lutar contra jogadores."); return; }
-      if (a.manual) {
-        if (this.moveTarget || this.joy.active) return;  // still walking where the player sent the hero
-        a.manual = false;
-      }
+      // out of sight or down: keep waiting, the attack goes on when the player is back in reach
+      if (!r || r.dead) return;
       if (this.target?.id !== r.id) this.setTarget({ kind: "hero", id: r.id });
       if (!this.pendingCast) this.autoFight(time, r, Math.hypot(r.worldX - p.worldX, r.worldY - p.worldY));
       return;
@@ -1605,7 +1609,7 @@ export class GameScene extends Phaser.Scene {
     const skill = basicSkill(this.cls);
     if (!skill || this.isDead || !this.hero || (this.cdUntil.get(skill.id) ?? 0) > this.time.now) return;
     if (this.mapInfo?.safe) { this.say(ERRORS.safe_zone, "#ffd77a"); return; }
-    if (this.auto && this.auto.mode !== "pvp") this.stopAuto("Modo automático desligado (você assumiu o controle).");
+    if (this.auto && !attackMode(this.auto.mode)) this.stopAuto("Modo automático desligado (você assumiu o controle).");
     this.tryCast(skill);
   }
 
