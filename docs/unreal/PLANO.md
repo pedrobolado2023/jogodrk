@@ -258,6 +258,94 @@ Change visibility) antes de importar qualquer arte desta etapa.
 
 ### Etapa 4 — Telas
 - Inventário e equipamentos, lojas e NPCs (diálogos), missões (História, Diárias), chat, avisos, mapa do mundo.
+- **Pronto quando:** dá para jogar o começo do jogo só pela Unreal: falar com o Ancião, aceitar e entregar a missão,
+  comprar poção no curandeiro, vender o que caiu, equipar, conversar no chat com quem está no navegador e se
+  teleportar pelo mapa do mundo.
+
+Detalhes da Etapa 4 (referência: `client/src/scenes/HUDScene.ts`, `InventoryUI.ts`, `ShopUI.ts`, `ChatUI.ts`,
+`DiaryUI.ts`, `WorldMapUI.ts` e `GameScene.ts` no repositório `jogodrk`; só leitura):
+
+**0. Base das telas**
+- Continuar com widgets em C++, como nas etapas anteriores, mas com o visual num lugar só (`DFUIStyle`: cores,
+  fontes, tamanhos, cor de raridade vinda de `/meta` `rarity`), para o Pedro trocar a aparência depois sem mexer na
+  lógica.
+- Um gerenciador de janelas: abre e fecha por tecla, **Esc fecha a janela de cima** antes de limpar o alvo, uma
+  janela grande por vez (inventário pode ficar aberto junto com a loja).
+- **Clique em cima de janela não anda nem escolhe alvo.** Com o chat digitando, nenhuma tecla do jogo funciona
+  (1–0, Espaço, WASD, Q/E, letras).
+- Teclas iguais às do navegador: **I** inventário, **N** mapa do mundo, **J** diário (missões), **Enter** chat,
+  **Q** poção de vida, **E** poção de mana, **Esc** fecha. O **ataque automático sai do Q e vai para o Z** (o
+  navegador não usa Z); atualizar o texto do botão no HUD.
+- Números grandes com `DF::Big`. Os textos que vêm do servidor já estão em português: mostrar como vieram.
+
+**1. Avisos**
+- `notice {text, kind}`: faixa no centro da tela, cor por tipo (`info` branco, `warn` laranja, `quest` dourado),
+  até 3 ao mesmo tempo, somem em ~4 s. Os erros das ações (comprar sem ouro, bolsa cheia...) chegam assim.
+- `story_end {chapter, title, text}`: janela grande com o texto do fim do capítulo e um botão "Continuar".
+
+**2. NPCs e diálogos**
+- No modo provisório (nível não montado), criar `ADFNpc` a partir de `map_info.npcs`, como já é feito com os
+  portais. Os NPCs respondem ao canal de clique (DFClick) e mostram o cursor de mão.
+- Clicar no NPC: andar até ficar a 5 tiles dele (o servidor aceita até 6) e mandar `talk {npc}`.
+- `dialog {npc, name, title?, lines[], options[{id, label}]}`: janela com nome, título, falas e um botão por
+  opção → `dialog_option {option}`, mais o botão "Fechar". Fecha sozinha se o herói se afastar mais de 7 tiles do
+  NPC. Os convites (`npc` = `duel`, `guild`, `friend`, `party`) não têm NPC no mapa: usam a mesma janela e não
+  fecham pela distância.
+- Opção `shop:<loja>` → o servidor manda `shop` (ou `forge`) e `inventory`: abrir a loja (item 4). A forja e o
+  mercado ficam para a Etapa 5: em `forge`, mostrar "A forja chega numa próxima versão" e mandar `close_shop`; a
+  opção `market` não é mandada, só mostra o mesmo tipo de aviso.
+
+**3. Inventário e equipamento**
+- `inventory {bag, gear, gold, shop, cap}`. `bag` é uma lista de `{id, qty, plus?, ref?, ench?}`; `gear` tem os
+  espaços `weapon, armor, legs, boots, ring, necklace`, cada um com `{id, plus, ref, ench?}` ou vazio. Os dados do
+  item (nome, raridade, espaço, classe, atributos, preço) estão em `/meta` `items`.
+- Janela: os 6 espaços de equipamento, a grade da bolsa (`cap` espaços, com rolagem) e o ouro. Ao passar o mouse:
+  nome na cor da raridade, +N, atributos já com o +N (`upgrade_step` = 7% por +1), refino, encantamento, preço de
+  venda (25% do preço) e a marca de "melhor que o equipado", calculada como no navegador (`score_weights`,
+  `ref_weight`). Item de outra classe aparece em vermelho.
+- Ações: clique duplo ou "Equipar" → `equip {index, item}`; no espaço equipado → `unequip {slot}`; "Equipar o
+  melhor" → `auto_equip`; "Descartar" pede confirmação → `discard {index, item}`. Mandar sempre `index` **e**
+  `item`: o servidor confere se o item ainda está naquele lugar.
+- Q/E → `use_potion {kind: "hp" | "mp"}`. Mostrar no HUD quantas poções de cada tipo há na bolsa e a recarga de 3 s.
+
+**4. Loja**
+- `shop {shop, name, items[]}`: janela da loja ao lado do inventário. Comprar → escolher quantidade (1 a 20) →
+  `buy {item, qty}`. Com a loja aberta, vender da bolsa → `sell {index, item, qty}` (pilha: perguntar quantos).
+  Seguir as confirmações do `ShopUI.ts` (antes de vender item raro ou melhor que o equipado).
+- Fechar a loja (botão, Esc ou se afastar mais de 7 tiles) → `close_shop`.
+
+**5. Missões**
+- História: `hero.story {q, st, n}` com `/meta` `quests[q]` (`title`, `goal_text`, `count`). Painel pequeno fixo no
+  canto: título e "goal_text (n/count)"; quando `st` = `ready`, "Volte ao Ancião Aldric"; quando `st` = `offer`,
+  "Fale com o Ancião Aldric". Atualiza com a mensagem `story`.
+- Diárias: `daily {day, bonus, tasks[{text, n, count, claimed}]}`, que chega ao entrar e quando avança. A janela J
+  tem duas abas, História e Diárias. A recompensa da diária se recebe falando com o Sargento (opção `daily_claim`
+  do diálogo): a janela só mostra o progresso.
+
+**6. Chat**
+- Caixa no canto de baixo à esquerda, últimas 50 mensagens. Enter abre e manda, Esc cancela. Canais: Mapa,
+  Global, Grupo e Guilda, mais o sussurro. Copiar os comandos do `ChatUI.ts` (sussurro com `/s Nome texto`,
+  responder etc.).
+- Envio: `chat {channel, text, to?}` (`channel` = `map`, `global`, `party`, `guild` ou `whisper`; `to` = nome no
+  sussurro). Recebe `chat {channel, from, from_id, text, pk, title, to?}`. Os canais `event` e `guild_info` vêm
+  sem `from`: são textos do sistema, em dourado. Nome de assassino (`pk` = `red`) em vermelho.
+
+**7. Mapa do mundo**
+- N → manda `world_map` e recebe `world_map {current, gold, maps[{id, name, theme, level, unlocked, cost}],
+  links[[a, b]]}`. Desenhar os mapas como pontos ligados (posições copiadas do `WorldMapUI.ts`), o atual em
+  destaque e os bloqueados apagados. Clicar num liberado → confirmar o custo → `teleport {map}`. A resposta é
+  `map_change` (já tratado) ou um `notice` de erro.
+
+**8. Teste** (`scripts/test_stage_four.py`, servidor isolado na porta 18000, cópia do banco, conta nova):
+- falar com o Ancião, aceitar a primeira missão, matar os monstros pedidos, entregar e ver EXP, ouro e o painel
+  da missão mudarem;
+- curandeiro: comprar 2 poções, usar com Q e ver a contagem cair;
+- vender um item que caiu, equipar, desequipar, "Equipar o melhor", descartar com confirmação;
+- chat: mandar da Unreal e ver no navegador de verdade, e o contrário; sussurro entre os dois;
+- mapa do mundo: abrir, teleportar para um mapa liberado, e não conseguir clicar num bloqueado;
+- Esc fecha a janela antes de limpar o alvo; com o chat aberto, 1 e Espaço não usam skill; clique na janela não
+  anda; Z liga e desliga o ataque automático e Q usa poção;
+- uma captura de cada janela, e a regressão das Etapas 2 e 3.
 
 ### Etapa 5 — O resto
 - Demais mapas, Arena (PvP), Boss Global, eventos (invasão, torneio), forja, mercado, mineração, guildas, grupo,
@@ -298,3 +386,16 @@ Change visibility) antes de importar qualquer arte desta etapa.
 > provisório e deixe uma lista do que o Pedro deve baixar (nome do pacote e onde colocar). Não mude `server/` nem o
 > protocolo. Teste no servidor isolado (porta 18000). Não faça commit. Quando terminar, descreva como testar, liste
 > o que o Pedro precisa fazer no editor e grave as decisões no kg.
+
+## Tarefa da Etapa 4 para o Codex (copiar e colar)
+
+> Trabalhe em `C:\Users\pedro\Documents\unrealengine221`. Leia `AGENTS.md`, `docs/PLANO.md` (seção **Etapa 4** e
+> os "Detalhes da Etapa 4"), `docs/PROTOCOLO.md` (3.3) e a memória kg (nós `unreal-etapa-3-aprovada` e
+> `unreal-etapa-4-plano`). A referência de comportamento é o jogo de navegador em
+> `C:\Users\pedro\Downloads\novo jogo 2.2\client\src\scenes\` (`HUDScene.ts`, `InventoryUI.ts`, `ShopUI.ts`,
+> `ChatUI.ts`, `DiaryUI.ts`, `WorldMapUI.ts`; só leitura). Faça a Etapa 4 na ordem dos itens 0 a 7: base das telas
+> (inclusive mover o ataque automático do Q para o Z e deixar Q/E nas poções), avisos, NPCs e diálogos, inventário,
+> loja, missões, chat e mapa do mundo. Todo texto que o jogador vê em português simples. O servidor manda em
+> tudo: o cliente só pede e mostra a resposta. Não mude `server/` nem o protocolo; se faltar algum campo, anote e
+> me avise. Teste no servidor isolado (porta 18000, cópia do banco, contas novas) com o item 8. Não faça commit.
+> Quando terminar, descreva como testar e grave as decisões no kg.

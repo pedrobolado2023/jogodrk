@@ -79,7 +79,7 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
 | `mob_sync` | `mobs: [[id, x, y, hp], ...]` | Posições atuais dos monstros ao redor (ao mudar de região do mapa) |
 | `map_change` | `map_info` + `x, y` | Pisou num portal: trocar de mapa **na hora** (os `mob_spawn` do mapa novo chegam logo depois) |
 | `notice` | `text, kind` (`info` · `warn` · `quest`) | Aviso no centro da tela |
-| `chat` | `channel, name?, text` | Chat (etapa 4) |
+| `chat` | `channel, from?, from_id?, text, pk?, title?, to?` | Chat (etapa 4). `event`/`guild_info` vêm sem `from` (texto do sistema); `to` só no eco do seu sussurro |
 
 ### 3.2 Etapa 2 — combate
 
@@ -122,8 +122,15 @@ Notas do combate:
 
 Todos já funcionam no servidor; basta mandar/receber:
 
-- **Inventário e loja**: manda `buy`, `sell`, `equip`, `unequip`, `auto_equip`, `discard`, `use_potion`
-  (`{"kind": "hp"|"mp"}`), `close_shop`; recebe `inventory`, `shop`.
+- **Inventário e loja**: manda `buy {item, qty}`, `sell {index, item, qty}`, `equip {index, item}`,
+  `unequip {slot}`, `auto_equip`, `discard {index, item}`, `use_potion {kind: "hp"|"mp"}`, `close_shop`; recebe
+  `inventory {bag[{id, qty, plus?, ref?, ench?}], gear{weapon, armor, legs, boots, ring, necklace}, gold, shop, cap}`
+  e `shop {shop, name, items[]}` (a forja manda `forge` no lugar de `shop`). Erros chegam como `notice` `warn`.
+  Dados dos itens: `/meta` `items`, `rarity`, `upgrade_step`, `score_weights`, `ref_weight`.
+- **Chat**: manda `chat {channel, text, to?}` (`map`, `global`, `party`, `guild`, `whisper` com `to` = nome).
+- **Missões**: `hero.story {q, st, n}` com `/meta` `quests`; recebe `story {story}` e
+  `daily {day, bonus, tasks[{text, kind, target, n, count, claimed}]}`. O diálogo do NPC `talk` é
+  `dialog {npc, name, title?, lines[], options[{id, label}]}`.
 - **NPCs e diálogos**: manda `talk {npc}`, `dialog_option {option}`; recebe `dialog {npc, name, lines[], options[{id, label}]}`, `story`, `story_end`.
 - **Forja**: `forge_craft`, `forge_upgrade`, `forge_refine`, `forge_enchant` → `forge_result`.
 - **Mercado**: `market_query`, `market_sell`, `market_buy`, `market_cancel`, `market_collect` → `market`.
@@ -132,7 +139,8 @@ Todos já funcionam no servidor; basta mandar/receber:
   `party`, `guild`, `guild_tag`, `friends`.
 - **PvP**: `pk_status`, `kill_feed`, `arena_scores`; duelo `duel_invite {name}` → `duel`; torneio → `tourney`.
 - **Boss Global**: `wb_join` → `wb_status`, `wb_scores`, `wb_cast`, `wb_impact`, `wb_result`.
-- **Mapa do mundo e teleporte**: `world_map` → `world_map`; `teleport {map}`.
+- **Mapa do mundo e teleporte**: `world_map` → `world_map {current, gold, maps[{id, name, theme, level, unlocked,
+  cost}], links[[a, b]]}`; `teleport {map}` → `map_change` ou `notice`.
 - **Visual**: `set_title`, `set_aura`, `set_pet`, `set_mount`, `set_skin`, `toggle_mount` → `title`, `aura`, `pet`,
   `mount`, `skin`.
 - **Passe e loja de gemas**: `pass_claim`, `pass_claim_all`, `shop_buy` → `season`, `shop`.
