@@ -157,6 +157,105 @@ Detalhes da Etapa 2 (o jogo de navegador é a referência: `client/src/scenes/Ga
 - Floresta com Megascans (chão, árvores, pedras), luz e névoa, os lugares escondidos e a Árvore-Mãe.
 - Os 3 heróis (modelos e animações), os monstros da Floresta, efeitos Niagara das skills mais usadas.
 
+Detalhes da Etapa 3:
+
+**Antes de tudo: repositório privado.** O `pedrobolado2023/unrealengine221` está **público**. Modelos do Mixamo,
+Megascans e pacotes do Fab só podem ser usados dentro do jogo, não espalhados como arquivos soltos; num repositório
+público qualquer um baixa os `.uasset`. O Pedro deixa o repositório **privado** (GitHub → Settings → Danger Zone →
+Change visibility) antes de importar qualquer arte desta etapa.
+
+**Quem faz o quê nesta etapa**
+| Quem | O quê |
+|---|---|
+| Claude | Exportador do layout (`server/export_layout.py`, já pronto), revisão, decisões de arte e posição |
+| Codex | Importador do layout, PCG da floresta, atores de portal/NPC/lugar escondido, heróis e monstros com animação (C++ + Python do editor), efeitos Niagara, modo "nível montado" no cliente |
+| Pedro | Baixar os pacotes no Fab/Megascans, pintar o chão e as trilhas, ajustar luz, olhar e aprovar o visual |
+
+**1. Layout vindo do servidor** (feito)
+- `server/export_layout.py <pasta>` grava `<map_id>.json` com tamanho, ponto de entrada, portais, NPCs, clareiras,
+  pontos de monstros (`spawns`: tipo, centro, quantidade, raio), lugares escondidos e marcos (`places`), e o
+  acampamento da Floresta (`camp`). Os arquivos ficam em `unrealengine221/DarkFantasy/Data/Layouts/` (texto, Git
+  normal). Se o mapa mudar no servidor, rodar de novo.
+- Coordenadas em tiles; na Unreal `X = x·200`, `Y = y·200`. A Floresta tem 200×200 tiles = 400 m × 400 m.
+
+**2. Regra de colisão (importante)**
+- O servidor **não tem obstáculos**: no navegador todo mundo atravessa árvores. Na Unreal, árvores, pedras e
+  arbustos **não bloqueiam** o herói nem os monstros (sem colisão de movimento). Senão o herói da Unreal fica preso
+  onde os outros passam, e a posição dele se desencontra da do servidor.
+- O clique para andar continua batendo só no chão (`ECC_Visibility` no Landscape); a vegetação ignora esse canal.
+- Clareiras, portais, acampamento e pontos de monstros ficam livres de árvores (ver PCG abaixo), para a câmera de
+  cima ver a luta.
+
+**3. Montar a Floresta** (`L_forest_01`)
+- Landscape de 400 m × 400 m com origem no canto (tile 0,0 = 0,0 uu). Altura quase plana (o servidor é 2D: morros
+  leves só nas bordas e fora das áreas de luta, sem mudar a altura onde se anda além de ±1 m).
+- Script Python do editor (`Content/Python/import_layout.py`) lê o JSON e cria/atualiza, marcando tudo com a tag
+  `DFLayout` (rodar de novo substitui sem duplicar):
+  - **Portais** (`ADFPortal`): anel com Niagara e o nome do destino; cor por estado (`locked` do `map_info` em tempo
+    de execução).
+  - **NPCs** (`ADFNpc`): modelo provisório + nome; o Ancião Aldric perto do acampamento.
+  - **Acampamento**: tendas, bancos, caixotes, barril, estandarte, fogueira e braseiros com luz e Niagara de fogo.
+  - **Lugares escondidos** (`ADFPlace`): o objeto de cada um (`look`: santuário, poço, túmulo, círculo de
+    cogumelos...) com brilho na cor `glow`. A **Árvore-Mãe Morta** (marco, 72,52) é a peça grande do mapa:
+    árvore morta gigante, visível de longe, numa clareira de 10 tiles.
+  - **Volumes de exclusão** do PCG para clareiras, portais, acampamento, pontos de monstros (raio = `wander`) e
+    lugares.
+- **PCG** (o framework de geração do UE 5.8) espalha a floresta: pinheiros e carvalhos densos, árvores mortas nas
+  áreas mais abertas, arbustos, pedras, tocos, cogumelos e lápides (mesma mistura do navegador), respeitando as
+  exclusões e deixando trilhas ligando acampamento → portais → pontos de monstros.
+- Clima: névoa exponencial de altura + névoa volumétrica, luz da lua fria, raios de luz entre as árvores,
+  vagalumes (Niagara) nas clareiras. Escuro como o navegador (`darkness 0.5`), mas legível de cima.
+- Noite do jogo: a mensagem `daynight` (`night` true/false, `left` = segundos até virar) já chega ao entrar e a
+  cada troca. De noite, escurecer a luz e aumentar a névoa em ~5 s (no navegador a noite é +0,16 de escuridão).
+
+**4. Modo "nível montado" no cliente**
+- Hoje `UDFWorldSubsystem::AttachWorld` cria chão e portais provisórios. Se o nível tiver atores `DFLayout` (ou um
+  ator `ADFLevelInfo` marcando "montado"), não criar o chão nem os portais provisórios; só posicionar o herói.
+- A altura do herói, dos monstros e dos outros jogadores segue o chão: traço para baixo no Landscape (com cache por
+  ator, 5–10 vezes por segundo), em vez do Z fixo 96.
+
+**5. Heróis** (os 3, com animação)
+- Fonte: `art-source/mixamo/<classe>/` do repositório `jogodrk` (Mestre das Lâminas = paladino com espada e escudo,
+  Grande Feiticeiro, Patrulheiro da Noite). O `art-source/units.json` diz qual arquivo é cada animação
+  (`idle`, `walk`, `run`, `attack`, `cast`, `hit`, `death`).
+- Importar como Skeletal Mesh + animações para `Content/Characters/Heroes/<classe>/` (só os `.uasset` vão para o
+  Git; os `.fbx` crus **não**). Um Animation Blueprint simples: parado/andar/correr pela velocidade, e montagens
+  para ataque, magia, levar golpe e morrer.
+- Escala: herói ~1,85 m. Gira para onde anda e para o alvo ao atacar.
+- O `cls` escolhe o modelo: do seu herói vem no `hero`; dos outros jogadores vem no `player_spawn` e em cada item
+  do `nearby_snapshot` (campo `cls`, junto de `level`, `title`, `aura`, `pet`, `mount`). Skins e montarias ficam para a Etapa 5.
+
+**6. Monstros da Floresta**
+- Lobo Sombrio (`wolf`): `art-source/sources/Labrador_AllAnimations.glb` (o navegador usa ele escurecido e
+  azulado); Goblin da Floresta (`goblin`) e Treant Corrompido (`treant`): `art-source/mixamo/goblin` e `treant`
+  (Creature Pack). Mesmo esquema: andar, atacar, levar golpe, morrer.
+- `ADFMob::ConfigureModel(def_id, boss)` passa a escolher a malha por uma tabela (`DataTable` ou mapa em C++); o que
+  não tiver modelo continua cápsula.
+
+**7. Efeitos Niagara** (as skills que mais aparecem no começo)
+- Ataque básico das 3 classes (`bm_basic` corte, `gs_basic` orbe, `nr_basic` flecha).
+- Mestre das Lâminas: `bm_slash` (Golpe Cortante), `bm_twisting_slash` (Corte Giratório), `bm_charge` (Investida).
+- Grande Feiticeiro: `gs_fireball` (Bola de Fogo), `gs_ice_lance` (Lança de Gelo), `gs_frost_nova` (Nova
+  Congelante).
+- Patrulheiro: `nr_quick_shot` (Tiro Rápido), `nr_piercing_arrow` (Flecha Perfurante), `nr_shadow_step` (Passo
+  Sombrio).
+- Mais: impacto genérico, morte de monstro, subir de nível, renascer, portal, fogueira, vagalumes, `stun`/`freeze`/
+  `slow`. As outras skills continuam com o efeito provisório da Etapa 2 até a Etapa 5.
+
+**8. Desempenho**
+- Meta: 60 qps em placa média (GTX 1660 / RX 580) a 1080p com a câmera de cima, 96 monstros e ~20 jogadores.
+- Nanite na vegetação, Lumen ligado com opção de desligar, distâncias de corte para vegetação pequena,
+  monstros longe já escondidos (Etapa 2).
+
+**9. Teste**
+- `scripts/test_stage_three.py` (ou extensão do da Etapa 2) no servidor isolado: entrar na Floresta pelo portal da
+  Vila, andar até cada ponto de monstro e lugar escondido checando que o caminho não tem bloqueio (o herói chega na
+  posição pedida), lutar um pouco, capturas em 4 lugares (acampamento, Árvore-Mãe, ponto dos lobos, portal do
+  Pântano) e medir o tempo de quadro.
+- **Pronto quando:** a Floresta está bonita e escura, os 3 heróis e os 3 monstros têm modelo e animação, as skills
+  do começo têm efeito de verdade, nada bloqueia o caminho, e quem joga no navegador e na Unreal continua se vendo
+  nos mesmos lugares.
+
 ### Etapa 4 — Telas
 - Inventário e equipamentos, lojas e NPCs (diálogos), missões (História, Diárias), chat, avisos, mapa do mundo.
 
@@ -184,3 +283,18 @@ Detalhes da Etapa 2 (o jogo de navegador é a referência: `client/src/scenes/Ga
 > morte/renascer. O servidor manda em tudo: o cliente só pede `skill` e mostra as respostas. Não mude nada em
 > `server/` nem no protocolo; se faltar algum campo, anote e me avise. Teste no servidor isolado (porta 18000, cópia
 > do banco, contas temporárias). Não faça commit. Quando terminar, descreva como testar e grave as decisões no kg.
+
+## Tarefa da Etapa 3 para o Codex (copiar e colar)
+
+> **Só comece depois que o Pedro deixar o repositório `unrealengine221` privado.** Trabalhe em
+> `C:\Users\pedro\Documents\unrealengine221`. Leia `AGENTS.md`, `docs/PLANO.md` (seção **Etapa 3** e os "Detalhes da
+> Etapa 3"), `docs/PROTOCOLO.md` e a memória kg (nós `unreal-etapa-2-revisada` e `unreal-etapa-3-plano`). O layout de
+> cada mapa já está em `DarkFantasy/Data/Layouts/<map_id>.json`. Faça a Etapa 3 na ordem: (a) modo "nível montado"
+> e altura pelo chão; (b) `import_layout.py` + atores `ADFPortal`, `ADFNpc`, `ADFPlace`, acampamento e volumes de
+> exclusão; (c) PCG da floresta em `L_forest_01` com vegetação **sem colisão de movimento**; (d) heróis e monstros
+> da Floresta importados de `C:\Users\pedro\Downloads\novo jogo 2.2\art-source` (só leitura; só os `.uasset`
+> importados entram no projeto, nunca os `.fbx`/`.glb`/`.zip` crus), com Animation Blueprint; (e) efeitos Niagara
+> da lista; (f) luz, névoa, noite (`daynight`) e desempenho. Onde precisar de arte do Fab/Megascans, use um
+> provisório e deixe uma lista do que o Pedro deve baixar (nome do pacote e onde colocar). Não mude `server/` nem o
+> protocolo. Teste no servidor isolado (porta 18000). Não faça commit. Quando terminar, descreva como testar, liste
+> o que o Pedro precisa fazer no editor e grave as decisões no kg.

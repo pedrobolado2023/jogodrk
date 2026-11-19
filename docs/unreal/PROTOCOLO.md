@@ -138,6 +138,11 @@ Todos já funcionam no servidor; basta mandar/receber:
 - **Passe e loja de gemas**: `pass_claim`, `pass_claim_all`, `shop_buy` → `season`, `shop`.
 - **Progresso**: `login_claim` → `login_cal`; `ranking` → `ranking`; recebe `tutorial`, `achievements`,
   `achievement`, `discovered`, `daynight`, `invasion`, `map_safe`.
+  - `daynight`: `night` (true = noite), `left` (segundos até virar), `reward` e `harder` (% a mais de EXP/ouro e de
+    golpe dos monstros à noite, fora da Vila).
+
+Layout fixo dos mapas (portais, NPCs, clareiras, pontos de monstros, lugares escondidos, acampamento) para montar os
+níveis no editor: `server/export_layout.py <pasta>` gera um JSON por mapa (não é mensagem de rede).
 - **Missão secreta**: `hidden_npc`, `hq`, `hq_mark`.
 
 O jogo de navegador (`client/src/scenes/GameScene.ts`, `HUDScene.ts`) é a referência de como cada mensagem é usada.
