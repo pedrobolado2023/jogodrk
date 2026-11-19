@@ -80,6 +80,79 @@ cada um sai de `map_info.size` (Vila 40×40 tiles = 80 m; Floresta 200×200 = 40
 - Números de dano (`mob_damaged`, `damage`), morte/renascer, `reward`, `level_up`, barras do `hero`.
 - **Pronto quando:** dá para caçar lobos na Floresta e subir de nível pela Unreal.
 
+Detalhes da Etapa 2 (o jogo de navegador é a referência: `client/src/scenes/GameScene.ts` no repositório `jogodrk`):
+
+**0. Arrumar o que ficou da Etapa 1**
+- Separar uma classe base sem câmera (`ADFUnit`: cápsula/modelo, nome, barra de vida, interpolação). `ADFHeroCharacter`
+  (o seu, com câmera) e `ADFRemoteHero`/`ADFMob` derivam dela. Os remotos não podem carregar câmera nem braço.
+- Não refazer a lista inteira a cada `mv`: atualizar só o alvo do ator que se mexeu; criar/remover só em
+  `player_spawn`/`player_despawn`/`nearby_snapshot`.
+
+**1. Monstros (`ADFMob`)**
+- Guardar todos os monstros do mapa num `TMap<id, estado>` (chegam até ~105 `mob_spawn` ao entrar). `mob_spawn` com id
+  existente = renasceu (reviver e pôr no lugar).
+- Ator provisório: cápsula com cor por tipo (boss maior e roxo), nome + nível em cima e barra de vida (componente de
+  widget ou mesh simples). Mais tarde (Etapa 3) o `def_id` escolhe o modelo: deixe um ponto único para isso.
+- Andar: interpolar até `mob_move`. `mob_sync`: corrigir posição e vida; se estiver a mais de 6 tiles, teleportar.
+- Para render leve: esconder/parar o tick dos monstros a mais de ~45 tiles do herói.
+- `mob_damaged`: atualizar a barra; `killed: true` → piscar/afundar e esconder (o ator pode ser reaproveitado no
+  próximo `mob_spawn`). `mob_hp`: atualizar vida/vida máxima.
+
+**2. Alvo e ataque**
+- Clique esquerdo num monstro (ou jogador inimigo): vira o **alvo** (anel no chão embaixo dele + painel no topo com
+  nome, nível e vida). Clique no chão continua andando e **não** tira o alvo. `Esc` tira o alvo.
+- Os atores precisam de colisão só para o clique (canal de traço próprio, ex. `DFClick`), sem bloquear movimento.
+- **Espaço** = ataque básico (a skill de `/meta` → `skills` com `basic: true` da classe do herói, `cls` no `hero`).
+  Segurar Espaço continua atacando; durante a recarga fica em silêncio.
+- **1–0** = as 10 skills da classe na ordem do `/meta`. Antes de mandar, o cliente checa (só para dar aviso rápido,
+  o servidor decide): nível (`lvl`) → "Desbloqueia no nível N"; recarga → "Ainda recarregando"; mana (`mp`) →
+  "Mana insuficiente"; mapa seguro (`safe` do `map_info`) e skill que não é `buff`/`heal`/`blink` → "Não é
+  possível lutar na vila".
+- Como mandar (igual ao navegador):
+  - `melee`, `projectile`, `dash`, `chain` precisam de alvo. Sem alvo, escolher o inimigo mais perto a até
+    `max(10, range + 2)` tiles; se não houver → "Escolha um alvo".
+  - Com alvo, se a distância for maior que `range + 0.6` tiles: **andar até ele** e lançar quando entrar no alcance.
+  - `aoe_target`, `line`, `blink` sem alvo: mandar `tx, ty` = ponto do chão sob o mouse.
+  - `aoe_self`, `buff`, `heal`: `target_id: null`.
+- Recarga visual: ao mandar, marcar `cd` (ms) na barra de skills; `skill_error` com `on_cooldown` não reinicia nada.
+- `skill_error`: mostrar o texto curto (mesmos textos do `ERRORS` do navegador: `not_enough_mp` "Mana
+  insuficiente", `on_cooldown` "Ainda recarregando", `dead` "Você está morto", `locked` "Skill bloqueada",
+  `no_target` "Escolha um alvo", `too_far` "Alvo muito longe", `stunned` "Você está atordoado", `safe_zone` "Não é
+  possível lutar na vila", `unknown` "Skill desconhecida", `unavailable` "Indisponível").
+- `cc` no seu herói com `stun`/`freeze`: bloquear andar e skills por `dur × 0,6` s. Mostrar ícone/efeito simples.
+
+**3. Ataque automático** (o jogador do navegador usa muito; regra combinada com o Pedro)
+- Botão/tecla **Auto** (ex. `Q`): ataca sozinho o monstro vivo mais perto (bosses não, a não ser no Boss Global),
+  usando a skill liberada mais forte que estiver pronta (cura se a vida < 60%, buffs quando prontos), senão o
+  ataque básico, senão anda até o alvo.
+- **Continua ligado ao andar** (clique no chão só pausa enquanto anda) e só desliga quando o jogador desliga ou entra
+  num **mapa seguro** (aviso "Ataque automático desligado: você entrou numa zona segura.").
+- Monstro mordendo o herói (a menos de 2,2 tiles) vira alvo primeiro.
+
+**4. Efeitos e números**
+- `skill_used` de qualquer jogador: tocar algo provisório (flash na cor da classe, projétil simples de `x,y` até
+  `tx,ty` para `projectile`/`line`, círculo para `aoe_*`). Os efeitos Niagara de verdade são da Etapa 3.
+- Números de dano flutuando: `mob_damaged` (branco, crítico amarelo e maior, `dot` menor) e `damage` (vermelho no
+  seu herói; `dodge: true` → "Esquivou").
+- `damage` com `source` = id de monstro → animação de ataque daquele monstro (não existe `mob_attack` no fio).
+- `boss_warn`: círculo vermelho no chão com raio `radius` por `delay` s; `boss_slam`: tremida de câmera.
+
+**5. HUD (UMG em C++, provisório e simples)**
+- Barras de vida, mana e EXP (`hero`: `hp/max_hp`, `mp/max_mp`, `exp/exp_next`), nível e ouro. Números grandes em
+  `int64`/`double`, formatados curto (1,2 mil / 3,4 mi / 5,6 bi, como o `fmtBig` do navegador).
+- Barra de skills 1–0 + Espaço com nome curto, cadeado se bloqueada e a recarga escurecendo.
+- `reward`: "+N EXP  +N ouro" e nomes dos itens (`loot[]`). `level_up` (seu): aviso grande "Nível N!" e skills
+  liberadas (`unlocked[]`).
+- Morte: `damage` com `killed: true` no seu herói → tela "Você morreu" com contagem `respawn_in`; bloquear
+  movimento. `player_respawn` → pôr em `x,y`, vida/mana e tirar a tela. `hero_respawn` → outro jogador levantou.
+
+**6. Teste**
+- Estender `scripts/test_stage_one.py` (ou criar `test_stage_two.py`) no servidor isolado porta 18000: herói de teste
+  vai à Floresta, mata monstros com Espaço e skills, recebe `reward`, sobe de nível, morre para um monstro forte
+  (ou espera ser atacado com vida baixa) e renasce. Resultado em `Saved/StageTwoTest/result.json` + capturas.
+- **Pronto quando:** dá para caçar lobos na Floresta pela Unreal, ver os números, subir de nível, morrer e renascer,
+  e um jogador no navegador vê os monstros apanhando e morrendo ao mesmo tempo.
+
 ### Etapa 3 — Primeiro mapa bonito
 - Floresta com Megascans (chão, árvores, pedras), luz e névoa, os lugares escondidos e a Árvore-Mãe.
 - Os 3 heróis (modelos e animações), os monstros da Floresta, efeitos Niagara das skills mais usadas.
@@ -99,3 +172,15 @@ cada um sai de `map_info.size` (Vila 40×40 tiles = 80 m; Floresta 200×200 = 40
 > clique para andar a 4 tiles/s com 1 tile = 200 uu, outros jogadores como cápsulas com nome, troca de nível no
 > `map_change`. Use o servidor local em `http://127.0.0.1:8000` com uma conta de teste. Não mude nada em `server/`.
 > Quando terminar, descreva como testar e grave as decisões na memória kg.
+
+## Tarefa da Etapa 2 para o Codex (copiar e colar)
+
+> Trabalhe em `C:\Users\pedro\Documents\unrealengine221`. Leia `AGENTS.md`, `docs/PLANO.md` (seção **Etapa 2** e os
+> "Detalhes da Etapa 2"), `docs/PROTOCOLO.md` (3.2 e as notas do combate) e a memória kg (nó
+> `unreal-etapa-1-revisada`). A referência de comportamento é o jogo de navegador em
+> `C:\Users\pedro\Downloads\novo jogo 2.2\client\src\scenes\GameScene.ts` (só leitura). Faça a **Etapa 2** na ordem dos
+> itens 0 a 6: primeiro separe a classe base sem câmera, depois monstros, alvo e ataque (Espaço e 1–0), ataque
+> automático (fica ligado ao andar; só desliga no botão ou em mapa seguro), efeitos e números provisórios, HUD e
+> morte/renascer. O servidor manda em tudo: o cliente só pede `skill` e mostra as respostas. Não mude nada em
+> `server/` nem no protocolo; se faltar algum campo, anote e me avise. Teste no servidor isolado (porta 18000, cópia
+> do banco, contas temporárias). Não faça commit. Quando terminar, descreva como testar e grave as decisões no kg.

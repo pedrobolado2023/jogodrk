@@ -101,12 +101,22 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
 | `skill_error` | `skill_id, error` (`safe_zone`, `on_cooldown`, `not_enough_mp`, `too_far`, `no_target`, `locked`, `stunned`, `dead`, `unavailable`, `unknown`) | Mostrar motivo curto (os textos do navegador estão em `ERRORS` no `GameScene.ts`) |
 | `mob_damaged` | `mob_id, damage, hp_remaining, crit, dot?` + se morreu: `killed: true, def_id, exp, level, boss` | Número de dano, barra de vida; `killed` → animação de morte e remover |
 | `damage` | `target_id, damage, crit, hp_remaining, mp_remaining, max_hp, source, dodge?, killed?, killer_name?, respawn_in?` | Dano num **jogador** (o seu ou outro). `killed` no seu herói → tela "Você morreu" |
-| `mob_attack` / `boss_warn` / `boss_slam` | `boss_warn: mob_id, x, y, radius, delay` | Golpe do monstro; `boss_warn` = círculo vermelho no chão antes do golpe forte |
+| `boss_warn` / `boss_slam` | `boss_warn: mob_id, x, y, radius, delay` | `boss_warn` = círculo vermelho no chão antes do golpe forte; `boss_slam` = o golpe |
+| `cc` | `target` (id de monstro ou jogador), `kind` (`stun`, `freeze`, `slow`), `dur` (segundos) | Efeito de controle sobre o alvo. Num jogador o atordoamento dura `dur × 0,6` |
+| `mob_hp` | `id, hp, max_hp, participants?` | Vida do monstro mudou sem dano (Boss Global ao entrar gente) |
 | `reward` | `exp, gold, loot[] (nomes), party` | Texto "+EXP +ouro" e itens |
 | `level_up` | `char_id, level, unlocked[]` | Efeito de subir de nível |
 | `hero` | estado completo do herói (3.4) | Atualizar barras e números |
 | `player_respawn` | `x, y, hp, mp` | Seu herói levantou |
 | `hero_respawn` | `char_id, x, y` | Outro jogador levantou |
+
+Notas do combate:
+- **Golpe de monstro não tem mensagem própria** (`mob_attack` é interno do servidor). Ele chega como `damage` com
+  `source` = id do monstro: use isso para tocar a animação de ataque daquele monstro.
+- Ao entrar num mapa chega um `mob_spawn` para **cada monstro vivo do mapa inteiro** (até ~105). Um `mob_spawn` com
+  id que já existe = o monstro renasceu. `mob_move` só chega dos monstros a até 40 tiles; `mob_sync` corrige os que
+  ficaram longe (se estiver a mais de 6 tiles, teleporte em vez de deslizar).
+- Monstro morto: `mob_damaged` com `killed: true`. Ele some e volta depois com um novo `mob_spawn`.
 
 ### 3.3 Etapas seguintes (telas e sistemas)
 
