@@ -134,7 +134,11 @@ Todos já funcionam no servidor; basta mandar/receber:
 - **NPCs e diálogos**: manda `talk {npc}`, `dialog_option {option}`; recebe `dialog {npc, name, lines[], options[{id, label}]}`, `story`, `story_end`.
 - **Forja**: `forge_craft`, `forge_upgrade`, `forge_refine`, `forge_enchant` → `forge_result`.
 - **Mercado**: `market_query`, `market_sell`, `market_buy`, `market_cancel`, `market_collect` → `market`.
-- **Mineração**: `mine {vein}` → `veins`, `vein`, `mining`, `mining_end`.
+- **Mineração** (só nas Minas): manda `mine {vein}` (até 2,4 tiles do veio, com Picareta; andar mais de 0,8 tile
+  cancela). Recebe `veins {veins[{id, kind, x, y, ready}]}` ao entrar, `vein {id, kind, x, y, ready}` quando muda,
+  `mining {char_id, vein, dur}` ao começar e `mining_end {char_id, ok}` ao terminar.
+- **Lugares escondidos**: `discovered {id, name, lore, bonus, landmark, map_n, map_total, map_gold, n, total, title}`;
+  os já achados vêm em `hero.found`.
 - **Grupo, guilda, amigos**: `party_invite`, `party_leave`, `party_kick`, `guild_*`, `friend_add`, `friend_remove` →
   `party`, `guild`, `guild_tag`, `friends`.
 - **PvP**: `pk_status`, `kill_feed`, `arena_scores`; duelo `duel_invite {name}` → `duel`; torneio → `tourney`.

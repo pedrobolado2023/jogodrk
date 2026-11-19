@@ -347,9 +347,82 @@ Detalhes da Etapa 4 (referência: `client/src/scenes/HUDScene.ts`, `InventoryUI.
   anda; Z liga e desliga o ataque automático e Q usa poção;
 - uma captura de cada janela, e a regressão das Etapas 2 e 3.
 
-### Etapa 5 — O resto
-- Demais mapas, Arena (PvP), Boss Global, eventos (invasão, torneio), forja, mercado, mineração, guildas, grupo,
-  passe, loja, conquistas, presentes. Builds para Windows e Android.
+### Etapa 5 — O resto (em 5 partes)
+A Etapa 5 é grande demais para uma tarefa só. Cada parte termina jogável e testada, e a seguinte só começa depois
+da revisão da anterior:
+
+| Parte | O que entra | Pronto quando |
+|---|---|---|
+| **5A — O mundo inteiro** | Os outros 11 mapas montados, modelo de todos os monstros, NPCs e bosses, mineração, lugares escondidos | dá para ir da Vila até o Vazio pela Unreal, caçando em cada mapa, e minerar |
+| **5B — PvP e social** | Arena, cor do nome (PK), vida dos outros jogadores, duelo, torneio, grupo, guilda, amigos | duas pessoas (Unreal e navegador) se enfrentam na Arena, fazem grupo e guilda |
+| **5C — Eventos** | Boss Global, invasão, missão secreta, Auto-Farm do servidor | dá para entrar no Boss Global e participar de uma invasão |
+| **5D — Economia e progresso** | Forja, mercado, passe da temporada, loja de gemas, conquistas, calendário de login, ranking, tutorial, janela do Personagem (título, aura, pet, montaria, skin) | tudo o que o navegador tem de janela existe na Unreal |
+| **5E — Lançamento** | Build Windows empacotado, configurações de gráfico, servidor de produção, medição na GTX 1660, Android | um instalador para Windows joga no servidor de verdade |
+
+Na 5B o servidor precisa mandar a vida dos outros jogadores (hoje não manda): essa parte do servidor é do Claude,
+antes de o Codex começar a 5B.
+
+Detalhes da Parte 5A (o mundo inteiro):
+
+**0. O que já existe**
+- `DarkFantasy/Data/Layouts/<map_id>.json` dos 12 mapas (portais, NPCs, clareiras, pontos de monstros, lugares).
+- `import_layout.py`, os atores `ADFPortal`, `ADFNpc`, `ADFPlace`, `ADFLevelInfo`, o nó PCG `DFServerForestLayout` e
+  o dither da vegetação, todos feitos para a Floresta.
+- `import_characters.py` lê `art-source/units.json` (só leitura) para os 6 modelos da Floresta.
+
+**1. Um nível montado por mapa**
+- Generalizar `import_layout.py` para qualquer mapa (`DF_MAP=swamp_01`, ou todos). Cada nível ganha Landscape do
+  tamanho de `size` (1 tile = 200 uu), `ADFLevelInfo`, portais, NPCs, lugares, luz e névoa.
+- Um "tema" por mapa (`theme` do layout) escolhe vegetação, pedras, chão, luz, névoa e partículas do ar. Generalizar
+  o nó PCG para receber as categorias do tema, sempre respeitando clareiras, pontos de monstros, portais, lugares e
+  corredores, e **sem colisão de movimento** (o servidor não tem obstáculos):
+  - `town` (Vila, 40×40, segura): praça, casas e muros nas bordas, tochas; nada de mata no meio;
+  - `crypt` (Catacumbas, 60): chão de pedra, pilares, túmulos, velas, escuro com pontos de luz;
+  - `mine` (Minas, 70): cavernas, trilhos, vigas de madeira, lanternas;
+  - `swamp`, `frost`, `ash`, `crimson`, `ghost`, `void` (120–130): cada um com sua paleta (pântano verde e névoa
+    baixa; neve e pinheiros brancos; cinza e lava; vermelho-sangue; fantasmagórico azulado; vazio roxo com
+    cristais);
+  - `arena` (Arena e Boss Global, 30): arena de pedra fechada, sem vegetação.
+- Arte provisória própria, como na Etapa 3, e uma lista do Fab/Megascans **por tema** para o Pedro escolher
+  (nome do pacote, link, pasta de destino). Nada é comprado nem baixado na conta dele.
+- O modo provisório (cápsulas e chão de grade) continua funcionando para qualquer mapa que ainda não tenha nível.
+
+**2. Modelos de todos os monstros, NPCs e bosses**
+- Estender `import_characters.py` para todas as entradas `mob_*`, `npc_*` e `wb_*` do `units.json`. Muitas
+  reaproveitam o mesmo corpo do Mixamo; a cor vem de `grade` (`tint`, `desat`, `gain`) num material instanciado,
+  e a altura de `height`. Só os `.uasset` entram no projeto; os `.fbx`/`.glb`/`.zip` crus ficam em `Saved/`.
+- `def_id` do monstro → perfil `DA_<def_id>`. Boss (`boss: true`) continua maior. Os bosses globais (`wb_*`) já
+  ficam prontos para a Parte 5C.
+- NPCs do mapa com modelo e animação parada: `elder` → `npc_elder`, `healer` → `npc_healer`, `merchant` →
+  `npc_merchant`, `smith` → `npc_smith`; `arena_master`, `sergeant` e `foreman` → `npc_warrior`.
+- O dragão de cinzas (`mob_ash_dragon`) vem de um `.glb` com animações próprias (nomes em `anims`).
+
+**3. Mineração (Minas)**
+- Ao entrar nas Minas chega `veins {veins[{id, kind, x, y, ready}]}`; cada mudança chega como `vein {id, kind, x, y,
+  ready}`. Mostrar cada veio com aparência pelo `kind` e apagado quando `ready` = false.
+- Clicar no veio: andar até 2 tiles dele (o servidor aceita até 2,4) e mandar `mine {vein}`. Precisa de Picareta na
+  bolsa (sem ela o servidor manda um `notice` com onde comprar).
+- `mining {char_id, vein, dur}`: animação de minerar no herói (o seu ou outro) e barra de progresso para o seu.
+  Andar mais de 0,8 tile cancela no servidor: avisar e parar a barra. `mining_end {char_id, ok}` encerra.
+- O minério chega como item na bolsa (`inventory`) e serve para a forja (Parte 5D).
+
+**4. Lugares escondidos**
+- `discovered {id, name, lore, bonus, landmark, map_n, map_total, map_gold, n, total, title}`: janela com nome, texto,
+  bônus e "N de M neste mapa". O `ADFPlace` daquele lugar brilha diferente depois de achado (`hero.found` traz os já
+  achados ao entrar).
+
+**5. Desempenho**
+- Cada mapa grande no mínimo como a Floresta (meta de 60 FPS; medir com 100 monstros e 20 jogadores). O teste
+  registra média e p95 por mapa.
+
+**6. Teste** (`scripts/test_stage_5a.py`, servidor isolado na porta 18000, cópia do banco, conta nova):
+- herói de teste com a história concluída e nível alto (só na cópia do banco) percorre todos os mapas pelos portais e
+  pelo teleporte, chega a cada portal e a cada ponto de monstro (erro menor que 65 cm);
+- cada tipo de monstro aparece com o próprio modelo e muda de pose (lista igual à `animated_models` da Etapa 3);
+- compra Picareta, minera um veio até o fim e recebe o minério; andar durante a mineração cancela;
+- descobre um lugar escondido e vê a janela;
+- navegador real confere as posições em pelo menos dois mapas;
+- uma captura por mapa e a regressão das Etapas 2, 3 e 4.
 
 ## Primeira tarefa para o Codex (copiar e colar)
 
@@ -399,3 +472,17 @@ Detalhes da Etapa 4 (referência: `client/src/scenes/HUDScene.ts`, `InventoryUI.
 > tudo: o cliente só pede e mostra a resposta. Não mude `server/` nem o protocolo; se faltar algum campo, anote e
 > me avise. Teste no servidor isolado (porta 18000, cópia do banco, contas novas) com o item 8. Não faça commit.
 > Quando terminar, descreva como testar e grave as decisões no kg.
+
+## Tarefa da Parte 5A para o Codex (copiar e colar)
+
+> Trabalhe em `C:\Users\pedro\Documents\unrealengine221`. Leia `AGENTS.md`, `docs/PLANO.md` (a tabela da **Etapa 5** e
+> os "Detalhes da Parte 5A"), `docs/PROTOCOLO.md` e a memória kg (nós `unreal-etapa-4-concluida` e
+> `unreal-etapa-5a-plano`). Os layouts já estão em `DarkFantasy/Data/Layouts/`; os modelos vêm de
+> `C:\Users\pedro\Downloads\novo jogo 2.2\art-source` (só leitura; só os `.uasset` importados entram no projeto,
+> nunca `.fbx`/`.glb`/`.zip` crus). Faça a Parte 5A na ordem dos itens 1 a 5: um nível montado por mapa com tema
+> (vegetação e props **sem colisão de movimento**), modelos de todos os monstros, NPCs e bosses pelo `units.json`,
+> mineração, lugares escondidos e desempenho. Onde precisar de arte do Fab/Megascans, use um provisório e deixe uma
+> lista por tema do que o Pedro deve escolher. Não mude `server/` nem o protocolo. Teste no servidor isolado (porta
+> 18000) com o item 6. Não faça commit. Antes de compilar, confira se o editor da Unreal está fechado (com ele aberto
+> o Live Coding bloqueia). Quando terminar, descreva como testar, liste o que o Pedro precisa fazer no editor e grave
+> as decisões no kg.
