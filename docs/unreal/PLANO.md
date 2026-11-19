@@ -359,8 +359,12 @@ da revisão da anterior:
 | **5D — Economia e progresso** | Forja, mercado, passe da temporada, loja de gemas, conquistas, calendário de login, ranking, tutorial, janela do Personagem (título, aura, pet, montaria, skin) | tudo o que o navegador tem de janela existe na Unreal |
 | **5E — Lançamento** | Build Windows empacotado, configurações de gráfico, servidor de produção, medição na GTX 1660, Android | um instalador para Windows joga no servidor de verdade |
 
-Na 5B o servidor precisa mandar a vida dos outros jogadores (hoje não manda): essa parte do servidor é do Claude,
-antes de o Codex começar a 5B.
+Na 5B o servidor passou a mandar a vida dos outros jogadores (`hp`/`max_hp` nas informações do jogador e a mensagem
+nova `player_hp`).
+
+**Situação (19/11/2026):** as partes 5A a 5D foram feitas pelo Claude neste repositório e passaram nos testes
+`scripts/test_stage_5a.py` … `test_stage_5d.py`; a 5E tem as Opções, o endereço de produção e o empacotamento para
+Windows. Detalhes e o que falta para você no editor: `docs/ETAPA_5.md` (no repositório unrealengine221).
 
 Detalhes da Parte 5A (o mundo inteiro):
 

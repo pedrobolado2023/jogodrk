@@ -55,7 +55,7 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
 |---|---|---|
 | `welcome` | campos do `map_info` (abaixo) + `hero` (estado do herói, ver 3.4) + `x`, `y` | Carregar o mapa `map_id`, pôr o herói em `x, y` |
 | `inventory` | `bag`, `gear`, ... | Guardar (telas vêm depois) |
-| `nearby_snapshot` | `players: [{char_id, name, x, y, cls, level, title, aura, pet, mount, skin, guild, pk}]` | Criar os outros jogadores que estão perto |
+| `nearby_snapshot` | `players: [{char_id, name, x, y, cls, level, title, aura, pet, mount, skin, guild, pk, hp, max_hp}]` | Criar os outros jogadores que estão perto |
 | `mob_spawn` (vários) | `id, def_id, name, level, boss, x, y, hp, max_hp` | Criar cada monstro (`def_id` → modelo, ver `/meta` `mobs`) |
 | `daynight`, `invasion`, `tourney`, `tutorial`, `login_cal`, `achievements`, `wb_status`, ... | | Podem ser ignoradas na etapa 1 |
 
@@ -75,6 +75,7 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
 | `mv` | `m: [[char_id, x, y], ...]` | Posições novas dos jogadores perto (interpolar até lá). Pode incluir o próprio herói: ignore o seu. |
 | `player_spawn` | igual a um item do `nearby_snapshot` | Outro jogador chegou perto |
 | `player_despawn` | `char_id` | Saiu de perto / desconectou: remover |
+| `player_hp` | `char_id, hp, max_hp` | Vida de outro jogador mudou (uma vez por segundo, só para quem está vendo). `player_spawn` e `nearby_snapshot` também trazem `hp` e `max_hp` |
 | `mob_move` | `id, x, y` | Monstro andou |
 | `mob_sync` | `mobs: [[id, x, y, hp], ...]` | Posições atuais dos monstros ao redor (ao mudar de região do mapa) |
 | `map_change` | `map_info` + `x, y` | Pisou num portal: trocar de mapa **na hora** (os `mob_spawn` do mapa novo chegam logo depois) |

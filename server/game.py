@@ -497,6 +497,20 @@ class Game:
         await self.inv.tick(self)
         await self.duels.tick(self)
         await self.tourney.tick(self)
+        await self.sync_player_hp()
+
+    async def sync_player_hp(self) -> None:
+        """Once a second, the players who can see a hero get its life when it changed (the Unreal client draws other
+        players' health bars; "damage" alone misses healing, potions and regeneration). New message: player_hp."""
+        for hero in list(self.heroes.values()):
+            s = manager.sessions.get(hero.char_id)
+            if not s:
+                continue
+            hp, max_hp = max(0, int(hero.hp)), int(hero.max_hp)
+            if s.info.get("hp") == hp and s.info.get("max_hp") == max_hp:
+                continue
+            s.info["hp"], s.info["max_hp"] = hp, max_hp
+            await self.to_area(s.map_id, s.x, s.y, {"type": "player_hp", "char_id": hero.char_id, "hp": hp, "max_hp": max_hp})
 
     # ── hidden places (discovery.py) ─────────────────────────────────────
 
