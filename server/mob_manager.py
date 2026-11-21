@@ -170,7 +170,7 @@ class MobManager:
         mob.damage_by[attacker_id] = mob.damage_by.get(attacker_id, 0) + damage
         if not mob.aggro_target:
             mob.aggro_target = attacker_id
-        result: dict[str, Any] = {"type": "mob_damaged", "mob_id": instance_id, "damage": damage, "hp_remaining": mob.hp}
+        result: dict[str, Any] = {"type": "mob_damaged", "mob_id": instance_id, "damage": damage, "hp_remaining": mob.hp, "by": attacker_id}
         if mob.hp <= 0:
             mob.is_dead = True
             mob.died_at = time.monotonic()

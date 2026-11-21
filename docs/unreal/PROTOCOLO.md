@@ -100,7 +100,7 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
 |---|---|---|
 | `skill_used` | `char_id, skill_id, x, y, tx, ty, target, hits[], splash[]` | Tocar a animação/efeito da skill de quem usou |
 | `skill_error` | `skill_id, error` (`safe_zone`, `on_cooldown`, `not_enough_mp`, `too_far`, `no_target`, `locked`, `stunned`, `dead`, `unavailable`, `unknown`) | Mostrar motivo curto (os textos do navegador estão em `ERRORS` no `GameScene.ts`) |
-| `mob_damaged` | `mob_id, damage, hp_remaining, crit, dot?` + se morreu: `killed: true, def_id, exp, level, boss` | Número de dano, barra de vida; `killed` → animação de morte e remover |
+| `mob_damaged` | `mob_id, damage, hp_remaining, by, crit, dot?` (`by` = char_id de quem bateu) + se morreu: `killed: true, def_id, exp, level, boss` | Número de dano, barra de vida; `killed` → animação de morte e remover |
 | `damage` | `target_id, damage, crit, hp_remaining, mp_remaining, max_hp, source, dodge?, killed?, killer_name?, respawn_in?` | Dano num **jogador** (o seu ou outro). `killed` no seu herói → tela "Você morreu" |
 | `boss_warn` / `boss_slam` | `boss_warn: mob_id, x, y, radius, delay` | `boss_warn` = círculo vermelho no chão antes do golpe forte; `boss_slam` = o golpe |
 | `cc` | `target` (id de monstro ou jogador), `kind` (`stun`, `freeze`, `slow`), `dur` (segundos) | Efeito de controle sobre o alvo. Num jogador o atordoamento dura `dur × 0,6` |
