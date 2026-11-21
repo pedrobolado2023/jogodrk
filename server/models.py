@@ -145,6 +145,7 @@ class Character(Base):
     title = Column(JSON, nullable=True)
     season = Column(JSON, nullable=True)     # season pass progress (season.py)
     cosmetics = Column(JSON, nullable=True)  # titles and auras owned, aura worn
+    gender = Column(String(1), nullable=True)  # "m" / "f" body chosen at creation; empty for heroes made before it
     gems = Column(JSON, nullable=True)       # premium currency (shop.py)
     boosts = Column(JSON, nullable=True)     # shop boosts → end time (unix)
     discoveries = Column(JSON, nullable=True)  # hidden places found (discovery.py)

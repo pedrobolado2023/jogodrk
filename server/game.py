@@ -126,6 +126,7 @@ class Hero:
     pk_shown: str = "white"
     friends: dict[str, str] = field(default_factory=dict)  # friend's char id → name
     title: str = ""  # level title shown above the name ("" = none)
+    gender: str = ""  # "m" / "f" (body model in the Unreal client); "" = the class's original model
     daily: dict[str, Any] = field(default_factory=dict)
     season: dict[str, Any] = field(default_factory=dict)     # this season's pass (see season.py)
     cosmetics: dict[str, Any] = field(default_factory=dict)  # titles and auras owned for good, and the aura worn
@@ -195,7 +196,7 @@ class Hero:
 
     def public(self) -> dict[str, Any]:
         return {
-            "char_id": self.char_id, "name": self.name, "cls": self.cls, "level": self.level,
+            "char_id": self.char_id, "name": self.name, "cls": self.cls, "gender": self.gender, "level": self.level,
             "exp": self.exp, "exp_next": exp_to_next(self.level), "gold": self.gold, "title": self.title,
             "cosmetics": ssn.cosmetics(self.cosmetics), "gems": self.gems,
             "boosts": {k: int(v - time.time()) for k, v in self.boosts.items() if v > time.time()},

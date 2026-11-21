@@ -239,6 +239,8 @@ def _add_missing_columns(conn) -> None:
     for name in ("bag", "gear", "pk", "daily", "friends", "title", "season", "cosmetics", "gems", "boosts", "discoveries", "progress"):
         if name not in have:
             conn.execute(text(f"ALTER TABLE characters ADD COLUMN {name} JSON"))
+    if "gender" not in have:
+        conn.execute(text("ALTER TABLE characters ADD COLUMN gender VARCHAR(1)"))
 
 
 # columns that outgrow their first type: Postgres refuses the save of a value past the column's limit (EXP passes
@@ -347,7 +349,7 @@ def _user_info(user):
 
 
 def _char_info(char):
-    return {"character_id": char.id, "name": char.name, "class": char.char_class.value,
+    return {"character_id": char.id, "name": char.name, "class": char.char_class.value, "gender": char.gender or "",
             "level": char.level, "map": MAPS.get(char.map_id, {}).get("name", char.map_id)}
 
 
@@ -441,6 +443,7 @@ async def claim(req: ClaimRequest, user: User = Depends(current_user), db: Async
 class CreateCharRequest(BaseModel):
     name: str
     char_class: str
+    gender: str = "m"   # "m" / "f"; older clients that don't send it get the male body
 
 
 @app.post("/characters", status_code=201)
@@ -454,6 +457,8 @@ async def _create_character(req, user, db):
         raise HTTPException(400, "Cada conta pode ter até 4 heróis")
     if req.char_class not in CLASS_BASE:
         raise HTTPException(400, "Classe inválida")
+    if req.gender not in ("m", "f"):
+        raise HTTPException(400, "Escolha masculino ou feminino")
     name = req.name.strip()[:16]
     if len(name) < 3:
         raise HTTPException(400, "O nome precisa ter pelo menos 3 letras")
@@ -461,7 +466,7 @@ async def _create_character(req, user, db):
     sx, sy = MAPS[START_MAP]["spawn"]
     bag, gear = inv.starter_kit(req.char_class)
     char = Character(
-        user_id=user.id, name=name, char_class=CharacterClass(req.char_class),
+        user_id=user.id, name=name, char_class=CharacterClass(req.char_class), gender=req.gender,
         str=b["str"], agi=b["agi"], int_=b["int"], vit=b["vit"],
         hp=0, max_hp=b["hp"], mp=0, max_mp=b["mp"],
         map_id=START_MAP, pos_x=sx, pos_y=sy, story={"q": 0, "st": "offer", "n": 0}, loot={}, bag=bag, gear=gear,
@@ -472,7 +477,7 @@ async def _create_character(req, user, db):
     except Exception:
         await db.rollback()
         raise HTTPException(409, "Esse nome já está em uso")
-    return {"character_id": str(char.id), "name": char.name, "class": req.char_class}
+    return {"character_id": str(char.id), "name": char.name, "class": req.char_class, "gender": req.gender}
 
 
 @app.get("/characters/{character_id}")
@@ -663,7 +668,7 @@ async def game_ws(ws: WebSocket, character_id: str):
         loot = dict(char.loot or {})
     story = normalize_story(char.story)
     hero = Hero(char_id=char.id, name=char.name, cls=cls, level=char.level, exp=char.exp,
-                gold=char.gold, story=story, map_id=map_id,
+                gold=char.gold, story=story, map_id=map_id, gender=char.gender if char.gender in ("m", "f") else "",
                 hp=char.hp, mp=char.mp, loot=loot, bag=inv.Bag(bag), gear=gear)
     pk_saved = char.pk or {}
     hero.red_left = max(0.0, float(pk_saved.get("red_left", 0)))  # the red time does not run out while offline
@@ -692,7 +697,7 @@ async def game_ws(ws: WebSocket, character_id: str):
     hero.title = char.title if isinstance(char.title, str) and game.can_wear_title(hero, char.title) else titles.best(hero.level)
 
     await manager.connect(ws, char.id, char.name, map_id, x, y,
-                          info={"cls": hero.cls, "level": hero.level, "pk": hero.pk_status(), "title": hero.title, "aura": hero.cosmetics["aura"], "pet": hero.cosmetics["pet"], "mount": hero.cosmetics["mount"],
+                          info={"cls": hero.cls, "gender": hero.gender, "level": hero.level, "pk": hero.pk_status(), "title": hero.title, "aura": hero.cosmetics["aura"], "pet": hero.cosmetics["pet"], "mount": hero.cosmetics["mount"],
                                 "skin": hero.cosmetics["skin"],
                                 "guild": game.guild_name(hero.char_id), "hp": int(hero.hp), "max_hp": int(hero.max_hp)})
     await game.join(hero, x, y)
