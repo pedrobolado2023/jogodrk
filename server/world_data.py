@@ -529,12 +529,22 @@ for _quest in QUESTS:
         _quest["goal"]["count"] = _old * QUEST_KILL_MULT
         _quest["offer"] = [re.sub(rf"\b{_old}\b", str(_old * QUEST_KILL_MULT), line) for line in _quest["offer"]]
 
+# Combat rework: regular monsters take longer to fall and every monster hits twice as hard, so fights last a few
+# blows and the warrior's role as the tank matters. Bosses keep their HP (they were already long fights).
+MOB_HP_MULT = 1.25
+MOB_ATK_MULT = 2.0
+
+
+def mob_atk_mult(level: int) -> float:
+    """The doubled attack comes in gradually: x1 up to level 5 (a new hero must survive the first packs), x2 from 15."""
+    return 1.0 + (MOB_ATK_MULT - 1.0) * min(1.0, max(0.0, (level - 5) / 10))
+
 # Monster HP, attack and boss slams by the power of their level (the unscaled HP stays in base_hp)
 for _d in MOBS.values():
     _k = power(_d["level"])
     _d["base_hp"] = _d["hp"]
-    _d["hp"] = int(_d["hp"] * _k)
-    _d["atk"] = int(_d["atk"] * _k)
+    _d["hp"] = int(_d["hp"] * _k * (1.0 if _d.get("boss") else MOB_HP_MULT))
+    _d["atk"] = int(_d["atk"] * _k * mob_atk_mult(_d["level"]))
     if _d.get("slam"):
         _d["slam"] = {**_d["slam"], "damage": int(_d["slam"]["damage"] * _k)}
 

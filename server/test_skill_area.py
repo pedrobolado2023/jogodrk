@@ -10,8 +10,10 @@ from __future__ import annotations
 import asyncio
 import random
 
-from game import SPLASH_DAMAGE, Game
-from skills_data import CHAIN_BONUS, SKILLS, SPLASH_RADIUS, skills_for
+import time
+
+from game import GCD_SECS, SPLASH_DAMAGE, Game
+from skills_data import CHAIN_BONUS, MELEE_SPLASH_RADIUS, SKILLS, SPLASH_RADIUS, skills_for
 from test_skills import _hero, _noop_save
 from websocket_manager import manager
 
@@ -19,7 +21,7 @@ from websocket_manager import manager
 async def run_all() -> None:
     for s in SKILLS.values():
         if s["kind"] in ("melee", "projectile", "dash"):
-            assert s["splash"] == SPLASH_RADIUS, s["id"]
+            assert s["splash"] == (MELEE_SPLASH_RADIUS if s["cls"] == "blade_master" else SPLASH_RADIUS), s["id"]
         if s["kind"] == "chain":
             assert s["chain"] >= 3 + CHAIN_BONUS, s["id"]
     print("ok  áreas maiores, correntes mais longas e respingo nos golpes de alvo único")
@@ -30,7 +32,9 @@ async def run_all() -> None:
             continue
         assert s["kind"] in ("melee", "aoe_self", "aoe_target", "dash"), s["id"]
         if s["kind"] in ("melee", "aoe_target"):
-            assert s["range"] <= 2.5, s["id"]
+            assert s["range"] <= 1.8, s["id"]
+        if s["kind"] in ("aoe_self", "aoe_target"):
+            assert s["radius"] <= 3.0, s["id"]  # the tank stands in the pack: no big areas for him
     for cls in ("grand_sorcerer", "night_ranger"):
         for s in skills_for(cls):
             if s["kind"] in ("buff", "heal", "blink"):
@@ -62,6 +66,56 @@ async def run_all() -> None:
     lost_main, lost_near = main.max_hp - main.hp, near.max_hp - near.hp
     assert far.hp == far.max_hp and 0 < lost_near < lost_main
     print(f"ok  golpe de alvo único respinga no vizinho ({lost_near} de {lost_main}, ~{int(SPLASH_DAMAGE * 100)}%) e não no distante")
+
+    # the warrior's basic attack must touch the monster: 1.4 tiles plus a small tolerance
+    s = manager.sessions[hero.char_id]
+    hero.cooldowns.clear()
+    s.x, s.y = main.x - 2.2, main.y
+    assert await game.use_skill(hero, "bm_basic", main.instance_id, None, None) == "too_far"
+    s.x, s.y = main.x - 1.6, main.y
+    assert await game.use_skill(hero, "bm_basic", main.instance_id, None, None) is None
+    print("ok  ataque básico do guerreiro só de perto")
+
+    # global cooldown: after a skill every other skill waits GCD_SECS, the basic attack does not
+    hero.cooldowns.clear()
+    hero.gcd_until = 0.0
+    hero.mp = hero.max_mp
+    assert await game.use_skill(hero, "bm_slash", main.instance_id, None, None) is None
+    assert hero.gcd_until > time.monotonic() + GCD_SECS - 0.2
+    assert await game.use_skill(hero, "bm_rend", main.instance_id, None, None) == "gcd"
+    assert await game.use_skill(hero, "bm_basic", main.instance_id, None, None) is None
+    hero.gcd_until = 0.0
+    assert await game.use_skill(hero, "bm_rend", main.instance_id, None, None) is None
+    print("ok  recarga global entre skills (o ataque básico não espera)")
+
+    # taunt: the spin pulls the monsters onto the warrior, even ones already chasing someone else
+    other, _ = _hero(game, "grand_sorcerer", "forest_01", 40.0, 50.0, level=30)
+    for m in (main, near):
+        m.aggro_target = other.char_id
+    hero.gcd_until = 0.0
+    hero.cooldowns.clear()
+    s.x, s.y = main.x - 1.0, main.y  # both wolves inside the 2.5-tile spin, the far one outside
+    assert await game.use_skill(hero, "bm_twisting_slash", None, None, None) is None
+    assert main.aggro_target == near.aggro_target == hero.char_id and main.taunt_until > time.monotonic() + 3
+    assert far.aggro_target != hero.char_id
+    print("ok  Corte Giratório provoca os monstros atingidos")
+
+    # Iron Skin: the warrior takes less damage from the same monster hit than a sorcerer with the same defense
+    tank_before = hero.hp = hero.max_hp
+    mage_before = other.hp = other.max_hp
+    game.night = False
+    other_def = other.defense
+    hero_def_save = type(hero).defense
+    try:
+        type(hero).defense = property(lambda h: other_def)  # same armor for both: only the passive differs
+        hero.stun_until = other.stun_until = 0.0
+        await game.hurt_hero(hero, 10000, None, source="x", true_damage=False)
+        await game.hurt_hero(other, 10000, None, source="x", true_damage=False)
+    finally:
+        type(hero).defense = hero_def_save
+    lost_tank, lost_mage = tank_before - hero.hp, mage_before - other.hp
+    assert lost_tank == 0 or lost_mage == 0 or lost_tank < lost_mage, (lost_tank, lost_mage)
+    print(f"ok  Pele de Ferro reduz o dano recebido ({lost_tank} contra {lost_mage})")
 
 
 if __name__ == "__main__":

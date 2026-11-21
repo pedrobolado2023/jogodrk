@@ -16,7 +16,7 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from progress import BR
-from world_data import MAPS, MOBS, exp_to_next, mob_exp, power, region_mob
+from world_data import MAPS, MOB_HP_MULT, mob_atk_mult, MOBS, exp_to_next, mob_exp, power, region_mob
 
 if TYPE_CHECKING:
     from game import Game, Hero
@@ -52,7 +52,8 @@ def looks(level: int) -> tuple[list[str], str]:
 def mob_def(name: str, level: int, kind: str) -> dict[str, Any]:
     d = region_mob(name, level, kind)
     k = power(level)
-    d["hp"], d["atk"] = int(d["hp"] * k), int(d["atk"] * k)
+    hp_mult = 1.0 if d.get("boss") else MOB_HP_MULT  # same combat rework as the world's monsters (world_data)
+    d["hp"], d["atk"] = int(d["hp"] * k * hp_mult), int(d["atk"] * k * mob_atk_mult(level))
     if d.get("slam"):
         d["slam"] = {**d["slam"], "damage": int(d["slam"]["damage"] * k)}
     d["exp"] = mob_exp(level, d["w"])

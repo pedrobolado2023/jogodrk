@@ -50,6 +50,19 @@ ARENA_RESPAWN_SECS = 3.0
 PORTAL_RADIUS = 1.3
 CHAIN_JUMP = 5.0       # how far a chain skill can jump between enemies
 SPLASH_DAMAGE = 0.6    # damage share of the splash around single-target attacks
+# Combat pacing: every skill except the basic attack starts a global cooldown, so even with many skills ready a hero
+# acts about once a second. The clients wait GCD_SECS too; the server forgives GCD_SLACK for network jitter.
+GCD_SECS = 0.9
+GCD_SLACK = 0.1
+# Extra reach the server forgives past a skill's range: small for blows that must touch the target (melee, dash,
+# the warrior's short areas), bigger for ranged shots whose target keeps moving while the client aims.
+MELEE_SLACK = 0.4
+RANGED_SLACK = 0.9
+MANA_REGEN = 0.015     # share of max mana regained per second (Mana Flow doubles it)
+# Each class puts its main stat into its attack once (it already counts again through each skill's stat scale).
+MAIN_STAT = {"blade_master": "str", "grand_sorcerer": "int", "night_ranger": "agi"}
+# Damage dealt by class: the warrior is the tank (he hits softer and lasts longer), the mage the glass cannon.
+CLASS_DAMAGE = {"blade_master": 0.7, "grand_sorcerer": 1.2, "night_ranger": 1.0}
 MAX_FRIENDS = 50
 FRIEND_REQ_TTL = 60.0  # seconds a friend request waits for an answer
 SAVE_EVERY = 30.0
@@ -94,6 +107,7 @@ class Hero:
     is_dead: bool = False
     respawn_at: float = 0.0
     stun_until: float = 0.0
+    gcd_until: float = 0.0  # global cooldown after any skill but the basic attack (GCD_SECS)
     pvp_kills: int = 0
     pvp_deaths: int = 0
     loot: dict[str, int] = field(default_factory=dict)
@@ -158,7 +172,7 @@ class Hero:
 
     @property
     def atk(self) -> float:
-        return (self.stat("str") * 2 + self.level * 2 + inv.gear_bonus(self.gear, "atk")) * (1 + self.mod("atk_pct"))
+        return (self.stat(MAIN_STAT.get(self.cls, "str")) * 2 + self.level * 2 + inv.gear_bonus(self.gear, "atk")) * (1 + self.mod("atk_pct"))
 
     @property
     def defense(self) -> int:
@@ -355,6 +369,7 @@ class Game:
         for mob in self.mobs[old].mobs.values():
             if mob.aggro_target == hero.char_id:
                 mob.aggro_target = None
+                mob.taunt_until = 0.0
         await manager.change_map(hero.char_id, map_id, x, y)
         await self.send(hero.char_id, {**self.map_info(hero), "type": "map_change", "x": x, "y": y})
         await self.hq.on_move(self, hero, x, y)
@@ -725,6 +740,8 @@ class Game:
             return "safe_zone"
         if now < hero.cooldowns.get(sid, 0):
             return "on_cooldown"
+        if not sk.get("basic") and now < hero.gcd_until - GCD_SLACK:
+            return "gcd"
         cost = max(0, int(sk["mp"] * (1 + hero.mod("mp_cost"))))
         if hero.mp < cost:
             return "not_enough_mp"
@@ -740,7 +757,8 @@ class Game:
         needs_target = kind in ("melee", "projectile", "dash", "chain")
         if needs_target and not target:
             return "no_target"
-        reach = sk["range"] + hero.mod("range") + 0.9
+        short = kind in ("melee", "dash", "aoe_self") or sk["range"] < 3
+        reach = sk["range"] + hero.mod("range") + (MELEE_SLACK if short else RANGED_SLACK)
         if target and kind != "aoe_self" and _dist(cx, cy, target[2], target[3]) > reach:
             return "too_far"
         if kind in ("aoe_target", "line") and not target and (tx is None or ty is None):
@@ -750,6 +768,8 @@ class Game:
 
         hero.mp -= cost
         hero.cooldowns[sid] = now + sk["cd"] / 1000 * (1 - hero.mod("cdr"))
+        if not sk.get("basic"):
+            hero.gcd_until = now + GCD_SECS
         center = (target[2], target[3]) if target else ((tx, ty) if tx is not None else (cx, cy))
         hits: list[tuple[str, str, float, float]] = []
         event: dict[str, Any] = {"type": "skill_used", "char_id": hero.char_id, "skill_id": sid, "x": cx, "y": cy,
@@ -842,6 +862,9 @@ class Game:
                     await self.hurt_hero(victim, max(1, int(dmg * self.pvp_damage * weak)), hero, crit)
             if e[1] not in splash:  # stuns, slows and poisons stay on the real targets
                 await self.apply_effects(hero, sk, e)
+                # the tank pulls the pack onto himself (not the world boss: it would be pinned for the whole event)
+                if sk.get("taunt") and e[0] == "mob" and hero.map_id != wb.EVENT_MAP:
+                    self.mobs[hero.map_id].taunt(e[1], hero.char_id, sk["taunt"])
                 if ench and last_hit and e[0] == "mob" and random.random() < ench["proc"]:
                     await self.enchant_proc(hero, ench, e[1], last_hit)
         if not sk.get("basic"):
@@ -856,7 +879,7 @@ class Game:
         crit = bool(sk.get("crit")) or random.random() < hero.crit
         if crit:
             raw *= 1 + hero.crit_dmg
-        raw *= random.uniform(0.92, 1.08) * power(hero.level)
+        raw *= random.uniform(0.92, 1.08) * power(hero.level) * CLASS_DAMAGE.get(hero.cls, 1.0)
         return max(1, int(raw * 100 / (100 + defense))), crit
 
     async def apply_effects(self, hero: Hero, sk: dict[str, Any], e: tuple[str, str, float, float]) -> None:
@@ -873,7 +896,8 @@ class Game:
         if sk.get("dot"):
             d = sk["dot"]
             stat = hero.stat(sk.get("stat", "str"))
-            per = int((sk["power"] + stat * sk["scale"]) * d["pct"] * (1 + hero.mod("dot_pct")) * power(hero.level) / max(1, d["ticks"])) + 1
+            per = int((sk["power"] + stat * sk["scale"]) * d["pct"] * (1 + hero.mod("dot_pct")) * power(hero.level)
+                      * CLASS_DAMAGE.get(hero.cls, 1.0) / max(1, d["ticks"])) + 1
             self.dots.append(Dot(hero.char_id, e[1], hero.map_id, per, d["every"], d["ticks"], now + d["every"], d["kind"]))
 
     async def hurt_mob(self, hero: Hero | None, mob_id: str, dmg: int, crit: bool = False, dot: str | None = None) -> None:
@@ -966,6 +990,9 @@ class Game:
                 dmg = int(dmg * daynight.NIGHT_MOB_HIT)
             if source and self.inv.owns(source):  # the invasion is a party, not a trap for newcomers in town
                 dmg = min(dmg, max(1, int(victim.max_hp * invm.MAX_HIT)))
+        reduce = victim.mod("dmg_reduce")
+        if reduce > 0 and not true_damage:  # Iron Skin: the warrior takes less of every hit
+            dmg = max(1, dmg * int(round((1 - min(reduce, 0.9)) * 100)) // 100)
         shield = victim.mod("mana_shield")
         if shield > 0 and victim.mp > 0:
             # mana is not power-scaled: one point of mana stops power(level) points of damage
@@ -996,6 +1023,7 @@ class Game:
             for mob in self.mobs[victim.map_id].mobs.values():
                 if mob.aggro_target == victim.char_id:
                     mob.aggro_target = None
+                    mob.taunt_until = 0.0
             if pvp:
                 victim.pvp_deaths += 1
                 if attacker:
@@ -1330,7 +1358,7 @@ class Game:
                 if hero.is_dead or (hero.hp >= hero.max_hp and hero.mp >= hero.max_mp):
                     continue
                 hero.hp = min(hero.max_hp, hero.hp + max(1, int(hero.max_hp * 0.015 * (1 + hero.mod("hp_regen_pct")))))
-                hero.mp = min(hero.max_mp, hero.mp + max(1, int(hero.max_mp * 0.04 * (1 + hero.mod("mp_regen_pct")))))
+                hero.mp = min(hero.max_mp, hero.mp + max(1, int(hero.max_mp * MANA_REGEN * (1 + hero.mod("mp_regen_pct")))))
                 await self.send(hero.char_id, {"type": "stats", "hp": hero.hp, "mp": hero.mp,
                                                "max_hp": hero.max_hp, "max_mp": hero.max_mp})
 

@@ -55,6 +55,7 @@ async def run_all() -> None:
         for sk in skills_for(cls):
             hero.mp = hero.max_mp
             hero.cooldowns.clear()
+            hero.gcd_until = 0.0  # every skill gets its own try: skip the global cooldown between them
             for m in mm.mobs.values():
                 m.hp, m.is_dead, m.stun_until = m.max_hp, False, 0.0
             s = manager.sessions[hero.char_id]
@@ -74,11 +75,11 @@ async def run_all() -> None:
                 assert any(m["type"] == "cc" for m in ws.sent), f"{sk['id']}: no crowd control"
             again = await game.use_skill(hero, sk["id"], target.instance_id, target.x, target.y)
             assert again == "on_cooldown", f"{sk['id']}: cooldown not applied ({again})"
-        # the basic attack: free, quick, weaker than the first skill, not one of the 10 slots
+        # the basic attack: free, steady (about one swing a second), weaker than the first skill, not one of the 10 slots
         basic = next(b for b in BASICS if b["cls"] == cls)
         assert basic["id"] not in {sk["id"] for sk in skills_for(cls)} and basic["mp"] == 0 and basic["lvl"] == 1
-        assert basic["power"] < skills_for(cls)[0]["power"] and basic["cd"] <= 800
-        hero.mp, hero.cooldowns = 0, {}
+        assert basic["power"] < skills_for(cls)[0]["power"] and 1000 <= basic["cd"] <= 1500
+        hero.mp, hero.cooldowns, hero.gcd_until = 0, {}, 0.0
         for m in mm.mobs.values():
             m.hp, m.is_dead, m.stun_until = m.max_hp, False, 0.0
         ws.sent.clear()
@@ -98,6 +99,7 @@ async def run_all() -> None:
 
     # PvP only in the arena, and the safe zone blocks fighting
     a, _ = _hero(game, "blade_master", "arena_01", 15, 15)
+    a.gcd_until = 0.0
     b, bws = _hero(game, "night_ranger", "arena_01", 16, 15)
     assert await game.use_skill(a, "bm_slash", b.char_id, None, None) is None
     assert b.hp < b.max_hp and any(m["type"] == "damage" for m in bws.sent), "pvp damage missing"

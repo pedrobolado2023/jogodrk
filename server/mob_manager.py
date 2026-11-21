@@ -40,6 +40,7 @@ class MobInstance:
     boss: bool = False
     slam: dict[str, float] | None = None
     aggro_target: str | None = None
+    taunt_until: float = 0.0  # while taunted the monster keeps chasing aggro_target, even past its leash
     is_dead: bool = False
     died_at: float = 0.0
     last_attack_at: float = 0.0
@@ -112,6 +113,7 @@ class MobManager:
 
             if mob.aggro_target and mob.aggro_target not in players:
                 mob.aggro_target = None
+                mob.taunt_until = 0.0
 
             if not mob.aggro_target:
                 for cid, (px, py) in players.items():
@@ -133,7 +135,7 @@ class MobManager:
                 continue
 
             px, py = players[mob.aggro_target]
-            if _dist(mob.x, mob.y, mob.spawn_x, mob.spawn_y) > mob.leash_radius:
+            if now >= mob.taunt_until and _dist(mob.x, mob.y, mob.spawn_x, mob.spawn_y) > mob.leash_radius:
                 mob.aggro_target = None
                 mob.damage_by.clear()
                 continue
@@ -181,6 +183,14 @@ class MobManager:
                           contributors=list(mob.damage_by.keys()))
         return result
 
+    def taunt(self, instance_id: str, attacker_id: str, secs: float) -> None:
+        """The warrior's taunt: the monster turns on him and keeps him as its target for `secs` seconds."""
+        mob = self.mobs.get(instance_id)
+        if not mob or mob.is_dead:
+            return
+        mob.aggro_target = attacker_id
+        mob.taunt_until = time.monotonic() + secs
+
     def _step(self, mob: MobInstance, tx: float, ty: float, dt: float, mult: float) -> None:
         dist = _dist(mob.x, mob.y, tx, ty)
         if dist <= 0.01:
@@ -194,6 +204,7 @@ class MobManager:
         mob.hp = mob.max_hp
         mob.is_dead = False
         mob.aggro_target = None
+        mob.taunt_until = 0.0
         mob.damage_by.clear()
         mob.stun_until = mob.slow_until = mob.slam_at = 0.0
         mob.x = mob.spawn_x + random.uniform(-mob.wander_radius, mob.wander_radius)

@@ -110,7 +110,16 @@ const ERRORS: Record<string, string> = {
   not_enough_mp: "Mana insuficiente", on_cooldown: "Ainda recarregando", dead: "Você está morto",
   locked: "Skill bloqueada", no_target: "Escolha um alvo", too_far: "Alvo muito longe", stunned: "Você está atordoado",
   safe_zone: "Não é possível lutar na vila", unknown: "Skill desconhecida", unavailable: "Indisponível",
+  gcd: "", // the server's global cooldown was still running (network timing): silent, the skill is tried again
 };
+/** Global cooldown after any skill but the basic attack, like the server (game.py GCD_SECS). */
+const GCD_MS = 900;
+/** Tiles from the target where a skill may go off: blows that must touch walk into contact (range - 0.2), ranged
+ *  shots stop a little past their range (the server forgives 0.9 tile for those). `slack` is that ranged margin. */
+function castReach(skill: SkillDef, slack: number): number {
+  const short = ["melee", "dash", "aoe_self"].includes(skill.kind) || skill.range < 3;
+  return short ? Math.max(0.8, skill.range - 0.2) : skill.range + slack;
+}
 
 interface Unit {
   root: Phaser.GameObjects.Container;
@@ -260,6 +269,9 @@ export class GameScene extends Phaser.Scene {
 
   private target: Target = null;
   private pendingCast: { skill: SkillDef } | null = null;
+  /** A skill pressed during the global cooldown: it goes off as soon as the cooldown ends (or is dropped at `until`). */
+  private queuedCast: { skill: SkillDef; until: number } | null = null;
+  private gcdUntil = 0;
   private pendingTalk: string | null = null;
   private pendingMine: string | null = null;
   private veins = new Map<string, VeinObj>();
@@ -420,7 +432,7 @@ export class GameScene extends Phaser.Scene {
     this.placeMarks.clear();
     for (const r of this.rays) r.img.destroy();
     this.portalObjs = []; this.portalFx = []; this.ambient = []; this.fog = []; this.rays = [];
-    this.target = null; this.pendingCast = null; this.pendingTalk = null; this.moveTarget = null; this.dangers = [];
+    this.target = null; this.pendingCast = null; this.queuedCast = null; this.pendingTalk = null; this.moveTarget = null; this.dangers = [];
     this.clearVeins();
     this.events.emit("target_update", null);
     this.events.emit("boss_update", null);
@@ -1591,17 +1603,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Auto-pilot's attack on the current target: the strongest ready skill (heal when hurt, buffs whenever they are
-   *  up), else the basic attack, else walk closer. */
+   *  up), else the basic attack, else walk closer. Deliberate pacing: after a skill it waits for the global
+   *  cooldown, and while waiting it only closes in (a melee hero into contact, a ranged one into shooting range). */
   private autoFight(time: number, foe: Unit, dist: number): void {
+    const gcd = time < this.gcdUntil;
     const skills = classSkills(this.cls).filter((s) => s.lvl <= this.hero!.level && s.kind !== "blink").reverse();
-    const ready = skills.filter((s) => (this.cdUntil.get(s.id) ?? 0) <= time && this.hero!.mp >= s.mp);
+    const ready = gcd ? [] : skills.filter((s) => (this.cdUntil.get(s.id) ?? 0) <= time && this.hero!.mp >= s.mp);
     const pick = ready.find((s) => s.kind === "heal" && this.hero!.hp < this.hero!.max_hp * 0.6)
       ?? ready.find((s) => s.kind === "buff")
       ?? ready.find((s) => s.kind !== "heal" && s.kind !== "buff");
     const basic = basicSkill(this.cls);
     if (pick) this.tryCast(pick);
-    else if (basic && (this.cdUntil.get(basic.id) ?? 0) <= time) this.tryCast(basic);
-    else if (dist > 1.6) this.walkTo(foe.worldX, foe.worldY);
+    else if (!gcd && basic && (this.cdUntil.get(basic.id) ?? 0) <= time) this.tryCast(basic);
+    else if (basic && dist > castReach(basic, 0.6)) {
+      // close in to just inside reach, not onto the monster
+      const r = Math.max(0.3, castReach(basic, 0.6) - 0.3), k = dist > 0 ? r / dist : 0;
+      this.walkTo(foe.worldX + (this.player!.worldX - foe.worldX) * k, foe.worldY + (this.player!.worldY - foe.worldY) * k);
+    }
   }
 
   /** The free basic attack (button / Space): silent while it recharges, so holding it down just keeps attacking. */
@@ -1629,22 +1647,31 @@ export class GameScene extends Phaser.Scene {
   private tryCast(skill: SkillDef): void {
     const needsTarget = ["melee", "projectile", "dash", "chain"].includes(skill.kind);
     const wantsTarget = needsTarget || ["aoe_target", "line"].includes(skill.kind);
+    // a spin around the hero (aoe_self) with a chosen target walks into the pack first, like a melee blow
+    const approach = wantsTarget || (skill.kind === "aoe_self" && !!this.target);
     let t = this.target;
     if (wantsTarget && !t) {
       const near = this.enemies().filter((e) => e.d <= Math.max(10, skill.range + 2)).sort((a, b) => a.d - b.d)[0];
       if (near) { this.setTarget({ kind: near.kind, id: near.id }); t = this.target; }
     }
     if (needsTarget && !t) { this.say(ERRORS.no_target, "#ffd77a"); return; }
-    if (t && wantsTarget) {
-      const u = this.unitOf(t.id)!;
-      const d = Math.hypot(u.worldX - this.player.worldX, u.worldY - this.player.worldY);
-      if (d > skill.range + 0.6) {
+    if (t && approach) {
+      const u = this.unitOf(t.id);
+      const d = u ? Math.hypot(u.worldX - this.player.worldX, u.worldY - this.player.worldY) : 0;
+      if (u && d > castReach(skill, 0.6)) {
         this.pendingCast = { skill };
         this.walkTo(u.worldX, u.worldY);
         return;
       }
     }
     this.pendingCast = null;
+    if (t && approach) this.moveTarget = null;   // in reach: stop here instead of walking into the monster
+    // global cooldown (not for the basic attack): wait quietly and go off as soon as it ends
+    if (!skill.basic && this.time.now < this.gcdUntil) {
+      this.queuedCast = { skill, until: this.gcdUntil + 1500 };
+      return;
+    }
+    if (!skill.basic) this.gcdUntil = this.time.now + GCD_MS;
     if (t && wantsTarget) {
       socket.sendSkill(skill.id, t.id);
     } else if (skill.kind === "blink" || skill.kind === "aoe_target" || skill.kind === "line") {
@@ -1873,6 +1900,15 @@ export class GameScene extends Phaser.Scene {
     socket.on("level_up", (m) => this.onLevelUp(m));
     socket.on("skill_error", (m) => {
       const err = m.error as string;
+      if (err === "gcd") {
+        // a short pause before the skill is tried again (it never went off, so it keeps no long cooldown)
+        const retry = this.time.now + 300;
+        this.cdUntil.set(m.skill_id as string, retry);
+        this.gcdUntil = Math.max(this.gcdUntil, retry);
+        const def = skillById(m.skill_id as string);   // a key pressed by hand is not lost
+        if (def && !this.queuedCast) this.queuedCast = { skill: def, until: retry + 1500 };
+        return;
+      }
       if (err === "too_far") {
         // the target moved away: walk after it; if it already died, there is nothing to say
         const def = skillById(m.skill_id as string);
@@ -1995,6 +2031,7 @@ export class GameScene extends Phaser.Scene {
     if (!caster || !def) return;
     if (own) {
       this.cdUntil.set(def.id, this.time.now + def.cd);
+      if (!def.basic) this.gcdUntil = Math.max(this.gcdUntil, this.time.now + GCD_MS); // the server's started a bit earlier
       this.events.emit("skill_cast", def.id);
     }
     const blink = m.blink as { x: number; y: number } | undefined;
@@ -2362,13 +2399,18 @@ export class GameScene extends Phaser.Scene {
     if (this.pendingCast && this.target) {
       const u = this.unitOf(this.target.id);
       if (!u || u.dead) this.pendingCast = null;
-      else if (Math.hypot(u.worldX - p.worldX, u.worldY - p.worldY) <= this.pendingCast.skill.range + 0.3) {
+      else if (Math.hypot(u.worldX - p.worldX, u.worldY - p.worldY) <= castReach(this.pendingCast.skill, 0.3)) {
         this.moveTarget = null;
         this.sendPos(true);
         this.tryCast(this.pendingCast.skill);
       } else {
         this.moveTarget = { x: u.worldX, y: u.worldY };
       }
+    }
+    if (this.queuedCast && this.time.now >= this.gcdUntil) {
+      const q = this.queuedCast;
+      this.queuedCast = null;
+      if (this.time.now < q.until && !this.isDead && (this.cdUntil.get(q.skill.id) ?? 0) <= this.time.now) this.tryCast(q.skill);
     }
     if (this.pendingMine) {
       const v = this.veins.get(this.pendingMine);

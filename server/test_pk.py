@@ -24,6 +24,7 @@ def _place(h: Hero, x: float, y: float) -> None:
 
 async def _hit(game: Game, attacker: Hero, sid: str, target: Hero | None) -> str | None:
     attacker.cooldowns.clear()
+    attacker.gcd_until = 0.0  # back-to-back skills: skip the global cooldown
     attacker.mp = attacker.max_mp
     if target:
         return await game.use_skill(attacker, sid, target.char_id, None, None)

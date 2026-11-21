@@ -93,13 +93,20 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
   `blink`; `lvl` = nível para liberar).
 - `tx, ty` = ponto mirado (skills de área/linha). Pode mandar a posição do alvo.
 - O cliente controla só a **recarga visual**; o servidor recusa se não puder.
+- **Recarga global**: depois de qualquer skill que não seja o ataque básico, o herói espera **0,9 s** antes da
+  próxima skill (o servidor perdoa 0,1 s por causa da rede). O ataque básico tem só a recarga dele. O cliente
+  também espera os 0,9 s (Auto-Farm e teclas); uma tecla apertada nesse tempo sai quando a recarga global acaba.
+- **Alcance**: golpes que precisam encostar (`melee`, `dash`, `aoe_self` e skills com `range` < 3) valem até
+  `range + 0,4` tiles; tiros e magias à distância, até `range + 0,9`. O cliente anda até `range − 0,2` antes de
+  um golpe corpo a corpo.
+- `taunt` (segundos) numa skill: os monstros atingidos passam a perseguir quem usou, por esse tempo.
 
 **Recebe**:
 
 | Mensagem | Campos | O que fazer |
 |---|---|---|
 | `skill_used` | `char_id, skill_id, x, y, tx, ty, target, hits[], splash[]` | Tocar a animação/efeito da skill de quem usou |
-| `skill_error` | `skill_id, error` (`safe_zone`, `on_cooldown`, `not_enough_mp`, `too_far`, `no_target`, `locked`, `stunned`, `dead`, `unavailable`, `unknown`) | Mostrar motivo curto (os textos do navegador estão em `ERRORS` no `GameScene.ts`) |
+| `skill_error` | `skill_id, error` (`safe_zone`, `on_cooldown`, `gcd`, `not_enough_mp`, `too_far`, `no_target`, `locked`, `stunned`, `dead`, `unavailable`, `unknown`) | Mostrar motivo curto (os textos do navegador estão em `ERRORS` no `GameScene.ts`). `gcd` = a recarga global ainda corria no servidor: **não mostrar nada**, só tentar de novo depois de ~0,3 s |
 | `mob_damaged` | `mob_id, damage, hp_remaining, by, crit, dot?` (`by` = char_id de quem bateu) + se morreu: `killed: true, def_id, exp, level, boss` | Número de dano, barra de vida; `killed` → animação de morte e remover |
 | `damage` | `target_id, damage, crit, hp_remaining, mp_remaining, max_hp, source, dodge?, killed?, killer_name?, respawn_in?` | Dano num **jogador** (o seu ou outro). `killed` no seu herói → tela "Você morreu" |
 | `boss_warn` / `boss_slam` | `boss_warn: mob_id, x, y, radius, delay` | `boss_warn` = círculo vermelho no chão antes do golpe forte; `boss_slam` = o golpe |
