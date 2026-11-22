@@ -698,7 +698,7 @@ async def game_ws(ws: WebSocket, character_id: str):
 
     await manager.connect(ws, char.id, char.name, map_id, x, y,
                           info={"cls": hero.cls, "gender": hero.gender, "level": hero.level, "pk": hero.pk_status(), "title": hero.title, "aura": hero.cosmetics["aura"], "pet": hero.cosmetics["pet"], "mount": hero.cosmetics["mount"],
-                                "skin": hero.cosmetics["skin"],
+                                "skin": hero.cosmetics["skin"], "look": hero.look,
                                 "guild": game.guild_name(hero.char_id), "hp": int(hero.hp), "max_hp": int(hero.max_hp)})
     await game.join(hero, x, y)
     if daily:

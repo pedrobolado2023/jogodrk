@@ -64,7 +64,7 @@ async def run_all() -> None:
     for _ in range(400):
         drops = inv.roll_loot("lich_king", "grand_sorcerer")
         assert "staff_t6" in drops
-        extra += any(inv.ITEMS[d].get("tier") == 5 for d in drops)
+        extra += any(inv.ITEMS[d].get("tier") == 5 and not inv.ITEMS[d].get("set") for d in drops)  # set drops: test_sets
         assert "ring_witch" not in drops
         assert inv.pool_item(5, "blade_master") != "ring_witch"
     assert 10 <= extra <= 90, extra  # ~10% of 400

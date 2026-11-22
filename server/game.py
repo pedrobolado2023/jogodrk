@@ -194,6 +194,33 @@ class Hero:
         """Extra damage of a critical hit over a normal one: +50% base, more from agility, gear and refining (no cap)."""
         return 0.5 + self.stat("agi") * 0.001 + self.mod("crit_dmg") + inv.gear_bonus(self.gear, "crit_dmg")
 
+    @property
+    def look(self) -> dict[str, str]:
+        """What the Unreal client draws on the hero, per visible slot (items.LOOK_SLOTS): the skin the hero chose for
+        that slot (cosmetics["looks"], only looks already collected) or else the look of the piece worn there.
+        A slot with no look is left out (the client draws the class's default)."""
+        chosen = self.cosmetics.get("looks") or {}
+        owned = set(self.cosmetics.get("looks_owned") or [])
+        out: dict[str, str] = {}
+        for slot in inv.LOOK_SLOTS:
+            skin = chosen.get(slot)
+            worn = inv.ITEMS.get(inv.item_id(self.gear[slot]), {}).get("look") if self.gear.get(slot) else None
+            if skin and skin in owned:
+                out[slot] = skin
+            elif worn:
+                out[slot] = worn
+        return out
+
+    def collect_looks(self) -> bool:
+        """Every look worn once stays in the hero's collection (cosmetics["looks_owned"]); True when one was added."""
+        owned = self.cosmetics.setdefault("looks_owned", [])
+        added = False
+        for v in self.gear.values():
+            lk = inv.ITEMS.get(inv.item_id(v), {}).get("look")
+            if lk and lk not in owned:
+                owned.append(lk); added = True
+        return added
+
     def public(self) -> dict[str, Any]:
         return {
             "char_id": self.char_id, "name": self.name, "cls": self.cls, "gender": self.gender, "level": self.level,
@@ -205,6 +232,7 @@ class Hero:
             "atk": int(self.atk), "def": self.defense, "crit": round(self.crit, 3), "crit_dmg": round(self.crit_dmg, 3), "dodge": round(self.dodge, 3),
             "str": self.stat("str"), "agi": self.stat("agi"), "int": self.stat("int"), "vit": self.stat("vit"),
             "speed": self.mod("speed"), "buffs": [b.id for b in self.buffs if b.until > time.monotonic()],
+            "look": self.look, "sets": inv.set_counts(self.gear),
             "story": self.story, "loot": self.loot, "found": self.found, "pvp": {"kills": self.pvp_kills, "deaths": self.pvp_deaths},
             "pk": {"status": self.pk_status(), "red_left": int(self.red_left), "kills": self.pk_kills,
                    "aggressor_left": max(0, int(self.aggressor_until - time.monotonic()))},
@@ -1577,10 +1605,21 @@ class Game:
 
     async def after_inventory(self, hero: Hero, stats: bool = False) -> None:
         if stats:
+            await self.sync_look(hero)
             hero.hp, hero.mp = min(hero.hp, hero.max_hp), min(hero.mp, hero.max_mp)
             await self.push_hero(hero)
         await self.push_inventory(hero)
         await self.save_hero(hero)
+
+    async def sync_look(self, hero: Hero) -> None:
+        """Gear or skin changed: collect new looks and tell the map when what the hero looks like changed
+        (new message "look" {char_id, look}; the session info keeps it for heroes who arrive later)."""
+        hero.collect_looks()
+        look = hero.look
+        s = manager.sessions.get(hero.char_id)
+        if s and s.info.get("look") != look:
+            s.info["look"] = look
+            await self.to_map(hero.map_id, {"type": "look", "char_id": hero.char_id, "look": look})
 
     # ── PK (open-world player kills) ─────────────────────────────────────
 

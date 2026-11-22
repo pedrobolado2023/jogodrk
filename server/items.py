@@ -297,6 +297,118 @@ SHOPS: dict[str, list[str]] = {
 
 STARTER_WEAPON = {"blade_master": "sword_t1", "grand_sorcerer": "staff_t1", "night_ranger": "bow_t1"}
 
+# ── Sets (Raro → Épico) ──────────────────────────────────────────────
+# One set = one class + one level band + one rarity. Wearing several pieces of the same set adds percent bonuses
+# (set_bonus); each visible piece names a "look", the model the Unreal client draws on the hero (Hero.look).
+# Set pieces never come from the random tier pools: they drop from the mobs listed in SET_DROPS (a random piece of
+# the set for the killer's class). Plan: docs/ITENS_SETS_E_JOGABILIDADE.md in the Unreal repository.
+LOOK_SLOTS = ("weapon", "armor", "legs", "boots")   # pieces with a model on the hero (rings and necklaces have none)
+SET_SLOTS = {"raro": ("weapon", "armor", "legs", "boots"),
+             "epico": ("weapon", "armor", "legs", "boots", "ring", "necklace")}
+_CLASS_KIT = {"blade_master": ("sword", "Espada", "plate", "Peitoral"),
+              "grand_sorcerer": ("staff", "Cajado", "robe", "Manto"),
+              "night_ranger": ("bow", "Arco", "leather", "Couraça")}
+SETS: dict[str, dict[str, Any]] = {
+    "set_vigil_iron": {"name": "Vigília de Ferro", "of": "da Vigília", "rarity": "raro", "cls": "blade_master",
+                       "lvl": 10, "tier": 3, "look": "vigil_iron",
+                       "bonus": {2: {"def_pct": 0.06}, 4: {"max_hp_pct": 0.08, "atk_pct": 0.05}}},
+    "set_rune_circle": {"name": "Círculo Rúnico", "of": "do Círculo Rúnico", "rarity": "raro", "cls": "grand_sorcerer",
+                        "lvl": 10, "tier": 3, "look": "rune_circle",
+                        "bonus": {2: {"max_mp_pct": 0.08}, 4: {"atk_pct": 0.08, "crit": 0.03}}},
+    "set_grove_shadow": {"name": "Sombra do Bosque", "of": "da Sombra do Bosque", "rarity": "raro", "cls": "night_ranger",
+                         "lvl": 10, "tier": 3, "look": "grove_shadow",
+                         "bonus": {2: {"dodge": 0.03}, 4: {"atk_pct": 0.06, "crit": 0.04}}},
+    "set_winter_oath": {"name": "Juramento do Inverno", "of": "do Juramento", "rarity": "epico", "cls": "blade_master",
+                        "lvl": 20, "tier": 5, "look": "winter_oath",
+                        "bonus": {2: {"def_pct": 0.08}, 4: {"max_hp_pct": 0.10, "atk_pct": 0.06},
+                                  6: {"atk_pct": 0.10, "crit_dmg": 0.15}}},
+    "set_frost_crown": {"name": "Coroa da Geada", "of": "da Coroa Gélida", "rarity": "epico", "cls": "grand_sorcerer",
+                        "lvl": 20, "tier": 5, "look": "frost_crown",
+                        "bonus": {2: {"max_mp_pct": 0.10}, 4: {"atk_pct": 0.08, "crit": 0.03},
+                                  6: {"atk_pct": 0.12, "crit_dmg": 0.20}}},
+    "set_blizzard_howl": {"name": "Uivo da Nevasca", "of": "do Uivo", "rarity": "epico", "cls": "night_ranger",
+                          "lvl": 20, "tier": 5, "look": "blizzard_howl",
+                          "bonus": {2: {"dodge": 0.04}, 4: {"atk_pct": 0.07, "crit": 0.04},
+                                    6: {"atk_pct": 0.10, "crit_dmg": 0.25}}},
+}
+SET_STAT_MULT = 1.1   # a set piece is a little stronger than the tier piece it is based on, before the set bonus
+
+
+def _set_base(cls: str, slot: str, rarity: str) -> dict[str, Any]:
+    """The catalog piece a set piece copies its stats from: the tier-3 (Raro) or tier-5 (Épico) piece of that slot;
+    the Épico weapon is the tier-6 boss weapon scaled down to level 20 (there is no tier-5 weapon)."""
+    weapon, _, armor, _ = _CLASS_KIT[cls]
+    t = 3 if rarity == "raro" else 5
+    if slot == "weapon":
+        if rarity == "raro":
+            return ITEMS[f"{weapon}_t3"]
+        w = ITEMS[f"{weapon}_t6"]
+        return w | {"stats": _scaled(w["stats"], 20 / 24), "sell": int(w["sell"] * 20 / 24 * 0.6)}
+    if slot == "armor":
+        return ITEMS[f"{armor}_t{t}"]
+    if slot in ("legs", "boots"):
+        return ITEMS[f"{armor}_{slot}_t{t}"]
+    return ITEMS[("ring" if slot == "ring" else "amulet") + "_t5"]
+
+
+for _sid, _set in SETS.items():
+    _weapon, _wname, _kind, _aname = _CLASS_KIT[_set["cls"]]
+    _set["pieces"] = {}
+    for _slot in SET_SLOTS[_set["rarity"]]:
+        _base = _set_base(_set["cls"], _slot, _set["rarity"])
+        _label = {"weapon": _wname, "armor": _aname, "legs": LEG_NAMES[_kind], "boots": BOOT_NAMES[_kind],
+                  "ring": "Anel", "necklace": "Amuleto"}[_slot]
+        _icon = {"weapon": _weapon, "armor": _kind, "legs": f"legs_{_kind}", "boots": f"boots_{_kind}",
+                 "ring": "ring", "necklace": "amulet"}[_slot]
+        _iid = f"{_set['look']}_{_slot}"
+        _stats = {k: (round(v * SET_STAT_MULT, 3) if k in FRACTION_STATS else int(round(v * SET_STAT_MULT)))
+                  for k, v in _base["stats"].items()}
+        ITEMS[_iid] = _gear(f"{_label} {_set['of']}", _slot, _icon, _set["rarity"], _set["lvl"], _set["tier"], _stats,
+                            sell=int(_base["sell"] * 1.3) or 50, cls=[_set["cls"]]) | {"set": _sid}
+        if _slot in LOOK_SLOTS:
+            ITEMS[_iid]["look"] = _set["look"]
+        _set["pieces"][_slot] = _iid
+
+# where the set pieces drop: mob -> [(set rarity, chance per kill)]; the piece is a random one of the killer's set
+SET_DROPS: dict[str, list[tuple[str, float]]] = {
+    "skeleton": [("raro", 0.012)], "swamp_ghoul": [("raro", 0.012)], "bog_mutant": [("raro", 0.015)],
+    "death_knight": [("raro", 0.35)], "swamp_witch": [("raro", 0.5)],
+    "frost_wolf": [("epico", 0.006)], "frost_sentinel": [("epico", 0.008)], "ice_troll": [("epico", 0.012)],
+    "lich_king": [("epico", 0.4)],
+}
+
+
+def class_set(cls: str, rarity: str) -> str | None:
+    return next((k for k, v in SETS.items() if v["cls"] == cls and v["rarity"] == rarity), None)
+
+
+def set_piece(cls: str, rarity: str) -> str | None:
+    """A random piece of the class's set of that rarity (None when the class has no such set)."""
+    sid = class_set(cls, rarity)
+    return random.choice(list(SETS[sid]["pieces"].values())) if sid else None
+
+
+def set_counts(gear: dict[str, Any]) -> dict[str, int]:
+    """How many pieces of each set are worn."""
+    out: dict[str, int] = {}
+    for v in gear.values():
+        sid = ITEMS.get(item_id(v), {}).get("set")
+        if sid:
+            out[sid] = out.get(sid, 0) + 1
+    return out
+
+
+def set_bonus(gear: dict[str, Any]) -> dict[str, float]:
+    """Sum of the active set bonuses (every threshold reached: 2, 4 and 6 pieces)."""
+    out: dict[str, float] = {}
+    for sid, n in set_counts(gear).items():
+        for need, fx in SETS[sid]["bonus"].items():
+            if n >= need:
+                for k, val in fx.items():
+                    out[k] = out.get(k, 0.0) + val
+    return out
+
+
 # loot names saved by the old system → item ids
 LEGACY_LOOT = {"Pele de Lobo": "wolf_pelt", "Orelha de Goblin": "goblin_ear", "Casca Ancestral": "ancient_bark",
                "Fragmento de Osso": "bone_shard", "Lâmina de Vorthas": "sword_t4"}
@@ -327,8 +439,9 @@ def migrate_legacy(cls: str, loot: dict[str, int]) -> tuple[list[dict[str, Any]]
 
 def pool_item(tier: int, cls: str) -> str | None:
     """A random gear piece of `tier`; usually (boss weapon tiers 4 and 6: always) one the class can use.
-    Unique pieces (a boss's signature item) never come from pools."""
-    pool = [k for k, v in ITEMS.items() if v["type"] == "gear" and v["tier"] == tier and not v.get("unique")]
+    Unique pieces (a boss's signature item) and set pieces never come from pools."""
+    pool = [k for k, v in ITEMS.items() if v["type"] == "gear" and v["tier"] == tier and not v.get("unique")
+            and not v.get("set")]
     own = [k for k in pool if usable_by(k, cls)]
     pick = own if own and (tier in (4, 6) or random.random() < 0.7) else pool
     return random.choice(pick) if pick else None
@@ -366,6 +479,11 @@ def roll_loot(mob_def: str, cls: str, level: int = 1, boss: bool = False) -> lis
             item = pool_item(entry["pool"], cls)
         if item:
             out.append(item)
+    for rarity, rate in SET_DROPS.get(mob_def, []):
+        if random.random() < rate:
+            item = set_piece(cls, rarity)
+            if item:
+                out.append(item)
     return out
 
 
@@ -413,8 +531,8 @@ def gear_bonus(gear: dict[str, Any], key: str) -> float:
 
 
 def gear_mod(gear: dict[str, Any], key: str) -> float:
-    """Percent-style bonus (atk_pct, dodge, …) from the refinement lines of equipped gear."""
-    return sum(piece(v)["ref"].get(key, 0.0) for v in gear.values() if item_id(v) in ITEMS)
+    """Percent-style bonus (atk_pct, dodge, …) from the refinement lines of equipped gear and the active set bonuses."""
+    return set_bonus(gear).get(key, 0.0) + sum(piece(v)["ref"].get(key, 0.0) for v in gear.values() if item_id(v) in ITEMS)
 
 
 # how much each potion heals, as first written above (the admin panel can change it while the game runs)
@@ -549,4 +667,5 @@ def clean(bag: Any, gear: Any) -> tuple[list[dict[str, Any]], dict[str, dict[str
 def catalog() -> dict[str, Any]:
     import forge
     return {"items": ITEMS, "rarity": RARITY, "bag_slots": BAG_SLOTS, "upgrade_step": UPGRADE_STEP, "forge": forge.info(),
-            "score_weights": SCORE_WEIGHTS, "ref_weight": REF_WEIGHT}
+            "score_weights": SCORE_WEIGHTS, "ref_weight": REF_WEIGHT,
+            "sets": SETS, "look_slots": LOOK_SLOTS}

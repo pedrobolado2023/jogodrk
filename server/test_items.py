@@ -88,7 +88,7 @@ async def run_all() -> None:
     assert inv.GEAR_SLOTS == ("weapon", "armor", "legs", "boots", "ring", "necklace")
     gear_items = [v for v in inv.ITEMS.values() if v["type"] == "gear"]
     assert {v["slot"] for v in gear_items} == set(inv.GEAR_SLOTS)
-    for chest in [k for k, v in inv.ITEMS.items() if v.get("slot") == "armor"]:
+    for chest in [k for k, v in inv.ITEMS.items() if v.get("slot") == "armor" and not v.get("set")]:  # sets: own pieces
         kind, tier = inv.ITEMS[chest]["icon"], inv.ITEMS[chest]["tier"]
         for slot in ("legs", "boots"):
             piece = inv.ITEMS[f"{kind}_{slot}_t{tier}"]

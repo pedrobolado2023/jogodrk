@@ -55,7 +55,7 @@ Erros vêm como `{"detail": "texto em português"}` — mostre o texto ao jogado
 |---|---|---|
 | `welcome` | campos do `map_info` (abaixo) + `hero` (estado do herói, ver 3.4) + `x`, `y` | Carregar o mapa `map_id`, pôr o herói em `x, y` |
 | `inventory` | `bag`, `gear`, ... | Guardar (telas vêm depois) |
-| `nearby_snapshot` | `players: [{char_id, name, x, y, cls, level, title, aura, pet, mount, skin, guild, pk, hp, max_hp}]` | Criar os outros jogadores que estão perto |
+| `nearby_snapshot` | `players: [{char_id, name, x, y, cls, level, title, aura, pet, mount, skin, look, guild, pk, hp, max_hp}]` | Criar os outros jogadores que estão perto |
 | `mob_spawn` (vários) | `id, def_id, name, level, boss, x, y, hp, max_hp` | Criar cada monstro (`def_id` → modelo, ver `/meta` `mobs`) |
 | `daynight`, `invasion`, `tourney`, `tutorial`, `login_cal`, `achievements`, `wb_status`, ... | | Podem ser ignoradas na etapa 1 |
 
@@ -155,6 +155,13 @@ Todos já funcionam no servidor; basta mandar/receber:
   cost}], links[[a, b]]}`; `teleport {map}` → `map_change` ou `notice`.
 - **Visual**: `set_title`, `set_aura`, `set_pet`, `set_mount`, `set_skin`, `toggle_mount` → `title`, `aura`, `pet`,
   `mount`, `skin`.
+- **Sets e visual do equipamento** (novo): `look {char_id, look{weapon?, armor?, legs?, boots?}}` chega ao mapa
+  quando o que um herói veste muda (equipar, desequipar, skin). Cada valor é a chave de um visual de set
+  (ex.: `"winter_oath"`); um espaço ausente usa o padrão da classe. O mesmo `look` vem em `nearby_snapshot` /
+  `player_join` (campo `look`) e em `hero.look`. `hero.sets {set_id: peças vestidas}` mostra o progresso do set.
+  Dados: `/meta` `sets {id: {name, rarity, cls, lvl, tier, look, pieces{slot: item_id}, bonus{"2"|"4"|"6": {...}}}}`
+  e `look_slots`; cada peça de set em `/meta` `items` tem `set` e, se aparece no herói, `look`.
+  Skin: `hero.cosmetics.looks {slot: look}` (escolha) e `looks_owned` (coleção, ganha ao vestir a peça uma vez).
 - **Passe e loja de gemas**: `pass_claim`, `pass_claim_all`, `shop_buy` → `season`, `shop`.
 - **Progresso**: `login_claim` → `login_cal`; `ranking` → `ranking`; recebe `tutorial`, `achievements`,
   `achievement`, `discovered`, `daynight`, `invasion`, `map_safe`.
