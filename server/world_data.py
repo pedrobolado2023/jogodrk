@@ -535,15 +535,25 @@ MOB_HP_MULT = 1.25
 MOB_ATK_MULT = 2.0
 
 
+def _ramp(level: int, start: int, span: int) -> float:
+    return min(1.0, max(0.0, (level - start) / span))
+
+
 def mob_atk_mult(level: int) -> float:
-    """The doubled attack comes in gradually: x1 up to level 5 (a new hero must survive the first packs), x2 from 15."""
-    return 1.0 + (MOB_ATK_MULT - 1.0) * min(1.0, max(0.0, (level - 5) / 10))
+    """A gentle start, then the doubled attack: x0.5 up to level 3 (a level-1 hero met by a whole pack of 4 wolves died
+    in ~12 s and needed ~20 s to win), back to x1 at level 6, then rising to x2 by level 15."""
+    return (0.5 + 0.5 * _ramp(level, 3, 3)) * (1.0 + (MOB_ATK_MULT - 1.0) * _ramp(level, 5, 10))
+
+
+def mob_hp_mult(level: int) -> float:
+    """The extra monster HP (MOB_HP_MULT) also comes in from level 3 to 6, so the first packs fall faster."""
+    return 1.0 + (MOB_HP_MULT - 1.0) * _ramp(level, 3, 3)
 
 # Monster HP, attack and boss slams by the power of their level (the unscaled HP stays in base_hp)
 for _d in MOBS.values():
     _k = power(_d["level"])
     _d["base_hp"] = _d["hp"]
-    _d["hp"] = int(_d["hp"] * _k * (1.0 if _d.get("boss") else MOB_HP_MULT))
+    _d["hp"] = int(_d["hp"] * _k * (1.0 if _d.get("boss") else mob_hp_mult(_d["level"])))
     _d["atk"] = int(_d["atk"] * _k * mob_atk_mult(_d["level"]))
     if _d.get("slam"):
         _d["slam"] = {**_d["slam"], "damage": int(_d["slam"]["damage"] * _k)}
